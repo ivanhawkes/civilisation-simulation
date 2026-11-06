@@ -1,0 +1,64 @@
+---
+item-base:
+
+# Minerals
+  - item: &itemSalt
+      <<: *categoryMinerals
+      <<: *ironAge
+      uniqueId:  Salt
+      displayName: Salt
+      description: Sodium chloride (halite)
+      unitsPerCubicMetre: 100
+      basePrice: 100
+      unitType: Kilolitre
+      density: 2.16
+      packFactor: 1.0
+
+  - item: &itemLime
+      <<: *categoryMinerals
+      <<: *ironAge
+      uniqueId:  Lime
+      displayName: Lime
+      description: Baked and crushed limestone
+      unitsPerCubicMetre: 1
+      basePrice: 100
+      unitType: Kilolitre
+      density: 0.7
+      packFactor: 1.0
+
+  - item: &itemGraphite
+      <<: *categoryMinerals
+      <<: *industrialAge
+      uniqueId:  Graphite
+      displayName: Graphite
+      description: Graphite
+      unitsPerCubicMetre: 1000
+      basePrice: 1000
+      unitType: SquareMetre
+      density: 2.3
+      packFactor: 1.0
+
+  - item: &itemPotash
+      <<: *categoryMinerals
+      <<: *ironAge
+      uniqueId:  Potash
+      displayName: Potash
+      description: Potash
+      unitsPerCubicMetre: 1
+      basePrice: 0
+      unitType: Kilolitre
+      density: 1.75
+      packFactor: 1.0
+
+  - item: &itemNatron
+      <<: *categoryMinerals
+      <<: *ironAge
+      uniqueId:  Natron
+      displayName: Natron
+      description: Natron
+      unitsPerCubicMetre: 1
+      basePrice: 100
+      unitType: Kilolitre
+      density: 2.25
+      packFactor: 1.0
+...

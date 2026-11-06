@@ -1,0 +1,89 @@
+---
+ages-base:
+  - age: &stoneAge
+      uniqueId: StoneAge
+      displayName: Stone Age
+  - age: &copperAge
+      uniqueId: CopperAge
+      displayName: Copper Age
+  - age: &bronzeAge
+      uniqueId: BronzeAge
+      displayName: Bronze Age
+  - age: &ironAge
+      uniqueId: IronAge
+      displayName: Iron Age
+  - age: &classicalAge
+      uniqueId: ClassicalAge
+      displayName: Classical Age
+  - age: &medievalAge
+      uniqueId: MedievalAge
+      displayName: Medieval Age
+  - age: &preIndustrialAge
+      uniqueId: Pre-industrialAge
+      displayName: Pre-industrial Age
+  - age: &industrialAge
+      uniqueId: IndustrialAge
+      displayName: Industrial Age
+  - age: &postIndustrialAge
+      uniqueId: Post-industrialAge
+      displayName: Post-industrial Age
+  - age: &informationAge
+      uniqueId: InformationAge
+      displayName: Information Age
+  - age: &aiAge
+      uniqueId: AIAge
+      displayName: AI Age
+  - age: &spaceAge
+      uniqueId: SpaceAge
+      displayName: Space Age
+  - age: &spaceColonisationAge
+      uniqueId: SpaceColonisationAge
+      displayName: Space Colonisation Age
+  - age: &sublimationAge
+      uniqueId: SublimationAge
+      displayName: Sublimation Age
+
+ages:
+  - age:
+      <<: *stoneAge
+      description: Stone age
+  - age:
+      <<: *copperAge
+      description: Copper Age
+  - age:
+      <<: *bronzeAge
+      description: Bronze Age
+  - age:
+      <<: *ironAge
+      description: Iron Age
+  - age:
+      <<: *classicalAge
+      description: Classical Age
+  - age:
+      <<: *medievalAge
+      description: Medieval Age
+  - age:
+      <<: *preIndustrialAge
+      description: Pre-industrial Age
+  - age:
+      <<: *industrialAge
+      description: Industrial Age
+  - age:
+      <<: *postIndustrialAge
+      description: Post-industrial Age
+  - age:
+      <<: *informationAge
+      description: Information Age
+  - age:
+      <<: *aiAge
+      description: AI Age
+  - age:
+      <<: *spaceAge
+      description: Space Age
+  - age:
+      <<: *spaceColonisationAge
+      description: Space Colonisation Age
+  - age:
+      <<: *sublimationAge
+      description: Nothingness
+...

@@ -1,68 +1,24 @@
-# Prerequisites
-*.d
+# CMake
+/build/
+/cmake-build-*/
+/CMakeFiles/
+/CMakeCache.txt
+/Testing/
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# Unreal-generated files
+/Binaries/
+/Intermediate/
+/Saved/
+/DerivedDataCache/
 
-# Precompiled Headers
-*.gch
-*.pch
+# Vendored yaml-cpp checkout (created by Scripts/FetchYamlCpp.sh)
+/Source/YamlCpp/Private/ThirdParty/yaml-cpp/
 
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-*.so.*
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Build directories
-build/
-Build/
-build-*/
-
-# CMake generated files
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile
-install_manifest.txt
-compile_commands.json
-
-# Temporary files
-*.tmp
-*.log
-*.bak
+# Editor/OS
+.idea/
+.vscode/
 *.swp
+.DS_Store
 
-# vcpkg
-vcpkg_installed/
-
-# debug information files
-*.dwo
-
-# test output & cache
-Testing/
-.cache/
+# Devenv
+.devenv

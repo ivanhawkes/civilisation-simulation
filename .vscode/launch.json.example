@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug CivSimCoreTests",
+            "type": "gdb",
+            "request": "launch",
+            "target": "${workspaceFolder}/build/CivSimCoreTests",
+            "arguments": "${workspaceFolder}/data/generated/complete.yaml",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "CMake: build",
+            "gdbpath": "${workspaceFolder}/.devenv/profile/bin/gdb",
+            "valuesFormatting": "prettyPrinters"
+        }
+    ]
+}

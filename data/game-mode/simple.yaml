@@ -1,0 +1,79 @@
+---
+# Simple version of the game
+skills:
+  - skill:
+      <<: *skillMining
+  - skill:
+      <<: *skillSmelting
+  - skill:
+      <<: *skillLumber
+  - skill:
+      <<: *skillHerbalism
+  - skill:
+      <<: *skillAgriculture
+  - skill:
+      <<: *skillAnimalHusbandry
+  - skill:
+      <<: *skillAnimalProcessing
+  - skill:
+      <<: *skillFoodProcessing
+  - skill:
+      <<: *skillKilnMaterials
+  - skill:
+      <<: *skillChemicalManufacturing
+  - skill:
+      <<: *skillMetalworking
+  - skill:
+      <<: *skillPublishing
+  - skill:
+      <<: *skillPharmaceuticals
+  - skill:
+      <<: *skillResearch
+  - skill:
+      <<: *skillTextiles
+  - skill:
+      <<: *skillPolymers
+  - skill:
+      <<: *skillFuelRefining
+
+items:
+
+  # Metals
+  - item:
+      <<: *itemGold
+  - item:
+      <<: *itemSilver
+  - item:
+      <<: *itemCopper
+
+  # Minerals
+  - item:
+      <<: *itemSalt
+  - item:
+      <<: *itemLime
+  - item:
+      <<: *itemPotash
+  
+  # Chemicals
+  - item:
+      <<: *itemNitrogen
+  - item:
+      <<: *itemPhosphorus
+  - item:
+      <<: *itemPotassium
+
+  # Comforts
+  - item:
+      <<: *itemFurs
+  - item:
+      <<: *itemGlassware
+  - item:
+      <<: *itemSoap
+  
+  # Medicine
+  - item:
+      <<: *itemAntibiotics
+  - item:
+      <<: *itemAnesthetics
+  - item:
+      <<: *itemAnalgesics

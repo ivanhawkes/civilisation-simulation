@@ -1,0 +1,205 @@
+---
+skill-base:
+  - skill: &skillMining
+      uniqueId: Mining
+      displayName: Mining
+      description: Extracts resources from the environment
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -10.0
+      gridY: 0.0
+
+  - skill: &skillSmelting
+      uniqueId: Smelting
+      displayName: Smelting
+      description: Processes ores into usable metals
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -9.0
+      gridY: 0.0
+
+  - skill: &skillLumber
+      uniqueId: Lumber
+      displayName: Lumber
+      description: Gathers wood from the environment
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -8.0
+      gridY: 0.0
+
+  - skill: &skillHerbalism
+      uniqueId: Herbalism
+      displayName: Herbalism
+      description: Gathers herbs from the environment
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -7.0
+      gridY: 0.0
+
+  - skill: &skillAgriculture
+      uniqueId: Agriculture
+      displayName: Agriculture
+      description: Cultivates crops from the environment
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -6.0
+      gridY: 0.0
+
+  - skill: &skillAnimalHusbandry
+      uniqueId: AnimalHusbandry
+      displayName: Animal Husbandry
+      description: Raises animals for food and animal products
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -5.0
+      gridY: 0.0
+
+  - skill: &skillAnimalProcessing
+      uniqueId: AnimalProcessing
+      displayName: Animal Processing
+      description: Processes animals into meat, hides, and furs
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -4.0
+      gridY: 0.0
+
+  - skill: &skillFoodProcessing
+      uniqueId: FoodProcessing
+      displayName: Food Processing
+      description: Mills, bakes, brews, and ferments food
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -3.0
+      gridY: 0.0
+
+  - skill: &skillKilnMaterials
+      uniqueId: KilnMaterials
+      displayName: Kiln and Materials Production
+      description: Fires clay and minerals into ceramics, glass, lime, and cement
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -2.0
+      gridY: 0.0
+
+  - skill: &skillChemicalManufacturing
+      uniqueId: ChemicalManufacturing
+      displayName: Chemical Manufacturing
+      description: Processes raw materials into industrial and agricultural chemicals
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -1.0
+      gridY: 0.0
+
+  - skill: &skillMetalworking
+      uniqueId: Metalworking
+      displayName: Metalworking and Fabrication
+      description: Alloys, casts, forges, and fabricates metal goods
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: 0.0
+      gridY: 0.0
+
+  - skill: &skillPublishing
+      uniqueId: Publishing
+      displayName: Papermaking and Publishing
+      description: Produces writing materials, ink, books, and scrolls
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: 1.0
+      gridY: 0.0
+
+  - skill: &skillPharmaceuticals
+      uniqueId: Pharmaceuticals
+      displayName: Pharmaceutical Production
+      description: Produces medicines through chemical and biological processes
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: 2.0
+      gridY: 0.0
+
+  - skill: &skillResearch
+      uniqueId: Research
+      displayName: Research and Education
+      description: Develops and teaches scientific and technical knowledge
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: 3.0
+      gridY: 0.0
+
+  - skill: &skillTextiles
+      uniqueId: Textiles
+      displayName: Textile Production
+      description: Spins and weaves fibers into textiles
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: 4.0
+      gridY: 0.0
+
+  - skill: &skillPolymers
+      uniqueId: Polymers
+      displayName: Polymer Production
+      description: Converts chemical feedstocks into polymer materials
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: 5.0
+      gridY: 0.0
+
+  - skill: &skillFuelRefining
+      uniqueId: FuelRefining
+      displayName: Fuel Refining
+      description: Refines energy resources into usable fuels
+      nodeType: Skill
+      requires: []
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: 6.0
+      gridY: 0.0

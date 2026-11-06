@@ -1,0 +1,23 @@
+{
+    "FileVersion": 3,
+    "Version": 1,
+    "VersionName": "1.0.0",
+    "FriendlyName": "CivSim Library",
+    "Description": "Cross-platform YAML-backed configuration library for Unreal Engine.",
+    "Category": "Other",
+    "CreatedBy": "CivSim",
+    "CanContainContent": false,
+    "IsBetaVersion": true,
+    "Modules": [
+        {
+            "Name": "YamlCpp",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        },
+        {
+            "Name": "CivSimLibrary",
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        }
+    ]
+}

@@ -1,0 +1,136 @@
+---
+item-base:
+
+# Chemicals
+  - item: &itemSodiumHydroxide
+      <<: *categoryChemicals
+      <<: *ironAge
+      uniqueId: SodiumHydroxide
+      displayName: Sodium Hydroxide
+      description: Sodium Hydroxide, AKA Soda Ash
+      unitsPerCubicMetre: 100
+      basePrice: 2.7518
+      unitType: Kilolitre
+      density: 0.6
+      packFactor: 1.0
+
+  - item: &itemNitrogen
+      <<: *categoryChemicals
+      <<: *industrialAge
+      uniqueId:  Nitrogen
+      displayName: Nitrogen
+      description: Nitrogen (solid)
+      unitsPerCubicMetre: 1
+      basePrice: 100
+      unitType: Kilolitre
+      density: 1.03      
+      packFactor: 1.0
+
+  - item: &itemPhosphorus
+      <<: *categoryChemicals
+      <<: *industrialAge
+      uniqueId:  Phosphorus
+      displayName: Phosphorus
+      description: Phosphorus
+      unitsPerCubicMetre: 1
+      basePrice: 100
+      unitType: Kilolitre
+      density: 1.82      
+      packFactor: 1.0
+
+  - item: &itemSulfur
+      <<: *categoryChemicals
+      <<: *industrialAge
+      uniqueId:  Sulfur
+      displayName: Sulfur
+      description: Sulfur
+      unitsPerCubicMetre: 1
+      basePrice: 100
+      unitType: Kilolitre
+      density: 2.07      
+      packFactor: 1.0
+
+  - item: &itemSulfuricAcid
+      <<: *categoryChemicals
+      <<: *industrialAge
+      uniqueId: SulfuricAcid
+      displayName: Sulfuric Acid
+      description: Sulfuric acid
+      unitsPerCubicMetre: 1
+      basePrice: 100
+      unitType: Kilolitre
+      density: 1.84
+      packFactor: 1.0
+
+  - item: &itemAntimony
+      <<: *categoryChemicals
+      <<: *industrialAge
+      uniqueId:  Antimony
+      displayName: Antimony
+      description: Antimony
+      unitsPerCubicMetre: 1
+      basePrice: 100
+      unitType: Kilolitre
+      density: 6.8      
+      packFactor: 1.0
+
+  - item: &itemChlorine
+      <<: *categoryChemicals
+      <<: *industrialAge
+      uniqueId:  Chlorine
+      displayName: Chlorine
+      description: Chlorine (solid)
+      unitsPerCubicMetre: 1
+      basePrice: 100
+      unitType: Kilolitre
+      density: 2.03   
+      packFactor: 1.0
+
+  - item: &itemAmmonia
+      <<: *categoryChemicals
+      <<: *industrialAge
+      uniqueId:  Ammonia
+      displayName: Ammonia
+      description: Ammonia
+      unitsPerCubicMetre: 1
+      basePrice: 100
+      unitType: Kilolitre
+      density: 0.68    
+      packFactor: 1.0
+
+  - item: &itemEthylene
+      <<: *categoryChemicals
+      <<: *industrialAge
+      uniqueId:  Ethylene
+      displayName: Ethylene
+      description: Ethylene
+      unitsPerCubicMetre: 1
+      basePrice: 100
+      unitType: Kilolitre
+      density: 0.567
+      packFactor: 1.0
+
+  - item: &itemNeodymium
+      <<: *categoryChemicals
+      <<: *postIndustrialAge
+      uniqueId:  Neodymium
+      displayName: Neodymium
+      description: Neodymium
+      unitsPerCubicMetre: 1000
+      basePrice: 2.7518
+      unitType: Kilogram
+      density: 7.0
+      packFactor: 1.0
+
+  - item: &itemGraphene
+      <<: *categoryChemicals
+      <<: *informationAge
+      uniqueId:  Graphene
+      displayName: Graphene
+      description: Graphene
+      unitsPerCubicMetre: 1000
+      basePrice: 1000
+      unitType: SquareMetre
+      density: 2.27
+      packFactor: 1.0
+...

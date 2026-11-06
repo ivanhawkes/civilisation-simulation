@@ -1,0 +1,256 @@
+---
+item-base:
+  
+  # Metals
+  - item: &itemCopper
+      <<: *categoryMetals
+      <<: *copperAge
+      uniqueId:  Copper
+      displayName: Copper
+      description: Copper ingots
+      unitsPerCubicMetre: 1
+      basePrice: 5.6312
+      unitType: Kilogram
+      density: 8.96
+      packFactor: 1.0
+
+  - item: &itemTin
+      <<: *categoryMetals
+      <<: *bronzeAge
+      uniqueId:  Tin
+      displayName: Tin
+      description: Tin ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 33.713
+      unitType: Kilogram
+      density: 7.26
+      packFactor: 1.0
+
+  - item: &itemGold
+      <<: *categoryMetals
+      <<: *bronzeAge
+      uniqueId:  Gold
+      displayName: Gold
+      description: Gold ingots
+      unitsPerCubicMetre: 1
+      basePrice: 1600000
+      unitType: Kilogram
+      density: 19.32
+      packFactor: 1.0
+  
+  - item: &itemBrass
+      <<: *categoryMetals
+      <<: *bronzeAge
+      uniqueId:  Brass
+      displayName: Brass
+      description: Brass ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 33.713
+      unitType: Kilogram
+      density: 8.5
+      packFactor: 1.0
+
+  - item: &itemSilver
+      <<: *categoryMetals
+      <<: *bronzeAge
+      uniqueId:  Silver
+      displayName: Silver
+      description: Silver ingots
+      unitsPerCubicMetre: 1
+      basePrice: 38.206
+      unitType: Kilogram
+      density: 10.5
+      packFactor: 1.0
+
+  - item: &itemBronze
+      <<: *categoryMetals
+      <<: *bronzeAge
+      uniqueId:  Bronze
+      displayName: Bronze
+      description: Bronze ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 33.713
+      unitType: Kilogram
+      density: 8.7
+      packFactor: 1.0
+
+  - item: &itemNickel
+      <<: *categoryMetals
+      <<: *bronzeAge
+      uniqueId:  Nickel
+      displayName: Nickel
+      description: Nickel ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 6.9286
+      unitType: Kilogram
+      density: 8.9
+      packFactor: 1.0
+
+  - item: &itemIron
+      <<: *categoryMetals
+      <<: *ironAge
+      uniqueId:  Iron
+      displayName: Iron
+      description: Iron ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 1.5
+      unitType: Kilogram
+      density: 7.87
+      packFactor: 1.0
+
+  - item: &itemLead
+      <<: *categoryMetals
+      <<: *ironAge
+      uniqueId:  Lead
+      displayName: Lead
+      description: Lead ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 0.9156
+      unitType: Kilogram
+      density: 11.3
+      packFactor: 1.0
+
+  - item: &itemCobalt
+      <<: *categoryMetals
+      <<: *industrialAge
+      uniqueId:  Cobalt
+      displayName: Cobalt
+      description: Cobalt ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 15.121
+      unitType: Kilogram
+      density: 8.86
+      packFactor: 1.0
+
+  - item: &itemLithium
+      <<: *categoryMetals
+      <<: *industrialAge
+      uniqueId:  Lithium
+      displayName: Lithium
+      description: Lithium ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 10.192
+      unitType: Kilogram
+      density: 0.53
+      packFactor: 1.0
+
+  - item: &itemMolybdenum
+      <<: *categoryMetals
+      <<: *industrialAge
+      uniqueId:  Molybdenum
+      displayName: Molybdenum
+      description: Molybdenum ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 29.893
+      unitType: Kilogram
+      density: 10.22
+      packFactor: 1.0
+
+  - item: &itemAluminium
+      <<: *categoryMetals
+      <<: *industrialAge
+      uniqueId:  Aluminium
+      displayName: Aluminium
+      description: Aluminium ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 2.6083
+      unitType: Kilogram
+      density: 2.6
+      packFactor: 1.0
+
+  - item: &itemPalladium
+      <<: *categoryMetals
+      <<: *industrialAge
+      uniqueId:  Palladium
+      displayName: Palladium
+      description: Palladium ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 1278.5
+      unitType: Kilogram
+      density: 12.0
+      packFactor: 1.0
+
+  - item: &itemPlatinum
+      <<: *categoryMetals
+      <<: *industrialAge
+      uniqueId:  Platinum
+      displayName: Platinum
+      description: Platinum ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 1407
+      unitType: Kilogram
+      density: 21.5
+      packFactor: 1.0
+      
+  - item: &itemPotassium
+      <<: *categoryMetals
+      <<: *industrialAge
+      uniqueId:  Potassium
+      displayName: Potassium
+      description: Potassium ingots
+      unitsPerCubicMetre: 1
+      basePrice: 100
+      unitType: Kilolitre
+      density: 0.89
+      packFactor: 1.0
+  
+  - item: &itemRhodium
+      <<: *categoryMetals
+      <<: *industrialAge
+      uniqueId:  Rhodium
+      displayName: Rhodium
+      description: Rhodium ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 6600
+      unitType: Kilogram
+      density: 12.4
+      packFactor: 1.0
+
+  - item: &itemRuthenium
+      <<: *categoryMetals
+      <<: *industrialAge
+      uniqueId:  Ruthenium
+      displayName: Ruthenium
+      description: Ruthenium ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 800
+      unitType: Kilogram
+      density: 12.1
+      packFactor: 1.0
+
+  - item: &itemUranium
+      <<: *categoryMetals
+      <<: *industrialAge
+      uniqueId:  Uranium
+      displayName: Uranium
+      description: Uranium
+      unitsPerCubicMetre: 1
+      basePrice: 157.19
+      unitType: Kilogram
+      density: 19.1
+      packFactor: 1.0
+
+  - item: &itemVanadium
+      <<: *categoryMetals
+      <<: *industrialAge
+      uniqueId:  Vanadium
+      displayName: Vanadium
+      description: Vanadium ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 1
+      unitType: Kilogram
+      density: 16.0
+      packFactor: 1.0
+
+  - item: &itemZinc
+      <<: *categoryMetals
+      <<: *industrialAge
+      uniqueId:  Zinc
+      displayName: Zinc
+      description: Zinc ingots
+      unitsPerCubicMetre: 1000
+      basePrice: 2.8161
+      unitType: Kilogram
+      density: 7.14
+      packFactor: 1.0
+...

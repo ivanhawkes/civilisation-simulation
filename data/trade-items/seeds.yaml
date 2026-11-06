@@ -1,0 +1,125 @@
+---
+item-base:
+
+# Seeds
+  - item: &itemWheatSeeds
+      <<: *categorySeeds
+      <<: *copperAge
+      uniqueId: WheatSeeds
+      displayName: Wheat seeds
+      description: Wheat seeds
+      unitsPerCubicMetre: 100
+      basePrice: 100
+      unitType: Kilolitre
+      density: 0.78
+      packFactor: 0.95
+
+  - item: &itemBarleySeeds
+      <<: *categorySeeds
+      <<: *copperAge
+      uniqueId: BarleySeeds
+      displayName: Barley seeds
+      description: Barley seeds
+      unitsPerCubicMetre: 100
+      basePrice: 100
+      unitType: Kilolitre
+      density: 0.62
+      packFactor: 0.95
+
+  - item: &itemOatSeeds
+      <<: *categorySeeds
+      <<: *copperAge
+      uniqueId: OatSeeds
+      displayName: Oat seeds
+      description: Oat seeds
+      unitsPerCubicMetre: 100
+      basePrice: 100
+      unitType: Kilolitre
+      density: 0.5
+      packFactor: 0.95
+
+  - item: &itemCornSeed
+      <<: *categorySeeds
+      <<: *copperAge
+      uniqueId: CornSeeds
+      displayName: Corn seeds
+      description: Corn seeds
+      unitsPerCubicMetre: 100
+      basePrice: 100
+      unitType: Kilolitre
+      density: 0.72
+      packFactor: 0.95
+
+  - item: &itemRiceSeeds
+      <<: *categorySeeds
+      <<: *copperAge
+      uniqueId: RiceSeeds
+      displayName: Rice seeds
+      description: Rice seeds
+      unitsPerCubicMetre: 100
+      basePrice: 100
+      unitType: Kilolitre
+      density: 0.575
+      packFactor: 0.95
+
+  - item: &itemSorghumSeeds
+      <<: *categorySeeds
+      <<: *copperAge
+      uniqueId: SorghumSeeds
+      displayName: Sorghum seeds
+      description: Sorghum seeds
+      unitsPerCubicMetre: 100
+      basePrice: 100
+      unitType: Kilolitre
+      density: 0.62
+      packFactor: 0.95
+
+  - item: &itemPoppySeeds
+      <<: *categorySeeds
+      <<: *copperAge
+      uniqueId: PoppySeeds
+      displayName: Poppy seeds
+      description: Poppy seeds
+      unitsPerCubicMetre: 100
+      basePrice: 100
+      unitType: Kilolitre
+      density: 0.575
+      packFactor: 0.95
+
+  - item: &itemCocoaSeeds
+      <<: *categorySeeds
+      <<: *copperAge
+      uniqueId: CocoaSeeds
+      displayName: Cocoa seeds
+      description: Cocoa seeds
+      unitsPerCubicMetre: 100
+      basePrice: 100
+      unitType: Kilolitre
+      density: 1.1
+      packFactor: 0.95
+
+  - item: &itemCocaSeeds
+      <<: *categorySeeds
+      <<: *copperAge
+      uniqueId: CocaSeeds
+      displayName: Coca seeds
+      description: Coca seeds
+      unitsPerCubicMetre: 100
+      basePrice: 100
+      unitType: Kilolitre
+      density: 0.7
+      packFactor: 0.95
+
+  - item: &itemCanolaSeeds
+      <<: *categorySeeds
+      <<: *postIndustrialAge
+      uniqueId: CanolaSeeds
+      displayName: Canola seeds
+      description: Canola seeds
+      unitsPerCubicMetre: 100
+      basePrice: 100
+      unitType: Kilolitre
+      density: 0.695
+      packFactor: 0.95
+
+...
