@@ -77,10 +77,13 @@ struct ItemNode
 	// The type of units of measurement for this type of item.
 	std::string unitType;
 
-	// Density of the item in kilograms per cubic metre.
+	// Specific gravity of the item's material against water at sea level, so 1.0
+	// is 1000 kilograms per cubic metre.
 	std::string density;
 
-	// Packing factor of the item. Lost space due to packing inefficiencies.
+	// Packing factor of the item. The fraction of a storage cube the product
+	// fills, counting packaging, dunnage and the voids between the pieces, so the
+	// mass in a cubic metre is density x 1000 x packFactor kilograms.
 	std::string packFactor;
 };
 

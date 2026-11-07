@@ -1,18 +1,36 @@
 ---
+# Field conventions for every item in this file (the full note is in the README,
+# under "Units, prices and storage"):
+#
+#   density            Specific gravity against water at sea level, so 1.0 is
+#                      1000 kg/m3, measured on the whole seed including its
+#                      internal pores, not the heap of seeds.
+#   unitType           The unit that basePrice and unitsPerCubicMetre count.
+#   unitsPerCubicMetre Units of loose product filling one cubic metre of solid
+#                      material: 1 for Kilolitre, since 1 kL is exactly 1 m3.
+#   packFactor         The fraction of an IBC cube's cubic metre that the seeds
+#                      fill, so it is the test weight of the grain over its
+#                      density. Wheat at 78 kg per hectolitre over 1.27 gives
+#                      0.61: the rest of the cube is the air between kernels.
+#                      Mass per IBC cube = density x 1000 x packFactor kilograms.
+#   basePrice          Market value per unitType, in credits at one credit to one
+#                      US dollar, at 2025 seed and commodity prices. Certified
+#                      seed costs far more than the same grain as food: hybrid
+#                      maize seed is a technology product, not a bulk crop.
 item-base:
 
-# Seeds
+  # Seeds
   - item: &itemWheatSeeds
       <<: *categorySeeds
       <<: *copperAge
       uniqueId: WheatSeeds
       displayName: Wheat seeds
       description: Wheat seeds
-      unitsPerCubicMetre: 100
-      basePrice: 100
+      unitsPerCubicMetre: 1
+      basePrice: 350
       unitType: Kilolitre
-      density: 0.78
-      packFactor: 0.95
+      density: 1.27
+      packFactor: 0.61
 
   - item: &itemBarleySeeds
       <<: *categorySeeds
@@ -20,11 +38,11 @@ item-base:
       uniqueId: BarleySeeds
       displayName: Barley seeds
       description: Barley seeds
-      unitsPerCubicMetre: 100
-      basePrice: 100
+      unitsPerCubicMetre: 1
+      basePrice: 280
       unitType: Kilolitre
-      density: 0.62
-      packFactor: 0.95
+      density: 1.3
+      packFactor: 0.48
 
   - item: &itemOatSeeds
       <<: *categorySeeds
@@ -32,11 +50,11 @@ item-base:
       uniqueId: OatSeeds
       displayName: Oat seeds
       description: Oat seeds
-      unitsPerCubicMetre: 100
-      basePrice: 100
+      unitsPerCubicMetre: 1
+      basePrice: 200
       unitType: Kilolitre
-      density: 0.5
-      packFactor: 0.95
+      density: 1.22
+      packFactor: 0.41
 
   - item: &itemCornSeed
       <<: *categorySeeds
@@ -44,11 +62,11 @@ item-base:
       uniqueId: CornSeeds
       displayName: Corn seeds
       description: Corn seeds
-      unitsPerCubicMetre: 100
-      basePrice: 100
+      unitsPerCubicMetre: 1
+      basePrice: 5000
       unitType: Kilolitre
-      density: 0.72
-      packFactor: 0.95
+      density: 1.25
+      packFactor: 0.58
 
   - item: &itemRiceSeeds
       <<: *categorySeeds
@@ -56,11 +74,11 @@ item-base:
       uniqueId: RiceSeeds
       displayName: Rice seeds
       description: Rice seeds
-      unitsPerCubicMetre: 100
-      basePrice: 100
+      unitsPerCubicMetre: 1
+      basePrice: 1000
       unitType: Kilolitre
-      density: 0.575
-      packFactor: 0.95
+      density: 1.32
+      packFactor: 0.61
 
   - item: &itemSorghumSeeds
       <<: *categorySeeds
@@ -68,11 +86,11 @@ item-base:
       uniqueId: SorghumSeeds
       displayName: Sorghum seeds
       description: Sorghum seeds
-      unitsPerCubicMetre: 100
-      basePrice: 100
+      unitsPerCubicMetre: 1
+      basePrice: 2000
       unitType: Kilolitre
-      density: 0.62
-      packFactor: 0.95
+      density: 1.3
+      packFactor: 0.51
 
   - item: &itemPoppySeeds
       <<: *categorySeeds
@@ -80,11 +98,11 @@ item-base:
       uniqueId: PoppySeeds
       displayName: Poppy seeds
       description: Poppy seeds
-      unitsPerCubicMetre: 100
-      basePrice: 100
+      unitsPerCubicMetre: 1
+      basePrice: 5000
       unitType: Kilolitre
-      density: 0.575
-      packFactor: 0.95
+      density: 1.25
+      packFactor: 0.48
 
   - item: &itemCocoaSeeds
       <<: *categorySeeds
@@ -92,11 +110,11 @@ item-base:
       uniqueId: CocoaSeeds
       displayName: Cocoa seeds
       description: Cocoa seeds
-      unitsPerCubicMetre: 100
-      basePrice: 100
+      unitsPerCubicMetre: 1
+      basePrice: 3900
       unitType: Kilolitre
-      density: 1.1
-      packFactor: 0.95
+      density: 1.2
+      packFactor: 0.46
 
   - item: &itemCocaSeeds
       <<: *categorySeeds
@@ -104,11 +122,11 @@ item-base:
       uniqueId: CocaSeeds
       displayName: Coca seeds
       description: Coca seeds
-      unitsPerCubicMetre: 100
-      basePrice: 100
+      unitsPerCubicMetre: 1
+      basePrice: 2700
       unitType: Kilolitre
-      density: 0.7
-      packFactor: 0.95
+      density: 1.25
+      packFactor: 0.44
 
   - item: &itemCanolaSeeds
       <<: *categorySeeds
@@ -116,10 +134,9 @@ item-base:
       uniqueId: CanolaSeeds
       displayName: Canola seeds
       description: Canola seeds
-      unitsPerCubicMetre: 100
-      basePrice: 100
+      unitsPerCubicMetre: 1
+      basePrice: 1300
       unitType: Kilolitre
-      density: 0.695
-      packFactor: 0.95
-
+      density: 1.2
+      packFactor: 0.55
 ...

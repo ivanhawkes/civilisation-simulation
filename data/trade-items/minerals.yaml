@@ -1,64 +1,85 @@
 ---
+# Field conventions for every item in this file (the full note is in the README,
+# under "Units, prices and storage"):
+#
+#   density            Specific gravity against water at sea level, so 1.0 is
+#                      1000 kg/m3, measured on the solid mineral, not the heap.
+#   unitType           The unit that basePrice and unitsPerCubicMetre count.
+#   unitsPerCubicMetre Units of loose product filling one cubic metre of solid
+#                      material: 1 for Kilolitre (1 kL is exactly 1 m3),
+#                      density x 1000 for Kilogram, and 1/thickness for
+#                      SquareMetre.
+#   packFactor         The fraction of an IBC cube's cubic metre that the product
+#                      fills, counting packaging, dunnage and interstitial voids.
+#                      Mass per IBC cube = density x 1000 x packFactor kilograms.
+#   basePrice          Market value per unitType, in credits at one credit to one
+#                      US dollar, at 2025 spot and contract prices.
+#
+# Bulk minerals are heaped, bagged or drummed, so a kilolitre is a cubic metre of
+# the heap and the packFactor carries the air between the grains, which is most of
+# the volume for a light, floured material like lime. Graphite is the exception: it
+# trades as machined sheet by area, so the count is the reciprocal of the
+# thickness, 1000 square metres to the cube for a millimetre of flexible foil.
 item-base:
 
-# Minerals
+  # Minerals
   - item: &itemSalt
       <<: *categoryMinerals
       <<: *ironAge
-      uniqueId:  Salt
+      uniqueId: Salt
       displayName: Salt
       description: Sodium chloride (halite)
-      unitsPerCubicMetre: 100
-      basePrice: 100
+      unitsPerCubicMetre: 1
+      basePrice: 150
       unitType: Kilolitre
       density: 2.16
-      packFactor: 1.0
+      packFactor: 0.55
 
   - item: &itemLime
       <<: *categoryMinerals
       <<: *ironAge
-      uniqueId:  Lime
+      uniqueId: Lime
       displayName: Lime
       description: Baked and crushed limestone
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 340
       unitType: Kilolitre
-      density: 0.7
-      packFactor: 1.0
+      density: 3.34
+      packFactor: 0.31
 
   - item: &itemGraphite
       <<: *categoryMinerals
       <<: *industrialAge
-      uniqueId:  Graphite
+      uniqueId: Graphite
       displayName: Graphite
-      description: Graphite
+      description: Graphite, machined and flexible foil
       unitsPerCubicMetre: 1000
-      basePrice: 1000
+      basePrice: 13.0
       unitType: SquareMetre
-      density: 2.3
-      packFactor: 1.0
+      density: 2.26
+      packFactor: 0.9
 
   - item: &itemPotash
       <<: *categoryMinerals
       <<: *ironAge
-      uniqueId:  Potash
+      uniqueId: Potash
       displayName: Potash
-      description: Potash
+      description: Muriate of potash, granular potassium chloride
       unitsPerCubicMetre: 1
-      basePrice: 0
+      basePrice: 440
       unitType: Kilolitre
-      density: 1.75
-      packFactor: 1.0
+      density: 1.99
+      packFactor: 0.58
 
   - item: &itemNatron
       <<: *categoryMinerals
       <<: *ironAge
-      uniqueId:  Natron
+      uniqueId: Natron
       displayName: Natron
-      description: Natron
+      description: Natron, dense soda ash
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 270
       unitType: Kilolitre
-      density: 2.25
-      packFactor: 1.0
+      density: 2.54
+      packFactor: 0.42
 ...

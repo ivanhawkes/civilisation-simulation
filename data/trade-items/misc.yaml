@@ -1,54 +1,79 @@
 ---
+# Field conventions for every item in this file (the full note is in the README,
+# under "Units, prices and storage"):
+#
+#   density            Specific gravity against water at sea level, so 1.0 is
+#                      1000 kg/m3, measured on the material the item is made of.
+#   unitType           The unit that basePrice and unitsPerCubicMetre count.
+#   unitsPerCubicMetre Units of loose product filling one cubic metre of solid
+#                      material: 1 for Kilolitre (1 kL is exactly 1 m3), 1000 for
+#                      Litre, density x 1000 for Kilogram, density x 1000000 for
+#                      Gram, and the piece, sheet or square metre count that
+#                      nests tight into a cubic metre for Unit and Sheet.
+#   packFactor         The fraction of an IBC cube's cubic metre that the product
+#                      fills, counting packaging, dunnage and interstitial voids.
+#                      Mass per IBC cube = density x 1000 x packFactor kilograms.
+#                      For the goods counted by piece, that mass is also
+#                      unitsPerCubicMetre times the piece's own mass, so jewellery
+#                      at 40000 pieces, 12.0 and 0.05 is 15 grams a piece and 600
+#                      kilograms a cube on both sides of the identity.
+#   basePrice          Market value per unitType, in credits at one credit to one
+#                      US dollar, at 2025 wholesale and spot prices.
+#
+# The discrete goods are where the packing factor earns its keep. A hollow blown
+# flask, a copper pot still and a crated canvas are almost all void, so the cube
+# holds far less of the material than its dimensions suggest, and fragile ware
+# spends more of the cube on straw, foam and crate than on the ware itself.
 item-base:
-  
+
   # Stone Age
   - item: &itemCharcoal
       <<: *categoryFuels
       <<: *stoneAge
-      uniqueId:  Charcoal
+      uniqueId: Charcoal
       displayName: Charcoal
       description: Wood with all the moisture removed
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 450
       unitType: Kilolitre
-      density: 1.0
-      packFactor: 0.9
+      density: 1.3
+      packFactor: 0.35
 
   - item: &itemPottery
       <<: *categoryCrafts
       <<: *stoneAge
-      uniqueId:  Pottery
+      uniqueId: Pottery
       displayName: Pottery
       description: Pottery
-      unitsPerCubicMetre: 1
-      basePrice: 100
+      unitsPerCubicMetre: 150
+      basePrice: 25
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 2.4
+      packFactor: 0.55
 
   - item: &itemPigments
       <<: *categoryCrafts
       <<: *stoneAge
-      uniqueId:  Pigments
+      uniqueId: Pigments
       displayName: Pigments
       description: Pigments
-      unitsPerCubicMetre: 1
-      basePrice: 100
+      unitsPerCubicMetre: 1000
+      basePrice: 12
       unitType: Litre
-      density: 1.0
-      packFactor: 1.0
+      density: 3.0
+      packFactor: 0.45
 
   - item: &itemSlaves
       <<: *categoryUnknown
       <<: *stoneAge
-      uniqueId:  Slaves
+      uniqueId: Slaves
       displayName: Slaves
       description: Slaves
-      unitsPerCubicMetre: 1
-      basePrice: 100
+      unitsPerCubicMetre: 7
+      basePrice: 20000
       unitType: Unit
       density: 1.0
-      packFactor: 1.0
+      packFactor: 0.45
 
   - item: &itemArdPlough
       <<: *categoryFarmingEquipment
@@ -56,233 +81,233 @@ item-base:
       uniqueId: ArdPlough
       displayName: Ard Plough
       description: ArdPlough
-      unitsPerCubicMetre: 1
-      basePrice: 100
+      unitsPerCubicMetre: 25
+      basePrice: 150
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
-  
+      density: 0.75
+      packFactor: 0.4
+
   # Copper Age
   - item: &itemFlour
       <<: *categoryConsumables
       <<: *copperAge
-      uniqueId:  Flour
+      uniqueId: Flour
       displayName: Flour
       description: Flour
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 290
       unitType: Kilolitre
-      density: 1.0
-      packFactor: 1.0
+      density: 1.5
+      packFactor: 0.38
 
   - item: &itemBread
       <<: *categoryConsumables
       <<: *copperAge
-      uniqueId:  Bread
+      uniqueId: Bread
       displayName: Bread
       description: Bread
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 800
       unitType: Kilolitre
-      density: 1.0
-      packFactor: 0.93
+      density: 1.05
+      packFactor: 0.27
 
   - item: &itemBeer
       <<: *categoryFerments
       <<: *copperAge
-      uniqueId:  Beer
+      uniqueId: Beer
       displayName: Beer
       description: Beer
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 1200
       unitType: Kilolitre
-      density: 1.0
-      packFactor: 1.0
+      density: 1.01
+      packFactor: 0.75
 
   - item: &itemWine
       <<: *categoryFerments
       <<: *copperAge
-      uniqueId:  Wine
+      uniqueId: Wine
       displayName: Wine
       description: Wine
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 5000
       unitType: Kilolitre
       density: 1.0
-      packFactor: 1.0
+      packFactor: 0.7
 
   # Bronze Age
 
   - item: &itemJewellry
       <<: *categoryLuxuryGoods
       <<: *bronzeAge
-      uniqueId:  Jewellry
+      uniqueId: Jewellry
       displayName: Jewellry
       description: Jewellry
-      unitsPerCubicMetre: 1
-      basePrice: 339
+      unitsPerCubicMetre: 40000
+      basePrice: 150
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
-  
+      density: 12.0
+      packFactor: 0.05
+
   # Iron Age
   - item: &itemParchment
       <<: *categoryWriting
       <<: *ironAge
-      uniqueId:  Parchment
+      uniqueId: Parchment
       displayName: Parchment
       description: Parchment
-      unitsPerCubicMetre: 200
-      basePrice: 100
+      unitsPerCubicMetre: 20000
+      basePrice: 15
       unitType: Sheet
-      density: 1.0
-      packFactor: 1.0
+      density: 1.3
+      packFactor: 0.73
 
   - item: &itemPapyrus
       <<: *categoryWriting
       <<: *ironAge
-      uniqueId:  Papyrus
+      uniqueId: Papyrus
       displayName: Papyrus
       description: Papyrus
-      unitsPerCubicMetre: 200
-      basePrice: 100
+      unitsPerCubicMetre: 50000
+      basePrice: 3
       unitType: Sheet
-      density: 1.0
-      packFactor: 1.0
+      density: 0.75
+      packFactor: 0.78
 
   - item: &itemInk
       <<: *categoryWriting
       <<: *ironAge
-      uniqueId:  Ink
+      uniqueId: Ink
       displayName: Ink
       description: Ink
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 8000
       unitType: Kilolitre
-      density: 1.0
-      packFactor: 1.0
+      density: 1.1
+      packFactor: 0.8
 
   - item: &itemVinegar
       <<: *categoryFerments
       <<: *ironAge
-      uniqueId:  Vinegar
+      uniqueId: Vinegar
       displayName: Vinegar
       description: Vinegar
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 1000
       unitType: Kilolitre
-      density: 1.0
-      packFactor: 1.0
+      density: 1.01
+      packFactor: 0.8
 
   - item: &itemShaduf
       <<: *categoryFarmingEquipment
       <<: *ironAge
-      uniqueId:  Shaduf
+      uniqueId: Shaduf
       displayName: Shaduf
       description: Water transporting equipment
-      unitsPerCubicMetre: 1
-      basePrice: 100
+      unitsPerCubicMetre: 12
+      basePrice: 120
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
-  
+      density: 0.7
+      packFactor: 0.35
+
   # Classical Age
 
   - item: &itemMaths
       <<: *categoryInformation
       <<: *classicalAge
-      uniqueId:  Maths
+      uniqueId: Maths
       displayName: Maths
       description: Knowledge of maths
-      unitsPerCubicMetre: 1000000
-      basePrice: 100
+      unitsPerCubicMetre: 500
+      basePrice: 1200
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 0.95
+      packFactor: 0.85
 
   - item: &itemAntikythera
       <<: *categoryEngineering
       <<: *classicalAge
-      uniqueId:  Antikythera
+      uniqueId: Antikythera
       displayName: Antikythera
       description: Device for mapping the stars
-      unitsPerCubicMetre: 1000000
-      basePrice: 100
+      unitsPerCubicMetre: 4000
+      basePrice: 2500
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 8.8
+      packFactor: 0.45
 
   - item: &itemAstrolabe
       <<: *categoryEngineering
       <<: *classicalAge
-      uniqueId:  Astrolabe
+      uniqueId: Astrolabe
       displayName: Astrolabe
       description: Device for mapping the stars
-      unitsPerCubicMetre: 1000
-      basePrice: 100
+      unitsPerCubicMetre: 2000
+      basePrice: 600
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 8.5
+      packFactor: 0.5
 
   - item: &itemChemistry
       <<: *categoryInformation
       <<: *classicalAge
-      uniqueId:  Chemistry
+      uniqueId: Chemistry
       displayName: Chemistry
       description: Knowledge of chemistry
-      unitsPerCubicMetre: 1000
-      basePrice: 100
+      unitsPerCubicMetre: 500
+      basePrice: 1500
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 0.95
+      packFactor: 0.85
 
   - item: &itemClock
       <<: *categoryEngineering
       <<: *classicalAge
-      uniqueId:  Clock
+      uniqueId: Clock
       displayName: Clock
       description: A time-keeping instrument e.g. pocket watch, grandfather clock
-      unitsPerCubicMetre: 1000
-      basePrice: 100
+      unitsPerCubicMetre: 200
+      basePrice: 250
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 3.0
+      packFactor: 0.6
 
   - item: &itemCeramics
       <<: *categoryCrafts
       <<: *classicalAge
-      uniqueId:  Ceramics
+      uniqueId: Ceramics
       displayName: Ceramics
       description: Ceramics
-      unitsPerCubicMetre: 1
-      basePrice: 100
+      unitsPerCubicMetre: 300
+      basePrice: 40
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 2.4
+      packFactor: 0.55
 
   - item: &itemBooks
       <<: *categoryWriting
       <<: *classicalAge
-      uniqueId:  Books
+      uniqueId: Books
       displayName: Books
       description: Bound volumes containing sheets of paper or parchment
-      unitsPerCubicMetre: 8000
-      basePrice: 15
+      unitsPerCubicMetre: 2000
+      basePrice: 9
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 0.95
+      packFactor: 0.85
 
   - item: &itemScrolls
       <<: *categoryWriting
       <<: *classicalAge
-      uniqueId:  Scrolls
+      uniqueId: Scrolls
       displayName: Scrolls
       description: Single texts wrapped in a cylinder with a sheath for protection
-      unitsPerCubicMetre: 1
-      basePrice: 100
+      unitsPerCubicMetre: 1000
+      basePrice: 25
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 1.1
+      packFactor: 0.6
 
   - item: &itemHides
       <<: *categoryAnimalProducts
@@ -290,152 +315,152 @@ item-base:
       uniqueId: Leatherhides
       displayName: Leather hides
       description: The tanned leather hides of animals
-      unitsPerCubicMetre: 10
+      unitsPerCubicMetre: 100
       basePrice: 100
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 0.9
+      packFactor: 0.8
 
   - item: &itemFurs
       <<: *categoryAnimalProducts
       <<: *classicalAge
-      uniqueId:  Furs
+      uniqueId: Furs
       displayName: Furs
       description: The skinned fur of an animal
-      unitsPerCubicMetre: 1
-      basePrice: 100
+      unitsPerCubicMetre: 150
+      basePrice: 90
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 0.8
+      packFactor: 0.6
 
   - item: &itemGlassware
       <<: *categoryCrafts
       <<: *classicalAge
-      uniqueId:  Glassware
+      uniqueId: Glassware
       displayName: Glassware
       description: Blown glass vessels
-      unitsPerCubicMetre: 1
-      basePrice: 100
+      unitsPerCubicMetre: 400
+      basePrice: 30
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 2.5
+      packFactor: 0.05
 
   - item: &itemCement
       <<: *categoryConstructionMaterials
       <<: *classicalAge
-      uniqueId:  Cement
+      uniqueId: Cement
       displayName: Cement
       description: Burnt and crushed limestone
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 170
       unitType: Kilolitre
-      density: 1.0
-      packFactor: 1.0
+      density: 3.15
+      packFactor: 0.42
 
   - item: &itemStill
       <<: *categoryScientificEquipment
       <<: *classicalAge
-      uniqueId:  Still
+      uniqueId: Still
       displayName: Still
       description: Distillation equipment
-      unitsPerCubicMetre: 1
-      basePrice: 100
+      unitsPerCubicMetre: 2
+      basePrice: 3500
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 8.9
+      packFactor: 0.04
 
   - item: &itemScrews
       <<: *categoryConstructionMaterials
       <<: *classicalAge
-      uniqueId:  Screws
+      uniqueId: Screws
       displayName: Screws
       description: Screws
-      unitsPerCubicMetre: 1
-      basePrice: 100
-      unitType: Kilolitre
-      density: 1.0
-      packFactor: 1.0
+      unitsPerCubicMetre: 100000
+      basePrice: 0.05
+      unitType: Unit
+      density: 7.85
+      packFactor: 0.06
 
   - item: &itemCompass
       <<: *categoryScientificEquipment
       <<: *classicalAge
-      uniqueId:  Compass
+      uniqueId: Compass
       displayName: Compass
       description: Compass
-      unitsPerCubicMetre: 10000
-      basePrice: 100
+      unitsPerCubicMetre: 2000
+      basePrice: 35
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 5.0
+      packFactor: 0.5
 
   - item: &itemCoins
       <<: *categoryCollectibles
       <<: *classicalAge
-      uniqueId:  Coins
+      uniqueId: Coins
       displayName: Coins
       description: Local currency
-      unitsPerCubicMetre: 100000
-      basePrice: 100
+      unitsPerCubicMetre: 500000
+      basePrice: 0.25
       unitType: Unit
-      density: 1.0
-      packFactor: 0.6
+      density: 8.4
+      packFactor: 0.4
 
   - item: &itemSoap
       <<: *categoryConsumables
       <<: *classicalAge
-      uniqueId:  Soap
+      uniqueId: Soap
       displayName: Soap
       description: Soap
-      unitsPerCubicMetre: 100000
-      basePrice: 1.2
+      unitsPerCubicMetre: 9000
+      basePrice: 0.5
       unitType: Unit
-      density: 1.0
-      packFactor: 0.96
+      density: 1.05
+      packFactor: 0.95
 
   # Medieval Age
 
   - item: &itemPhysics
       <<: *categoryInformation
       <<: *medievalAge
-      uniqueId:  Physics
+      uniqueId: Physics
       displayName: Physics
       description: Knowledge of Physics
-      unitsPerCubicMetre: 1
-      basePrice: 100
+      unitsPerCubicMetre: 500
+      basePrice: 1800
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 0.95
+      packFactor: 0.85
 
   - item: &itemMicroscope
       <<: *categoryScientificEquipment
       <<: *medievalAge
-      uniqueId:  Microscope
+      uniqueId: Microscope
       displayName: Microscope
       description: Microscope
-      unitsPerCubicMetre: 1
-      basePrice: 100
+      unitsPerCubicMetre: 200
+      basePrice: 350
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 3.5
+      packFactor: 0.6
 
-  
+
   # Pre-industrial Age
-  
-  
+
+
   # Industrial Age
 
   # Post-industrial Age
-  
-  
+
+
   # Information Age
-  
-  
+
+
   # AI Age
-  
-  
+
+
   # Space Age
-  
-  
+
+
   # Space Colonisation Age
 
 
@@ -447,82 +472,82 @@ item-base:
       displayName: Home Appliances
       description: Typical modern home appliances e.g. fridge, oven, washing machine
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 1000
       unitType: Kilolitre
-      density: 0.4
+      density: 0.35
       packFactor: 0.85
 
   - item: &itemElectronics
       <<: *categoryElectronics
       <<: *informationAge
-      uniqueId:  Electronics
+      uniqueId: Electronics
       displayName: Electronics
       description: Televisions, phones, tablets, game consoles
-      unitsPerCubicMetre: 1000
-      basePrice: 500
+      unitsPerCubicMetre: 800
+      basePrice: 180
       unitType: Unit
-      density: 1.0
-      packFactor: 0.85
+      density: 1.5
+      packFactor: 0.55
 
   - item: &itemAntibiotics
       <<: *categoryMedicine
       <<: *postIndustrialAge
-      uniqueId:  Antibiotics
+      uniqueId: Antibiotics
       displayName: Antibiotics
       description: Antibiotics
-      unitsPerCubicMetre: 1
-      basePrice: 1000000
-      unitType: Kilolitre
-      density: 1.0
-      packFactor: 1.0
+      unitsPerCubicMetre: 1140
+      basePrice: 45
+      unitType: Kilogram
+      density: 1.14
+      packFactor: 0.4
 
   - item: &itemAnesthetics
       <<: *categoryMedicine
       <<: *industrialAge
-      uniqueId:  Anesthetics
+      uniqueId: Anesthetics
       displayName: Anesthetics
       description: Anesthetics
-      unitsPerCubicMetre: 1
-      basePrice: 1000000
-      unitType: Kilolitre
-      density: 1.0
-      packFactor: 1.0
+      unitsPerCubicMetre: 1200
+      basePrice: 60
+      unitType: Kilogram
+      density: 1.2
+      packFactor: 0.45
 
   - item: &itemAnalgesics
       <<: *categoryMedicine
       <<: *industrialAge
-      uniqueId:  Analgesics
+      uniqueId: Analgesics
       displayName: Analgesics
       description: Analgesics
-      unitsPerCubicMetre: 1
-      basePrice: 1000000
-      unitType: Kilolitre
-      density: 1.0
-      packFactor: 1.0
+      unitsPerCubicMetre: 1300
+      basePrice: 12
+      unitType: Kilogram
+      density: 1.3
+      packFactor: 0.5
 
   - item: &itemGems
       <<: *categoryLuxuryGoods
       <<: *stoneAge
-      uniqueId:  Gems
+      uniqueId: Gems
       displayName: Gems
       description: Gems
-      unitsPerCubicMetre: 1000
-      basePrice: 1000
+      unitsPerCubicMetre: 3500000
+      basePrice: 25
       unitType: Gram
-      density: 1.0
-      packFactor: 1.0
+      density: 3.5
+      packFactor: 0.65
 
   - item: &itemDiamonds
       <<: *categoryLuxuryGoods
       <<: *stoneAge
-      uniqueId:  Diamonds
+      uniqueId: Diamonds
       displayName: Diamonds
       description: Diamonds
-      unitsPerCubicMetre: 1000
+      unitsPerCubicMetre: 3510000
       basePrice: 4000
       unitType: Gram
-      density: 1.0
-      packFactor: 1.0
+      density: 3.51
+      packFactor: 0.55
 
   - item: &itemFineArt
       <<: *categoryLuxuryGoods
@@ -530,9 +555,9 @@ item-base:
       uniqueId: FineArt
       displayName: Fine Art
       description: Fine art
-      unitsPerCubicMetre: 1
-      basePrice: 10000
+      unitsPerCubicMetre: 15
+      basePrice: 8000
       unitType: Unit
-      density: 1.0
-      packFactor: 1.0
+      density: 1.2
+      packFactor: 0.55
 ...

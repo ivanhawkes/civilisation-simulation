@@ -268,6 +268,59 @@ shape. `DataTests` asserts every skill is worth at least three tiers, so a merge
 dropped `maxTiers` - the loader default is one tier, which flattens a branch to a
 single click - fails the suite.
 
+## Units, prices and storage
+
+Every item carries five numeric fields. They describe the good as a physical object, so
+that a future cargo model can price freight by volume and mass; the current economy
+trades on `basePrice` alone and does not read the other four. The storage cube is the
+IBC cube, the one cubic metre intermediate bulk container, and the fields are defined
+against it:
+
+| Field | Meaning |
+| --- | --- |
+| `density` | Specific gravity of the material against water at sea level, so `1.0` is 1000 kg/m³. The solid value at 20 °C for a metal that is liquid at that temperature. |
+| `unitType` | The unit `basePrice` and `unitsPerCubicMetre` count: `Kilogram`, `Gram`, `Litre`, `Kilolitre`, `Unit`, `Sheet`, `SquareMetre`. |
+| `unitsPerCubicMetre` | Units of loose product filling one cubic metre of the material: see the table below. |
+| `packFactor` | The fraction of a cube the product fills, counting packaging, dunnage and the voids between pieces. A hollow blown flask is mostly air, so it is `0.05`; stacked ingots are `0.85`. |
+| `basePrice` | Market value per `unitType`, in credits at one credit to one US dollar, at 2025 spot and wholesale prices. Prices drive the model through the ratio of market price to base price, so the currency anchor only sets the relative level of the goods against each other. |
+
+| `unitType` | `unitsPerCubicMetre` | |
+| --- | --- | --- |
+| `Kilolitre` | `1` | A kilolitre is exactly a cubic metre, so bulk volume goods count one to the cube. |
+| `Litre` | `1000` | A cubic metre is a thousand litres. |
+| `Kilogram` | `density x 1000` | The mass of solid material in a cubic metre: copper at 8.96 is 8960. |
+| `Gram` | `density x 1000000` | The same mass in grams: gems at 3.5 are 3500000. |
+| `Unit` | tight-nested piece count | How many of the piece nest into a cubic metre: 2000 books, 40000 pieces of jewellery. |
+| `Sheet` | tight-nested sheet count | Sheets stacked to a metre with their interleaves. |
+| `SquareMetre` | `1 / thickness` | Sheet goods sold by area: a millimetre of graphite foil is 1000 m² to the cube. |
+
+For the goods counted by piece, sheet or square metre the count is a packed count, so
+it fixes the mass of the piece, and the figures agree through a mass identity that is
+the check to apply when a new item is added:
+
+```
+density x 1000 x packFactor  ==  kilograms in an IBC cube  ==  unitsPerCubicMetre x piece mass
+```
+
+A jeweller's piece of 15 grams of 12-specific-gravity metal takes 1.25 cm³ of metal in a
+25 cm³ fitted tray, so 40000 to the cube, a packFactor of 0.05 and 600 kilograms of
+metal in the cube on both sides of the identity. Goods counted by mass or by volume
+state the solid figure in `unitsPerCubicMetre`, and only `density x 1000 x packFactor`
+holds for them: an IBC cube of stacked copper ingots is 8.96 x 1000 x 0.85 kilograms,
+not 8960.
+
+Wheat seeds show the split the fields make: the density of a wheat kernel is 1.27, its
+test weight is 78 kg per hectolitre, so the packFactor is 0.61, the mass of a full cube
+is 775 kg, and 350 credits buys that cubic metre of certified seed. The bulk minerals
+and chemicals sit in the same shape: a kilolitre is the heap, and the air between the
+grains is most of the volume for a floured material like lime at 0.31.
+
+Prices are the current market figure for the traded form of the good, not for a purer
+or rarer form of it: uranium is the 2025 spot price of `U3O8` concentrate, the
+pharmaceuticals are bulk active-ingredient prices per kilogram, and the precious metals
+are per kilogram rather than the per-troy-ounce quote the market uses, so gold is
+130000 a kilogram.
+
 ## Continuous integration
 
 `.github/workflows/ci.yml` configures, builds, runs `ctest` and checks formatting, on

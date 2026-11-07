@@ -1,136 +1,164 @@
 ---
+# Field conventions for every item in this file (the full note is in the README,
+# under "Units, prices and storage"):
+#
+#   density            Specific gravity against water at sea level, so 1.0 is
+#                      1000 kg/m3.
+#   unitType           The unit that basePrice and unitsPerCubicMetre count.
+#   unitsPerCubicMetre Units of loose product filling one cubic metre of solid
+#                      material: 1 for Kilolitre (1 kL is exactly 1 m3), 1000 for
+#                      Litre, density x 1000 for Kilogram, and 1/thickness for
+#                      SquareMetre.
+#   packFactor         The fraction of an IBC cube's cubic metre that the product
+#                      fills, counting packaging, dunnage and interstitial voids.
+#                      Mass per IBC cube = density x 1000 x packFactor kilograms.
+#   basePrice          Market value per unitType, in credits at one credit to one
+#                      US dollar, at 2025 spot and contract prices.
+#
+# Most of these are bulk chemicals: a kilolitre is a cubic metre of the material,
+# so unitsPerCubicMetre is 1 and the mass in an IBC cube comes from density and
+# packFactor. Refrigerated gases travel in vacuum-jacketed tanks, which spend part
+# of the cube on the jacket and the vaporiser headspace, and powder chemicals
+# travel in drums, whose interstitial air is the largest loss of all.
 item-base:
 
-# Chemicals
+  # Chemicals
   - item: &itemSodiumHydroxide
       <<: *categoryChemicals
       <<: *ironAge
       uniqueId: SodiumHydroxide
       displayName: Sodium Hydroxide
-      description: Sodium Hydroxide, AKA Soda Ash
-      unitsPerCubicMetre: 100
-      basePrice: 2.7518
+      description: Sodium Hydroxide, AKA caustic soda
+      unitsPerCubicMetre: 1
+      basePrice: 1700
       unitType: Kilolitre
-      density: 0.6
-      packFactor: 1.0
+      density: 2.13
+      packFactor: 0.54
 
   - item: &itemNitrogen
       <<: *categoryChemicals
       <<: *industrialAge
-      uniqueId:  Nitrogen
+      uniqueId: Nitrogen
       displayName: Nitrogen
-      description: Nitrogen (solid)
+      description: Nitrogen (refrigerated liquid)
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 500
       unitType: Kilolitre
-      density: 1.03      
-      packFactor: 1.0
+      density: 0.808
+      packFactor: 0.9
 
   - item: &itemPhosphorus
       <<: *categoryChemicals
       <<: *industrialAge
-      uniqueId:  Phosphorus
+      uniqueId: Phosphorus
       displayName: Phosphorus
-      description: Phosphorus
+      description: White phosphorus, shipped under water in sealed drums
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 5400
       unitType: Kilolitre
-      density: 1.82      
-      packFactor: 1.0
+      density: 1.82
+      packFactor: 0.85
 
   - item: &itemSulfur
       <<: *categoryChemicals
       <<: *industrialAge
-      uniqueId:  Sulfur
+      uniqueId: Sulfur
       displayName: Sulfur
-      description: Sulfur
+      description: Sulfur, granulated
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 330
       unitType: Kilolitre
-      density: 2.07      
-      packFactor: 1.0
+      density: 2.07
+      packFactor: 0.63
 
   - item: &itemSulfuricAcid
       <<: *categoryChemicals
       <<: *industrialAge
       uniqueId: SulfuricAcid
       displayName: Sulfuric Acid
-      description: Sulfuric acid
+      description: Sulfuric acid, 93 to 98 percent, in lined tanks
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 220
       unitType: Kilolitre
-      density: 1.84
-      packFactor: 1.0
+      density: 1.83
+      packFactor: 0.95
 
+  # Antimony is a metalloid traded by mass in ingots and shot, like the metals,
+  # not a chemical bought by volume. The 2025 export restrictions doubled it.
   - item: &itemAntimony
       <<: *categoryChemicals
       <<: *industrialAge
-      uniqueId:  Antimony
+      uniqueId: Antimony
       displayName: Antimony
-      description: Antimony
-      unitsPerCubicMetre: 1
-      basePrice: 100
-      unitType: Kilolitre
-      density: 6.8      
-      packFactor: 1.0
+      description: Antimony ingots
+      unitsPerCubicMetre: 6680
+      basePrice: 40.0
+      unitType: Kilogram
+      density: 6.68
+      packFactor: 0.75
 
   - item: &itemChlorine
       <<: *categoryChemicals
       <<: *industrialAge
-      uniqueId:  Chlorine
+      uniqueId: Chlorine
       displayName: Chlorine
-      description: Chlorine (solid)
+      description: Chlorine (refrigerated liquid)
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 500
       unitType: Kilolitre
-      density: 2.03   
-      packFactor: 1.0
+      density: 1.56
+      packFactor: 0.9
 
   - item: &itemAmmonia
       <<: *categoryChemicals
       <<: *industrialAge
-      uniqueId:  Ammonia
+      uniqueId: Ammonia
       displayName: Ammonia
-      description: Ammonia
+      description: Anhydrous ammonia (refrigerated liquid)
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 350
       unitType: Kilolitre
-      density: 0.68    
-      packFactor: 1.0
+      density: 0.682
+      packFactor: 0.9
 
   - item: &itemEthylene
       <<: *categoryChemicals
       <<: *industrialAge
-      uniqueId:  Ethylene
+      uniqueId: Ethylene
       displayName: Ethylene
-      description: Ethylene
+      description: Ethylene (refrigerated liquid)
       unitsPerCubicMetre: 1
-      basePrice: 100
+      basePrice: 470
       unitType: Kilolitre
       density: 0.567
-      packFactor: 1.0
+      packFactor: 0.9
 
   - item: &itemNeodymium
       <<: *categoryChemicals
       <<: *postIndustrialAge
-      uniqueId:  Neodymium
+      uniqueId: Neodymium
       displayName: Neodymium
-      description: Neodymium
-      unitsPerCubicMetre: 1000
-      basePrice: 2.7518
+      description: Neodymium metal, praseodymium neodymium alloy
+      unitsPerCubicMetre: 7010
+      basePrice: 90.0
       unitType: Kilogram
-      density: 7.0
-      packFactor: 1.0
+      density: 7.01
+      packFactor: 0.8
 
+  # Graphene is sold by the square metre of film, so the count in a cubic metre is
+  # the reciprocal of the film thickness: 100000 square metres to the cube is a
+  # 10 micrometre multilayer foil, which is what transfers as a flexible sheet.
+  # The price is the 2025 figure for nanoplatelet and CVD film grades, which comes
+  # out near 250 credits a kilogram once the film's own mass is counted.
   - item: &itemGraphene
       <<: *categoryChemicals
       <<: *informationAge
-      uniqueId:  Graphene
+      uniqueId: Graphene
       displayName: Graphene
-      description: Graphene
-      unitsPerCubicMetre: 1000
-      basePrice: 1000
+      description: Graphene, multilayer transfer film
+      unitsPerCubicMetre: 100000
+      basePrice: 6.0
       unitType: SquareMetre
       density: 2.27
-      packFactor: 1.0
+      packFactor: 0.7
 ...
