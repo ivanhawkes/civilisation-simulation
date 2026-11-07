@@ -15,8 +15,9 @@ The simulation aims to provide a satisfying space trading element to games based
 ## Architecture
 
 - `CivSimCore`: plain C++ core, built independently with CMake for development and tests.
+- `CivSimCoreTui`: FTXUI terminal front-end for exercising the core during development. A work in progress: the shell and controls exist, the simulation commands are not plumbed in yet.
 - `YamlCpp`: Unreal Build Tool module that compiles a pinned yaml-cpp source checkout.
-- `CivSimLibrary`: Unreal runtime module and Blueprint-facing adapter.
+- `CivSimLibrary`: Unreal runtime module and Blueprint-facing adapter. Work in progress on Windows; the adapter does not track the current core API yet.
 
 The Unreal plugin compiles its C++ sources and yaml-cpp with UBT for the target platform. Do not copy a Linux-built `.a` into a Windows build or vice versa.
 
@@ -30,6 +31,7 @@ I am doing the majority of the work on a Nixos Linux machine. I intend to keep t
 - devenv
 - direnv and nix-direnv
 - CMake and Ninja (provided by devenv)
+- mikefarah/yq v4 (provided by devenv): needed by `data/build.sh`
 
 ### Unreal plugin builds
 
@@ -84,7 +86,19 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-CMake fetches yaml-cpp 0.9.0 at configure time. This is a separate stand-alone build; the Unreal plugin uses its own source checkout as described below.
+The build runs the `CivSimData` target, which is `data/build.sh`: it merges the source
+YAML into `data/core-config`. The test loads the generated documents from there, so a
+clean clone builds and tests without any manual data step. `yq` (mikefarah v4) must be
+on `PATH`; without it CMake warns and skips the data target and the test.
+
+CMake fetches yaml-cpp 0.9.0 and FTXUI 7.0.3 at configure time. This is a separate
+stand-alone build; the Unreal plugin uses its own source checkout as described below.
+
+Run the terminal front-end with:
+
+```bash
+./build/CivSimCoreTui
+```
 
 ## 3. Prepare the Unreal plugin dependency
 
@@ -116,34 +130,60 @@ Generate project files if required, then build the Unreal project with the UE 5.
 
 ## 5. YAML example
 
-`Tests/Data/server.yaml`:
+Every item is defined once, with its category and age linked in by anchor, and the
+game modes select the items they use:
 
 ```yaml
-hostname: localhost
-port: 7777
-enabled: true
+item-base:
+  - item: &itemCopper
+      <<: *categoryMetals
+      <<: *copperAge
+      uniqueId: Copper
+      displayName: Copper
+      description: Copper ingots
+      unitsPerCubicMetre: 1
+      basePrice: 5.6312
+      unitType: Kilogram
+      density: 8.96
+      packFactor: 1.0
 ```
 
-The core API is:
+The core API loads the generated documents:
 
 ```cpp
-#include "CivSimLibrary/Core/SimulationConfig.h"
+#include "Core/SimulationConfig.h"
 
-CivSimLibrary::SimulationConfig Config;
+CivSimCore::Ages Ages;
+CivSimCore::Categories Categories;
+CivSimCore::GameModeNode GameMode;
 std::string Error;
 
-if (!CivSimLibrary::LoadSimulationConfig("server.yaml", Config, Error))
+if (!CivSimCore::LoadConfigAges("data/core-config/ages.yaml", Ages, Error))
 {
     // Handle Error.
 }
+
+if (!CivSimCore::LoadConfigCategories("data/core-config/categories.yaml", Categories, Error))
+{
+    // Handle Error.
+}
+
+if (!CivSimCore::LoadConfigGameMode("data/core-config/full.yaml", GameMode, Error))
+{
+    // Handle GameMode.items and GameMode.skills.
+}
 ```
 
-The Unreal-facing Blueprint function is `Load Server Config From YAML`, exposed by `UCivSimLibraryBPLibrary`.
+`ProgressionManager` is scaffolded for the skill tree: it compiles, and its tiers,
+prerequisites and exclusive groups are not reachable from the data yet.
 
 ## Compatibility notes
 
 - The public core API does not expose yaml-cpp types.
-- The Unreal adapter converts between the core C++ structure and Unreal `FString`/`USTRUCT` types.
+- The Unreal adapter is scaffold, not a working bridge: it still targets the original
+  server-configuration scaffold and does not compile against the current core API. It is
+  scheduled for the Windows work, together with the `CivSimCore` UBT module rules that the
+  plugin needs to link. Expect to rewrite it in place.
 - yaml-cpp needs C++ exceptions. They are enabled only for the `YamlCpp` UBT module.
 - The sample uses C++20. Confirm that this matches the language-standard setting of your UE 5.8 installation.
 - This is a starter scaffold. Validate a full Editor build and packaged Development/Shipping builds on both Windows and Linux before distribution.
@@ -152,18 +192,22 @@ The Unreal-facing Blueprint function is `Load Server Config From YAML`, exposed 
 
 The YAML is edited as individual files with relative links and stored in **/data**. This is to keep them manageable and the ideas separate from each other during development. I am not aware of a way to make **yq** honour those links as separate files, so they are all combined into monolithic files before being used in the simulation.
 
-From this directory:
+From the **/data** directory:
 
 ```bash
 # Build all of the game-ready files using the source YAML.
-build.sh
+./build.sh
 ```
 
-This writes the game-ready documents to **/data/generated**:
+`cmake --build build` runs the same script through its `CivSimData` target, so you only
+need to run it by hand when you want the documents without a build.
+
+This writes the game-ready documents to **/data/core-config**, which is generated and
+not committed:
 
 | File | Contents |
 | --- | --- |
-| `full.yaml` | Every item in the game, with the ages and the categories. |
+| `full.yaml` | Every item in the game, with the skills. |
 | `simple.yaml` | The small subset of items used for quick matches and testing. |
 | `ages.yaml` | The ages on their own. |
 | `categories.yaml` | The categories on their own. |
@@ -174,14 +218,14 @@ item file. `build.sh` explodes the links and drops them, so every key in a gener
 file appears exactly once, and each item carries the fields inherited from its
 category and age.
 
-The full item list in `tech-tree/60-items-full.yaml` is generated from the anchors
-defined in the `30-item-*` files. After adding, removing or renaming an item,
-regenerate it from the **/data** directory:
+The full item list in `game-mode/full.yaml` is a selection of the anchors defined in
+the `trade-items/*` files. After adding, removing or renaming an item, add its
+`- item:` reference to `game-mode/full.yaml` (and to `game-mode/simple.yaml` if the
+item belongs in the small game), then run `./build.sh` from the **/data** directory.
 
-```bash
-../Scripts/GenerateItemList.sh
-build.sh
-```
+`universe/solar-system-names.yaml` holds the name pools for the generated solar systems.
+It is UTF-8 and is not part of the merge yet: `build.sh` does not read it and no core code
+loads it.
 
 ## AI Disclosure
 

@@ -11,7 +11,7 @@
             "label": "CMake: build",
             "command": "build",
             "targets": [
-                "ALL_BUILD"
+                "all"
             ],
             "group": {
                 "kind": "build",

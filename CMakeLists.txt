@@ -38,6 +38,61 @@ FetchContent_MakeAvailable(ftxui)
 
 set(CIVSIM_CORE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Source/CivSimCore")
 
+# ─── Generated Game Data ───
+# The YAML is edited as separate files under data/ and merged into the monolithic
+# documents in data/core-config by data/build.sh, which needs yq (mikefarah v4).
+set(CIVSIM_DATA_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data")
+set(CIVSIM_DATA_OUTPUT_DIR "${CIVSIM_DATA_SOURCE_DIR}/core-config")
+
+set(CIVSIM_DATA_OUTPUTS
+    "${CIVSIM_DATA_OUTPUT_DIR}/full.yaml"
+    "${CIVSIM_DATA_OUTPUT_DIR}/simple.yaml"
+    "${CIVSIM_DATA_OUTPUT_DIR}/ages.yaml"
+    "${CIVSIM_DATA_OUTPUT_DIR}/categories.yaml"
+)
+
+find_program(YQ_EXECUTABLE NAMES yq)
+find_program(BASH_PROGRAM NAMES bash)
+
+if(NOT YQ_EXECUTABLE)
+    message(WARNING
+        "yq was not found: the generated YAML in data/core-config cannot be built "
+        "and the test suite is disabled. Activate the development shell (direnv allow) "
+        "or install mikefarah/yq v4.")
+elseif(NOT BASH_PROGRAM)
+    message(WARNING "bash was not found: data/build.sh cannot be run.")
+else()
+    execute_process(
+        COMMAND "${YQ_EXECUTABLE}" --version
+        OUTPUT_VARIABLE YQ_VERSION_STRING
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_STRIP_TRAILING_WHITESPACE
+    )
+    if(NOT YQ_VERSION_STRING MATCHES "mikefarah" AND NOT YQ_VERSION_STRING MATCHES "[ (]v?4[.0-9]*[ )]?$")
+        message(WARNING
+            "data/build.sh expects mikefarah/yq v4; found '${YQ_VERSION_STRING}'. "
+            "The YAML merge may fail.")
+    endif()
+
+    # Only the source YAML, never the generated documents in data/core-config.
+    file(GLOB_RECURSE CIVSIM_DATA_INPUTS CONFIGURE_DEPENDS
+        "${CIVSIM_DATA_SOURCE_DIR}/*.yaml"
+        "${CIVSIM_DATA_SOURCE_DIR}/*.yml"
+    )
+    list(FILTER CIVSIM_DATA_INPUTS EXCLUDE REGEX "/core-config/")
+
+    add_custom_command(
+        OUTPUT ${CIVSIM_DATA_OUTPUTS}
+        COMMAND "${BASH_PROGRAM}" "${CIVSIM_DATA_SOURCE_DIR}/build.sh"
+        DEPENDS "${CIVSIM_DATA_SOURCE_DIR}/build.sh" ${CIVSIM_DATA_INPUTS}
+        WORKING_DIRECTORY "${CIVSIM_DATA_SOURCE_DIR}"
+        COMMENT "Merging the source YAML into data/core-config"
+        VERBATIM
+    )
+
+    add_custom_target(CivSimData DEPENDS ${CIVSIM_DATA_OUTPUTS})
+endif()
+
 # ─── Macro for Shared Compiler Configuration ───
 macro(apply_project_compiler_flags TARGET_NAME)
     target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
@@ -80,19 +135,27 @@ target_link_libraries(CivSimCoreTui
 apply_project_compiler_flags(CivSimCoreTui)
 
 # ─── Test Suite Generation ───
-if(BUILD_TESTING)
+if(BUILD_TESTING AND TARGET CivSimData)
     add_executable(CivSimCoreTests
         Tests/SimulationTests.cpp
     )
-    
+
     target_link_libraries(CivSimCoreTests PRIVATE CivSimCore)
 
     # Apply configuration to the test binary executable target so GDB can parse its breakpoints!
     apply_project_compiler_flags(CivSimCoreTests)
 
+    add_dependencies(CivSimCoreTests CivSimData)
+
     add_test(
         NAME CivSimCoreTests
         COMMAND CivSimCoreTests
-            "${CMAKE_CURRENT_SOURCE_DIR}/data/generated/full.yaml"
+            "${CIVSIM_DATA_OUTPUT_DIR}/ages.yaml"
+            "${CIVSIM_DATA_OUTPUT_DIR}/categories.yaml"
+            "${CIVSIM_DATA_OUTPUT_DIR}/full.yaml"
+    )
+
+    set_tests_properties(CivSimCoreTests PROPERTIES
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
     )
 endif()

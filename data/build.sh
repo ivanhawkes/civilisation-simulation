@@ -29,8 +29,8 @@ merge_documents() {
       '
 }
 
-# The tech-tree without an item list: the ages, the categories and every item
-# definition with its anchors. The item lists in 60-items-*.yaml pick from them.
+# The tech tree: the ages, the categories, every item definition with its anchors
+# and the skills. The game-mode files in game-mode/ select from those anchors.
 TECH_TREE=(
   base/ages.yaml
   trade-items/categories.yaml
@@ -42,7 +42,7 @@ TECH_TREE=(
   skill-tree/skills.yaml
 )
 
-# Merge the whole tech-tree, including every item in the game.
+# Merge the whole tech tree, including every item in the game.
 merge_documents "${TECH_TREE[@]}" game-mode/full.yaml > core-config/full.yaml
 
 # Merge the subset of items used by the simple version of the game, for quick

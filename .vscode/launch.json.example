@@ -6,7 +6,7 @@
             "type": "gdb",
             "request": "launch",
             "target": "${workspaceFolder}/build/CivSimCoreTests",
-            "arguments": "${workspaceFolder}/data/generated/complete.yaml",
+            "arguments": "${workspaceFolder}/data/core-config/ages.yaml ${workspaceFolder}/data/core-config/categories.yaml ${workspaceFolder}/data/core-config/full.yaml",
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "CMake: build",
             "gdbpath": "${workspaceFolder}/.devenv/profile/bin/gdb",
