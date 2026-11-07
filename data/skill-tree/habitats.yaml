@@ -1,0 +1,88 @@
+---
+# Habitats and terraforming: the tree that builds a place to live, then builds the
+# place. A dome is a structure, a closed loop is the ecology inside it, and the
+# atmosphere and the biosphere are the work of a civilisation that has stopped needing
+# the dome.
+#
+# The tree sits behind the age ladder, and the tree says so: the domes require the
+# Space Colonisation Age gate. Closed life support, in-situ resource use and orbital
+# habitats are the technology that age is named for, and a civilisation that has not
+# bought the gate has no business pouring a dome.
+#
+# Field conventions are the ones used by skills.yaml:
+#
+#   nodeType           Skill throughout: a dome, a loop, an atmosphere and a biosphere
+#                      all get bigger and better by the tier.
+#   maxTiers           3 everywhere: a tier is more volume, more redundancy, more
+#                      weather, not a new kind of dome.
+#   requires           The work that has to stand first, and the tier of it. The loop
+#                      closes the dome it sits in, the atmosphere works on the ground a
+#                      loop has prepared, and the biosphere needs both and the
+#                      Agriculture craft that seeds it.
+#   targetEffectID     The effect the engine drives from the tier: the dome, the loop,
+#                      the atmosphere and the biosphere.
+#   exclusiveGroupId   null: a colony wants the dome, the loop and the weather at once.
+#   gridX, gridY       The row at gridY 3.0, above the yards, the lanes and the survey.
+skill-base:
+
+  - skill: &skillHabitatDomes
+      uniqueId: HabitatDomes
+      displayName: Habitat Domes
+      description: The pressure shells, the spacers and the land they stand on
+      nodeType: Skill
+      requires:
+        - nodeId: SpaceColonisationAge
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 3
+      targetEffectID: HabitatDomes
+      exclusiveGroupId: null
+      gridX: 0.0
+      gridY: 3.0
+
+  - skill: &skillHabitatClosedLoop
+      uniqueId: HabitatClosedLoop
+      displayName: Closed Life Support Loop
+      description: The air, water and crops that recycle a dome into a place to live
+      nodeType: Skill
+      requires:
+        - nodeId: HabitatDomes
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 3
+      targetEffectID: ClosedLoop
+      exclusiveGroupId: null
+      gridX: 1.0
+      gridY: 3.0
+
+  - skill: &skillTerraformAtmosphere
+      uniqueId: TerraformAtmosphere
+      displayName: Atmospheric Works
+      description: The gas, the pressure and the weather a bare rock has to be given
+      nodeType: Skill
+      requires:
+        - nodeId: HabitatClosedLoop
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 4
+      targetEffectID: TerraformAtmosphere
+      exclusiveGroupId: null
+      gridX: 2.0
+      gridY: 3.0
+
+  - skill: &skillTerraformBiosphere
+      uniqueId: TerraformBiosphere
+      displayName: Biosphere Seeding
+      description: The soil, the seed and the herd that make an atmosphere pay its way
+      nodeType: Skill
+      requires:
+        - nodeId: TerraformAtmosphere
+          requiredTier: 1
+        - nodeId: Agriculture
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 4
+      targetEffectID: TerraformBiosphere
+      exclusiveGroupId: null
+      gridX: 3.0
+      gridY: 3.0

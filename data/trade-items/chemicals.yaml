@@ -27,6 +27,8 @@ item-base:
       <<: *categoryChemicals
       <<: *ironAge
       uniqueId: SodiumHydroxide
+      categoryId: Chemicals
+      ageId: IronAge
       displayName: Sodium Hydroxide
       description: Sodium Hydroxide, AKA caustic soda
       unitsPerCubicMetre: 1
@@ -39,6 +41,8 @@ item-base:
       <<: *categoryChemicals
       <<: *industrialAge
       uniqueId: Nitrogen
+      categoryId: Chemicals
+      ageId: IndustrialAge
       displayName: Nitrogen
       description: Nitrogen (refrigerated liquid)
       unitsPerCubicMetre: 1
@@ -51,6 +55,8 @@ item-base:
       <<: *categoryChemicals
       <<: *industrialAge
       uniqueId: Phosphorus
+      categoryId: Chemicals
+      ageId: IndustrialAge
       displayName: Phosphorus
       description: White phosphorus, shipped under water in sealed drums
       unitsPerCubicMetre: 1
@@ -63,6 +69,8 @@ item-base:
       <<: *categoryChemicals
       <<: *industrialAge
       uniqueId: Sulfur
+      categoryId: Chemicals
+      ageId: IndustrialAge
       displayName: Sulfur
       description: Sulfur, granulated
       unitsPerCubicMetre: 1
@@ -75,6 +83,8 @@ item-base:
       <<: *categoryChemicals
       <<: *industrialAge
       uniqueId: SulfuricAcid
+      categoryId: Chemicals
+      ageId: IndustrialAge
       displayName: Sulfuric Acid
       description: Sulfuric acid, 93 to 98 percent, in lined tanks
       unitsPerCubicMetre: 1
@@ -89,6 +99,8 @@ item-base:
       <<: *categoryChemicals
       <<: *industrialAge
       uniqueId: Antimony
+      categoryId: Chemicals
+      ageId: IndustrialAge
       displayName: Antimony
       description: Antimony ingots
       unitsPerCubicMetre: 6680
@@ -101,6 +113,8 @@ item-base:
       <<: *categoryChemicals
       <<: *industrialAge
       uniqueId: Chlorine
+      categoryId: Chemicals
+      ageId: IndustrialAge
       displayName: Chlorine
       description: Chlorine (refrigerated liquid)
       unitsPerCubicMetre: 1
@@ -113,6 +127,8 @@ item-base:
       <<: *categoryChemicals
       <<: *industrialAge
       uniqueId: Ammonia
+      categoryId: Chemicals
+      ageId: IndustrialAge
       displayName: Ammonia
       description: Anhydrous ammonia (refrigerated liquid)
       unitsPerCubicMetre: 1
@@ -125,6 +141,8 @@ item-base:
       <<: *categoryChemicals
       <<: *industrialAge
       uniqueId: Ethylene
+      categoryId: Chemicals
+      ageId: IndustrialAge
       displayName: Ethylene
       description: Ethylene (refrigerated liquid)
       unitsPerCubicMetre: 1
@@ -137,6 +155,8 @@ item-base:
       <<: *categoryChemicals
       <<: *postIndustrialAge
       uniqueId: Neodymium
+      categoryId: Chemicals
+      ageId: Post-industrialAge
       displayName: Neodymium
       description: Neodymium metal, praseodymium neodymium alloy
       unitsPerCubicMetre: 7010
@@ -154,6 +174,8 @@ item-base:
       <<: *categoryChemicals
       <<: *informationAge
       uniqueId: Graphene
+      categoryId: Chemicals
+      ageId: InformationAge
       displayName: Graphene
       description: Graphene, multilayer transfer film
       unitsPerCubicMetre: 100000

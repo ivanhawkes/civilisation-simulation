@@ -1,0 +1,79 @@
+---
+# The lanes: the convoy, the escort and the standing patrol that keep a trade route
+# open against the pirates who live off it. This is the tree a long-haul trader pays
+# for indirectly and uses directly: a lane with no escort is a lane where the freight
+# rate has to cover the losses.
+#
+# Field conventions are the ones used by skills.yaml:
+#
+#   nodeType           Skill throughout: a lane protection is a capability that gets
+#                      thicker by the tier, never a door that opens once.
+#   maxTiers           3 everywhere: a tier is more hulls on patrol and a tighter
+#                      schedule, not a second kind of convoy.
+#   requires           The formation that has to exist first, and the tier of it. The
+#                      escort flies with the convoy it shields, and the standing patrol
+#                      is one more shift of the escort wing.
+#   targetEffectID     The effect the engine drives from the tier: the convoy, the
+#                      escort, the patrol and the ward on the route.
+#   exclusiveGroupId   null: a merchant fleet wants the convoy, the escort, the patrol
+#                      and the ward at the same time.
+#   gridX, gridY       The row at gridY 2.0, beside the yards and the survey tree.
+skill-base:
+
+  - skill: &skillLaneConvoy
+      uniqueId: LaneConvoy
+      displayName: Convoy System
+      description: The sailing schedule and the assembly that gathers a lane's tonnage
+      nodeType: Skill
+      requires: []
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: Convoy
+      exclusiveGroupId: null
+      gridX: 5.0
+      gridY: 2.0
+
+  - skill: &skillLaneEscortWing
+      uniqueId: LaneEscortWing
+      displayName: Escort Wing
+      description: The hulls that fly with the convoy and answer when the mast calls
+      nodeType: Skill
+      requires:
+        - nodeId: LaneConvoy
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: EscortWing
+      exclusiveGroupId: null
+      gridX: 6.0
+      gridY: 2.0
+
+  - skill: &skillLaneRouteWard
+      uniqueId: LaneRouteWard
+      displayName: Route Ward
+      description: The stations that hold the jump points a lane depends on
+      nodeType: Skill
+      requires:
+        - nodeId: LaneConvoy
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: RouteWard
+      exclusiveGroupId: null
+      gridX: 7.0
+      gridY: 2.0
+
+  - skill: &skillLaneWardenPatrol
+      uniqueId: LaneWardenPatrol
+      displayName: Warden Patrol
+      description: The standing patrol that clears a lane and keeps it clear
+      nodeType: Skill
+      requires:
+        - nodeId: LaneEscortWing
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 3
+      targetEffectID: WardenPatrol
+      exclusiveGroupId: null
+      gridX: 8.0
+      gridY: 2.0

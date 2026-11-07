@@ -23,8 +23,21 @@ constexpr double kFreightRate = 0.08;
 constexpr double kTradeFraction = 0.8;
 constexpr unsigned kRoutesPerTick = 25;
 
+// Demand weight for the goods a population consumes whatever its age makes of it: the
+// essentials, the medicines and the knowledge goods. Medicine and education are demand,
+// not a craft to be tiered: a world that can make antibiotics consumes them, a world
+// that cannot buys them, and the second is the trade the model exists to find.
+constexpr double kEssentialDemandWeight = 2.5;
+
 constexpr const char *kSystemSuffixes[] = {"Prime",   "Alpha", "Beta", "Gamma", "Delta",
                                            "Epsilon", "Zeta",  "Eta",  "Theta", "Iota"};
+
+// The categories whose goods a world wants at every age, made by that world or bought
+// from one that can. The ids are the loaded categories, so a good in an unknown category
+// is wanted at the ordinary rate.
+constexpr const char *kEssentialCategories[] = {
+    "Water", "Consumables", "Medicine", "Pharmaceuticals", "MedicalEquipment",
+    "Drugs", "Seeds",       "Fuels",    "Information",     "Writing"};
 
 double Clamp(double Value, double Low, double High)
 {
@@ -52,6 +65,35 @@ std::string PaddedIndex(unsigned Index)
 	const std::string digits = std::to_string(Index);
 
 	return digits.size() >= 2 ? digits : "0" + digits;
+}
+
+bool IsEssentialDemand(const std::string &CategoryId)
+{
+	for (const auto *category : kEssentialCategories)
+	{
+		if (CategoryId == category)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+// The age each good belongs in, keyed by the age's uniqueId. The merged documents write
+// the age link out of the age anchor each item carries, so the link is a plain field by
+// the time the loader is done with it, and it is optional: a good with no age of its own
+// is in range at every age.
+std::map<std::string, std::size_t> BuildAgeRanks(const std::vector<AgeNode> &Ages)
+{
+	std::map<std::string, std::size_t> ranks;
+
+	for (std::size_t index = 0; index < Ages.size(); ++index)
+	{
+		ranks[Ages[index].uniqueId] = index;
+	}
+
+	return ranks;
 }
 
 // Finds a world by id ("Civ-03") or by name, case insensitive. -1 when unknown.
@@ -164,6 +206,11 @@ bool Simulation::Generate(
 	ages = Ages;
 	categories = Categories;
 	items = Items;
+
+	// The ranks are read after the ages are stored, and not before: an empty rank map
+	// lets every good into every deck, which is the gate doing nothing while looking as
+	// if it worked.
+	const std::map<std::string, std::size_t> ageRanks = BuildAgeRanks(ages);
 	civilisations.clear();
 	tick = 0;
 
@@ -230,15 +277,23 @@ bool Simulation::Generate(
 		    shuffledCategories.begin(),
 		    shuffledCategories.begin() + static_cast<std::ptrdiff_t>(specialtyTotal));
 
-		// A later age makes a wider range of goods.
-		std::vector<std::size_t> goodsDeck(items.size());
+		// A later age makes a wider range of goods: the deck holds the goods this world's
+		// age can make, so a StoneAge world does not print antibiotics, and the goods of an
+		// unknown age are in every deck.
+		std::vector<std::size_t> goodsDeck;
+		goodsDeck.reserve(items.size());
 		for (std::size_t item = 0; item < items.size(); ++item)
 		{
-			goodsDeck[item] = item;
+			const auto rank = ageRanks.find(items[item].ageId);
+			if (rank == ageRanks.end() || rank->second <= ageIndex)
+			{
+				goodsDeck.push_back(item);
+			}
 		}
 		std::shuffle(goodsDeck.begin(), goodsDeck.end(), engine);
 
-		const std::size_t goods = std::min(items.size(), static_cast<std::size_t>(4) + 3 * ageIndex);
+		const std::size_t goods =
+		    std::min(goodsDeck.size(), static_cast<std::size_t>(4) + 3 * ageIndex);
 
 		std::uniform_real_distribution<double> productivity(0.4, 1.6);
 		for (std::size_t made = 0; made < goods; ++made)
@@ -262,8 +317,11 @@ bool Simulation::Generate(
 				continue;
 			}
 
+			// A world buys the goods it does not make: the essentials, the medicines and
+			// the knowledge goods at the essential rate, the rest at the ordinary one.
 			std::uniform_real_distribution<double> needDraw(0.05, 0.5);
-			const double need = civ.population * needDraw(engine);
+			const double weight = IsEssentialDemand(item.categoryId) ? kEssentialDemandWeight : 1.0;
+			const double need = civ.population * needDraw(engine) * weight;
 
 			civ.demand[item.uniqueId] = need;
 

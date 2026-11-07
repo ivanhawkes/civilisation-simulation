@@ -36,6 +36,169 @@ skills:
   - skill:
       <<: *skillFuelRefining
 
+  # The skill list of the small game is the whole tree: the items are what makes it
+  # small, and a short tree would leave the age gates and the ship systems out of the
+  # quick matches they are meant to test.
+  #
+  # The age gates: one per age, in age order.
+  - skill:
+      <<: *skillStoneAge
+  - skill:
+      <<: *skillCopperAge
+  - skill:
+      <<: *skillBronzeAge
+  - skill:
+      <<: *skillIronAge
+  - skill:
+      <<: *skillClassicalAge
+  - skill:
+      <<: *skillMedievalAge
+  - skill:
+      <<: *skillPreIndustrialAge
+  - skill:
+      <<: *skillIndustrialAge
+  - skill:
+      <<: *skillPostIndustrialAge
+  - skill:
+      <<: *skillInformationAge
+  - skill:
+      <<: *skillAIAge
+  - skill:
+      <<: *skillSpaceAge
+  - skill:
+      <<: *skillSpaceColonisationAge
+  - skill:
+      <<: *skillSublimationAge
+
+  # The systems of the long-haul trader: screens, guns, lasers, computers, the drive
+  # that makes the running and the mast that sees what is out there.
+  - skill:
+      <<: *skillShipShieldsFront
+  - skill:
+      <<: *skillShipShieldsSide
+  - skill:
+      <<: *skillShipShieldsRear
+  - skill:
+      <<: *skillShipGunsFront
+  - skill:
+      <<: *skillShipGunsRear
+  - skill:
+      <<: *skillShipLasersFront
+  - skill:
+      <<: *skillShipLasersRear
+  - skill:
+      <<: *skillShipNavigationComputer
+  - skill:
+      <<: *skillShipTraderAI
+  - skill:
+      <<: *skillShipEngineThrust
+  - skill:
+      <<: *skillShipManoeuvringJets
+  - skill:
+      <<: *skillShipAttitudeControl
+  - skill:
+      <<: *skillShipSensorLongRange
+  - skill:
+      <<: *skillShipSensorFireControl
+  - skill:
+      <<: *skillShipSensorCommercial
+
+  # The rest of the ship: the haul, running quiet and the crew.
+  - skill:
+      <<: *skillShipCargoHolds
+  - skill:
+      <<: *skillShipFuelBunkers
+  - skill:
+      <<: *skillShipSalvageRig
+  - skill:
+      <<: *skillShipLifeSupport
+  - skill:
+      <<: *skillShipStealthCoating
+  - skill:
+      <<: *skillShipEmissionsControl
+  - skill:
+      <<: *skillShipCountermeasures
+  - skill:
+      <<: *skillShipCrewTraining
+  - skill:
+      <<: *skillShipDamageControl
+  - skill:
+      <<: *skillShipSparesLockers
+
+  # The yards: the docks, the lines and the hull production.
+  - skill:
+      <<: *skillYardDrydock
+  - skill:
+      <<: *skillYardOutfitting
+  - skill:
+      <<: *skillYardModularHulls
+  - skill:
+      <<: *skillYardRefitDocks
+
+  # The lanes: convoy, escort, ward and patrol.
+  - skill:
+      <<: *skillLaneConvoy
+  - skill:
+      <<: *skillLaneEscortWing
+  - skill:
+      <<: *skillLaneRouteWard
+  - skill:
+      <<: *skillLaneWardenPatrol
+
+  # Survey and claims: the deep look, the strike and the works.
+  - skill:
+      <<: *skillSurveyDeepRange
+  - skill:
+      <<: *skillClaimMining
+  - skill:
+      <<: *skillClaimRefinery
+  - skill:
+      <<: *skillClaimExclusive
+
+  # Habitats and terraforming: the dome, the loop, the weather and the soil.
+  - skill:
+      <<: *skillHabitatDomes
+  - skill:
+      <<: *skillHabitatClosedLoop
+  - skill:
+      <<: *skillTerraformAtmosphere
+  - skill:
+      <<: *skillTerraformBiosphere
+
+  # The pirate tree: hulls, boarding, ransom and harbours.
+  - skill:
+      <<: *skillPirateRaiderHulls
+  - skill:
+      <<: *skillPirateBoardingParties
+  - skill:
+      <<: *skillPirateRansomExchange
+  - skill:
+      <<: *skillPirateSafeHarbours
+
+  # Law: the warrant, the pardon, the bench and the standing.
+  - skill:
+      <<: *skillLawAdmiraltyWarrant
+  - skill:
+      <<: *skillLawPiratePardon
+  - skill:
+      <<: *skillLawTribunal
+  - skill:
+      <<: *skillLawPirateStanding
+
+  # Trade services: the licence, the premium and the fence.
+  - skill:
+      <<: *skillTradeDockingLicence
+  - skill:
+      <<: *skillTradeInsurance
+  - skill:
+      <<: *skillTradeFencingNetwork
+
+  # The demand side: public medicine and the education system.
+  - skill:
+      <<: *skillServicePublicMedicine
+  - skill:
+      <<: *skillServiceEducation
+
 items:
 
   # Metals

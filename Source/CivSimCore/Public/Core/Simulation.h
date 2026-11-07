@@ -34,8 +34,16 @@ struct Civilisation
 	double population{1.0};
 	long long treasury{0}; // credits
 
-	// Item id -> units per tick. Production only lists the goods this economy makes.
+	// Item id -> units per tick. Production only lists the goods this economy makes, and
+	// what it can make is bounded by its age: the deck holds the goods whose ageId sits at
+	// this world's age index or earlier, so a StoneAge world has no antibiotics to make.
+	// A good with no ageId is in every deck.
 	std::map<std::string, double> production;
+
+	// Item id -> units per tick. A world consumes part of what it makes and buys the
+	// rest. The goods of the essential categories - the water, food and fuels a population
+	// runs on, the medicines and the knowledge goods - are wanted at every age, so their
+	// demand is weighted up: medicine and education are demand, not a craft.
 	std::map<std::string, double> demand;
 
 	// Item id -> units held.
@@ -72,20 +80,24 @@ struct TradeRoute
 //
 // Generation seeds each world with a name from the universe pools, an age, a handful of
 // category specialities and an economy: the goods it produces, how much of everything
-// else it needs, and a starting stockpile. Prices follow scarcity: the market price of
-// a good rises with aggregate demand and falls with aggregate supply, and the price at
-// one world moves with that world's own surplus or deficit. The difference between two
+// else it needs, and a starting stockpile. The age gates what a world can make, the
+// category weights what it wants, and prices follow scarcity: the market price of a
+// good rises with aggregate demand and falls with aggregate supply, and the price at one
+// world moves with that world's own surplus or deficit. The difference between two
 // worlds is the trade the player can make, and a tick moves production, consumption and
 // the resulting trades.
 //
 // The model is a development harness: it is reproducible from the seed and it is
-// deliberately small enough to reason about. It uses only the fields the merged
-// documents carry, so the item economy runs on basePrice and the item list alone.
+// deliberately small enough to reason about. It reads basePrice from every good, plus
+// the ageId and categoryId links the merged documents write out. Those links are
+// optional: goods without them are in every deck and wanted at the ordinary rate.
 class Simulation
 {
   public:
 	// Generates the civilisations, replacing any previous run. Deterministic: the same
-	// configuration and options give the same worlds, names and economies.
+	// configuration and options give the same worlds, names and economies. A world's age
+	// bounds the goods it can produce, and the essential categories are demanded at every
+	// age, so a world that cannot make medicine has to buy it.
 	//
 	// Fails when any input is empty, when the civilisation count is 0, when the pools
 	// cannot supply enough distinct names, or when the specialty bounds do not fit the

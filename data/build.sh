@@ -40,6 +40,16 @@ TECH_TREE=(
   trade-items/misc.yaml
   trade-items/seeds.yaml
   skill-tree/skills.yaml
+  skill-tree/ages.yaml
+  skill-tree/spaceship.yaml
+  skill-tree/shipyards.yaml
+  skill-tree/lanes.yaml
+  skill-tree/survey.yaml
+  skill-tree/habitats.yaml
+  skill-tree/piracy.yaml
+  skill-tree/law.yaml
+  skill-tree/trade.yaml
+  skill-tree/services.yaml
 )
 
 # Every document is built in a temporary directory and moved into place at the end.

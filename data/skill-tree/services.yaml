@@ -1,0 +1,54 @@
+---
+# Public medicine and education: the demand side of the tree. The economy wants
+# medicine and knowledge goods at every age, and the simulation weights the goods of
+# the essential categories up, so a world that cannot make antibiotics is a buyer of
+# them. Medicine and education are demand, not a craft to be tiered: the two nodes
+# here are the service a civilisation runs to meet that demand, and each hangs off the
+# craft that trains the people who staff it.
+#
+# Field conventions are the ones used by skills.yaml:
+#
+#   nodeType           Skill throughout: a clinic and a school get better by the tier.
+#   maxTiers           3 everywhere: a tier is reach, depth and throughput, not a new
+#                      kind of clinic.
+#   requires           The craft that has to train first, and the tier of it. A public
+#                      medicine service is staffed by the pharmaceutical trade, and a
+#                      school system by the research and education trade. A demand a
+#                      civilisation cannot meet is a demand it buys, and the craft is
+#                      the point where buying stops and teaching starts.
+#   targetEffectID     The effect the engine drives from the tier: the clinic and the
+#                      school.
+#   exclusiveGroupId   null: no civilisation chooses between a clinic and a school.
+#   gridX, gridY       The row at gridY -2.0, at the end of the law, pirate and trade
+#                      trees, below the age ladder they depend on.
+skill-base:
+
+  - skill: &skillServicePublicMedicine
+      uniqueId: ServicePublicMedicine
+      displayName: Public Medicine Service
+      description: The clinics, the immunisers and the drug ration a population is owed
+      nodeType: Skill
+      requires:
+        - nodeId: Pharmaceuticals
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: PublicMedicine
+      exclusiveGroupId: null
+      gridX: 14.0
+      gridY: -2.0
+
+  - skill: &skillServiceEducation
+      uniqueId: ServiceEducation
+      displayName: Education System
+      description: The schools, the apprenticeships and the books that make a crew literate
+      nodeType: Skill
+      requires:
+        - nodeId: Research
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: Education
+      exclusiveGroupId: null
+      gridX: 15.0
+      gridY: -2.0

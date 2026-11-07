@@ -2,6 +2,7 @@
 #include "TestFramework.h"
 #include <algorithm>
 #include <string>
+#include <utility>
 #include <vector>
 
 
@@ -458,6 +459,179 @@ TEST_CASE(base_price_must_be_a_number)
 	CHECK_NEAR(simulation.GetLocalPrice("Civ-01", "Nope"), 0.0, 0.0001);
 
 	CHECK_CONTAINS(CivSimCore::FormatNumber(12.3456), "12.35");
+}
+
+TEST_CASE(a_world_makes_only_the_goods_of_its_age_and_earlier)
+{
+	// The merged documents write an ageId onto every good, and the economy reads it as a
+	// production gate: a StoneAge world has no antibiotics to make. A good with no age of
+	// its own is in every deck, because a missing link is not a licence to make nothing.
+	Scenario scenario;
+	scenario.ages = MakeAges(4);
+
+	std::vector<std::pair<std::string, std::size_t>> ranks;
+
+	// The scenario's default goods carry no links, so the list starts empty: a good that
+	// shares an id with a linked one of the same number is the test's own bug, and the
+	// production map cannot tell the pair apart.
+	scenario.items.clear();
+	for (std::size_t index = 0; index < 12; ++index)
+	{
+		CivSimCore::ItemNode item;
+		item.uniqueId = "Good" + std::to_string(index);
+		item.displayName = item.uniqueId;
+		item.basePrice = std::to_string(10.0 * static_cast<double>(index + 1));
+		item.ageId = "Age" + std::to_string(index % 4);
+
+		ranks.emplace_back(item.uniqueId, index % 4);
+		scenario.items.push_back(item);
+	}
+
+	CivSimCore::ItemNode timeless;
+	timeless.uniqueId = "Timeless";
+	timeless.displayName = "Timeless";
+	timeless.basePrice = "40";
+	scenario.items.push_back(timeless);
+
+	std::string errorMessage;
+	CivSimCore::Simulation simulation;
+	CHECK(simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(40, 7),
+	    errorMessage));
+
+	const std::size_t latestAge = scenario.ages.size() - 1;
+
+	std::size_t earliestWorlds = 0;
+	std::size_t latestWorlds = 0;
+	std::size_t madeLateGoods = 0;
+	std::size_t madeTimelessGoods = 0;
+
+	for (const auto &civ : simulation.GetCivilisations())
+	{
+		if (civ.ageIndex == 0)
+		{
+			++earliestWorlds;
+		}
+
+		if (civ.ageIndex == latestAge)
+		{
+			++latestWorlds;
+		}
+
+		for (const auto &entry : civ.production)
+		{
+			if (entry.first == timeless.uniqueId)
+			{
+				++madeTimelessGoods;
+
+				continue;
+			}
+
+			std::size_t rank = latestAge;
+			for (const auto &candidate : ranks)
+			{
+				if (candidate.first == entry.first)
+				{
+					rank = candidate.second;
+				}
+			}
+
+			// The gate: a good is made only by a world at its age index or later.
+			CHECK(rank <= civ.ageIndex);
+
+			if (rank == latestAge)
+			{
+				++madeLateGoods;
+			}
+		}
+	}
+
+	// The gate is a bound and not a blank: the late goods are made by the late worlds, and
+	// the good with no age of its own is made anywhere.
+	CHECK(earliestWorlds > std::size_t(0));
+	CHECK(latestWorlds > std::size_t(0));
+	CHECK(madeLateGoods > std::size_t(0));
+	CHECK(madeTimelessGoods > std::size_t(0));
+}
+
+TEST_CASE(medicine_and_knowledge_goods_are_demanded_at_every_age)
+{
+	// A craft is a thing a world makes. Medicine and education are things a world wants:
+	// the goods of the essential categories, the medicines, the knowledge goods, the water
+	// and the fuel a population runs on, are wanted at every age. A world that cannot make
+	// antibiotics is a buyer of them, and the buying is what moves their price.
+	Scenario scenario;
+	scenario.ages = MakeAges(1);
+
+	scenario.categories.clear();
+	for (const char *id : {"Medicine", "Information", "Metals", "Crafts"})
+	{
+		CivSimCore::CategoryNode category;
+		category.uniqueId = id;
+		category.displayName = id;
+		category.type = id;
+		scenario.categories.push_back(category);
+	}
+
+	scenario.items.clear();
+	for (std::size_t index = 0; index < 30; ++index)
+	{
+		CivSimCore::ItemNode essential;
+		essential.uniqueId = "Need" + std::to_string(index);
+		essential.displayName = essential.uniqueId;
+		essential.basePrice = "20";
+		essential.categoryId = (index % 2 == 0) ? "Medicine" : "Information";
+		scenario.items.push_back(essential);
+
+		CivSimCore::ItemNode ordinary;
+		ordinary.uniqueId = "Ware" + std::to_string(index);
+		ordinary.displayName = ordinary.uniqueId;
+		ordinary.basePrice = "20";
+		ordinary.categoryId = (index % 2 == 0) ? "Metals" : "Crafts";
+		scenario.items.push_back(ordinary);
+	}
+
+	std::string errorMessage;
+	CivSimCore::Simulation simulation;
+	CHECK(simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(40, 11),
+	    errorMessage));
+
+	double population = 0.0;
+	double wantedEssential = 0.0;
+	double wantedOrdinary = 0.0;
+
+	for (const auto &civ : simulation.GetCivilisations())
+	{
+		population += civ.population;
+
+		for (const auto &entry : civ.demand)
+		{
+			if (entry.first.rfind("Need", 0) == 0)
+			{
+				wantedEssential += entry.second;
+			}
+			else
+			{
+				wantedOrdinary += entry.second;
+			}
+		}
+	}
+
+	CHECK(population > 0.0);
+	CHECK(wantedEssential > 0.0);
+	CHECK(wantedOrdinary > 0.0);
+
+	const double essentialPerPerson = wantedEssential / population;
+	const double ordinaryPerPerson = wantedOrdinary / population;
+
+	// The weight is 2.5 to the person, and the worlds that do make these goods dilute both
+	// families with their own self use, so the check is a margin and not the figure.
+	CHECK(essentialPerPerson > ordinaryPerPerson * 1.5);
+
+	// A good everybody wants and few can make is bid up: the same base price, and the
+	// essential one is the dearer of the pair on the market.
+	CHECK(simulation.GetPrice("Need0") > simulation.GetPrice("Ware0"));
 }
 
 int main()

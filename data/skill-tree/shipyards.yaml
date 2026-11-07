@@ -1,0 +1,81 @@
+---
+# Shipyards: the tree that builds and mends the ships the other trees fit out. A dry
+# dock is the root of everything here, because a hull has to go into a dock before
+# anything can be done to it, and a modular hull is the branch that turns shipbuilding
+# from a craft into a production line.
+#
+# Field conventions are the ones used by skills.yaml:
+#
+#   nodeType           Skill throughout: a yard is a capacity that gets faster, cheaper
+#                      and bigger by the tier, never a door that opens once.
+#   maxTiers           3 everywhere, so a tier buys tonnage, not a second dock.
+#   requires           The yard work that has to exist first, and the tier of it. A
+#                      modular hull also requires the Information Age gate: the plate
+#                      that snaps together is cut by a machine that reads a drawing, and
+#                      a civilisation without computers has no such machine.
+#   targetEffectID     The effect the engine drives from the tier: the dock, the line,
+#                      the outfitting and the refit.
+#   exclusiveGroupId   null: every yard capability is wanted at once.
+#   gridX, gridY       The row at gridY 2.0, above the ship systems at 1.0, with the
+#                      lane and survey trees running on beside it.
+skill-base:
+
+  - skill: &skillYardDrydock
+      uniqueId: YardDrydock
+      displayName: Dry Dock
+      description: The dock, the caisson and the lifts that put a hull in the yard
+      nodeType: Skill
+      requires: []
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: Drydock
+      exclusiveGroupId: null
+      gridX: 0.0
+      gridY: 2.0
+
+  - skill: &skillYardOutfitting
+      uniqueId: YardOutfitting
+      displayName: Outfitting Lines
+      description: The lines that put the screens, guns, drive and mast onto a hull
+      nodeType: Skill
+      requires:
+        - nodeId: YardDrydock
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: YardOutfitting
+      exclusiveGroupId: null
+      gridX: 1.0
+      gridY: 2.0
+
+  - skill: &skillYardModularHulls
+      uniqueId: YardModularHulls
+      displayName: Modular Hull Production
+      description: Plate cut to a drawing and snapped together, so a hull is a product
+      nodeType: Skill
+      requires:
+        - nodeId: YardDrydock
+          requiredTier: 1
+        - nodeId: InformationAge
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 3
+      targetEffectID: ModularHulls
+      exclusiveGroupId: null
+      gridX: 2.0
+      gridY: 2.0
+
+  - skill: &skillYardRefitDocks
+      uniqueId: YardRefitDocks
+      displayName: Refit Docks
+      description: The berths that take a working ship off a lane and put it back on
+      nodeType: Skill
+      requires:
+        - nodeId: YardOutfitting
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: RefitDocks
+      exclusiveGroupId: null
+      gridX: 3.0
+      gridY: 2.0

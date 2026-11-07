@@ -1,0 +1,85 @@
+---
+# Survey and claims: finding the rock worth working, staking the claim on it, and the
+# works that turn the claim into ore. The survey tree is where the Mining craft meets
+# the ship's mast: a deep survey is a job for a sensor and a computer, and a claim is
+# worth nothing until somebody can dig.
+#
+# Field conventions are the ones used by skills.yaml:
+#
+#   nodeType           Skill throughout: a survey and a claim get better by the tier.
+#   maxTiers           3 everywhere: a tier is deeper range, a wider claim, a bigger
+#                      refinery, not a new kind of survey.
+#   requires           The work that has to exist first, and the tier of it. A claim
+#                      needs the survey that found the ground and the Mining craft that
+#                      can work it: an unworked claim is a line on a chart, and a
+#                      refinery needs the claim it refines for.
+#   targetEffectID     The effect the engine drives from the tier: the survey, the
+#                      claim, the refinery and the exclusive grant.
+#   exclusiveGroupId   null, with one exception worth naming: the exclusive claim is a
+#                      grant over ground, and the tree charges more for it than the open
+#                      claim, so the player buys it when the ground is good enough to
+#                      pay for the monopoly.
+#   gridX, gridY       The row at gridY 2.0, beside the yards and the lanes.
+skill-base:
+
+  - skill: &skillSurveyDeepRange
+      uniqueId: SurveyDeepRange
+      displayName: Deep Survey
+      description: The long look into the belt, the moons and the crust that finds the ore
+      nodeType: Skill
+      requires: []
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: DeepSurvey
+      exclusiveGroupId: null
+      gridX: 10.0
+      gridY: 2.0
+
+  - skill: &skillClaimMining
+      uniqueId: ClaimMining
+      displayName: Mining Claim
+      description: The ground staked on a strike, worked by the crew that can dig it
+      nodeType: Skill
+      requires:
+        - nodeId: SurveyDeepRange
+          requiredTier: 1
+        - nodeId: Mining
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: MiningClaim
+      exclusiveGroupId: null
+      gridX: 11.0
+      gridY: 2.0
+
+  - skill: &skillClaimRefinery
+      uniqueId: ClaimRefinery
+      displayName: Claim Refinery
+      description: The crushing, leaching and smelting works that turn claim ore into metal
+      nodeType: Skill
+      requires:
+        - nodeId: ClaimMining
+          requiredTier: 1
+        - nodeId: Smelting
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: ClaimRefinery
+      exclusiveGroupId: null
+      gridX: 12.0
+      gridY: 2.0
+
+  - skill: &skillClaimExclusive
+      uniqueId: ClaimExclusive
+      displayName: Exclusive Claim
+      description: The grant that shuts the other crews off a strike and everything near it
+      nodeType: Skill
+      requires:
+        - nodeId: ClaimMining
+          requiredTier: 2
+      maxTiers: 3
+      resourceCostPerTier: 3
+      targetEffectID: ExclusiveClaim
+      exclusiveGroupId: null
+      gridX: 13.0
+      gridY: 2.0

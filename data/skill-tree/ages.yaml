@@ -1,0 +1,237 @@
+---
+# One technology gate per age: the skill that gives a civilisation, and the player
+# trading with it, access to the technology that age is known for. The Information Age
+# gate opens computers, calculators, networking and the goods built on them.
+#
+# These are the Tech nodes of the tree, against the Skill nodes of skills.yaml and
+# spaceship.yaml:
+#
+#   nodeType     Tech: a gate, not a craft. There is nothing to get better at, you
+#                either have the age's technology or you do not.
+#   maxTiers     1 for every gate, and the reason the age gate is a Tech node. Two
+#                tiers of the Information Age would mean half a microprocessor.
+#   requires     The gate of the age before. The ages are a ladder, so the tree can
+#                never hand a player starships before they have had writing.
+#   resourceCostPerTier Rises with the age: a flint hand axe is one unit of research,
+#                a self-improving machine library is three, and the compiled matter of
+#                the Sublimation Age is five. The ladder costs 31 units in total,
+#                against the 1 a production tier costs.
+#   targetEffectID     null: the gate opens a set of goods, it drives no effect of its
+#                own. The effects live with the ship systems and the crafts.
+#   gridX, gridY       The row at gridY -1.0, in age order from left to right, so the
+#                ladder reads left to right as the ages do. The production skills run
+#                along gridY 0.0 and the ship systems along gridY 1.0.
+#
+# The uniqueId of a gate is the uniqueId of its age in base/ages.yaml. The gate and the
+# age are the same idea seen from the two ends: a world generated in the Information Age
+# has the technology, so a lookup by the world's age finds its gate in the tree, and no
+# second naming scheme has to be kept in step.
+skill-base:
+
+  - skill: &skillStoneAge
+      uniqueId: StoneAge
+      displayName: Stone Age Technology
+      description: Fire, dressed stone, bone and antler tools, and the working of hides
+      nodeType: Tech
+      requires: []
+      maxTiers: 1
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -10.0
+      gridY: -1.0
+
+  - skill: &skillCopperAge
+      uniqueId: CopperAge
+      displayName: Copper Age Technology
+      description: Smelted copper, the first metal tools and ornaments, and the wheel
+      nodeType: Tech
+      requires:
+        - nodeId: StoneAge
+          requiredTier: 1
+      maxTiers: 1
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -9.0
+      gridY: -1.0
+
+  - skill: &skillBronzeAge
+      uniqueId: BronzeAge
+      displayName: Bronze Age Technology
+      description: Alloyed bronze, the plough, the sail, the loom and the first writing
+      nodeType: Tech
+      requires:
+        - nodeId: CopperAge
+          requiredTier: 1
+      maxTiers: 1
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -8.0
+      gridY: -1.0
+
+  - skill: &skillIronAge
+      uniqueId: IronAge
+      displayName: Iron Age Technology
+      description: Smelted iron and steel, iron tools and weapons, and the keyed arch
+      nodeType: Tech
+      requires:
+        - nodeId: BronzeAge
+          requiredTier: 1
+      maxTiers: 1
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -7.0
+      gridY: -1.0
+
+  - skill: &skillClassicalAge
+      uniqueId: ClassicalAge
+      displayName: Classical Age Technology
+      description: Mathematics, geared mechanisms, the water clock, the screw and roads
+      nodeType: Tech
+      requires:
+        - nodeId: IronAge
+          requiredTier: 1
+      maxTiers: 1
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -6.0
+      gridY: -1.0
+
+  - skill: &skillMedievalAge
+      uniqueId: MedievalAge
+      displayName: Medieval Age Technology
+      description: Mechanical clockwork, optics, the blast furnace and the press
+      nodeType: Tech
+      requires:
+        - nodeId: ClassicalAge
+          requiredTier: 1
+      maxTiers: 1
+      resourceCostPerTier: 1
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -5.0
+      gridY: -1.0
+
+  - skill: &skillPreIndustrialAge
+      uniqueId: Pre-industrialAge
+      displayName: Pre-industrial Age Technology
+      description: Precision mechanics, the telescope, the barometer and printed books
+      nodeType: Tech
+      requires:
+        - nodeId: MedievalAge
+          requiredTier: 1
+      maxTiers: 1
+      resourceCostPerTier: 2
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -4.0
+      gridY: -1.0
+
+  - skill: &skillIndustrialAge
+      uniqueId: IndustrialAge
+      displayName: Industrial Age Technology
+      description: Steam power, machine tools, the telegraph and the railway
+      nodeType: Tech
+      requires:
+        - nodeId: Pre-industrialAge
+          requiredTier: 1
+      maxTiers: 1
+      resourceCostPerTier: 2
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -3.0
+      gridY: -1.0
+
+  - skill: &skillPostIndustrialAge
+      uniqueId: Post-industrialAge
+      displayName: Post-industrial Age Technology
+      description: Petrochemistry, electrical grids, flight, radio and mass electronics
+      nodeType: Tech
+      requires:
+        - nodeId: IndustrialAge
+          requiredTier: 1
+      maxTiers: 1
+      resourceCostPerTier: 2
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -2.0
+      gridY: -1.0
+
+  - skill: &skillInformationAge
+      uniqueId: InformationAge
+      displayName: Information Age Technology
+      description: Microprocessors, computers, calculators, software and networks
+      nodeType: Tech
+      requires:
+        - nodeId: Post-industrialAge
+          requiredTier: 1
+      maxTiers: 1
+      resourceCostPerTier: 3
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: -1.0
+      gridY: -1.0
+
+  - skill: &skillAIAge
+      uniqueId: AIAge
+      displayName: AI Age Technology
+      description: Machine learning, expert systems, robotics and autonomous trading
+      nodeType: Tech
+      requires:
+        - nodeId: InformationAge
+          requiredTier: 1
+      maxTiers: 1
+      resourceCostPerTier: 3
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: 0.0
+      gridY: -1.0
+
+  - skill: &skillSpaceAge
+      uniqueId: SpaceAge
+      displayName: Space Age Technology
+      description: Rocketry, orbital flight, satellites and space stations
+      nodeType: Tech
+      requires:
+        - nodeId: AIAge
+          requiredTier: 1
+      maxTiers: 1
+      resourceCostPerTier: 4
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: 1.0
+      gridY: -1.0
+
+  - skill: &skillSpaceColonisationAge
+      uniqueId: SpaceColonisationAge
+      displayName: Space Colonisation Age Technology
+      description: Closed life support, orbital habitats and in-situ resource use
+      nodeType: Tech
+      requires:
+        - nodeId: SpaceAge
+          requiredTier: 1
+      maxTiers: 1
+      resourceCostPerTier: 4
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: 2.0
+      gridY: -1.0
+
+  - skill: &skillSublimationAge
+      uniqueId: SublimationAge
+      displayName: Sublimation Age Technology
+      description: Compiled matter, uploaded minds and computation beyond the physical
+      nodeType: Tech
+      requires:
+        - nodeId: SpaceColonisationAge
+          requiredTier: 1
+      maxTiers: 1
+      resourceCostPerTier: 5
+      targetEffectID: null
+      exclusiveGroupId: null
+      gridX: 3.0
+      gridY: -1.0

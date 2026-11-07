@@ -1,0 +1,84 @@
+---
+# Law: the warrant, the pardon, the tribunal and the standing among the crews. This is
+# the tree that prices a licence and settles a dispute, and it is the tree that spends
+# a reputation.
+#
+# Field conventions are the ones used by skills.yaml:
+#
+#   nodeType           Skill throughout: a warrant, a pardon, a bench and a reputation
+#                      all get better by the tier.
+#   maxTiers           3 everywhere: a tier is wider terms, deeper protection, a bench
+#                      that reaches further, not a new kind of law.
+#   requires           The authority that has to exist first, and the tier of it. The
+#                      pardon and the tribunal both hang off the warrant that makes a
+#                      privateer legal.
+#   targetEffectID     The effect the engine drives from the tier: the warrant, the
+#                      pardon, the bench and the standing.
+#   exclusiveGroupId   CleanStanding is the one group in the shipped data that locks a
+#                      choice, and it is the reason the group exists: an admiralty
+#                      warrant and a standing among the crews are one reputation spent
+#                      two ways. Buy the warrant and the crews' tongue is cut for you,
+#                      and every member of CleanStanding is locked out, the fence in
+#                      trade.yaml among them. ProgressionManager::Validate rejects a
+#                      node that requires a rival of its own group, so a member of the
+#                      group is a root: the warrant and the standing both start from
+#                      nothing.
+#   gridX, gridY       The row at gridY -2.0, beside the pirate, trade and service
+#                      trees, below the age ladder.
+skill-base:
+
+  - skill: &skillLawAdmiraltyWarrant
+      uniqueId: LawAdmiraltyWarrant
+      displayName: Admiralty Warrant
+      description: The licence that makes a raider a privateer and the prize a profit
+      nodeType: Skill
+      requires: []
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: AdmiraltyWarrant
+      exclusiveGroupId: CleanStanding
+      gridX: 5.0
+      gridY: -2.0
+
+  - skill: &skillLawPiratePardon
+      uniqueId: LawPiratePardon
+      displayName: Pirate Pardon
+      description: The terms that bring a crew back inside the law and keep it there
+      nodeType: Skill
+      requires:
+        - nodeId: LawAdmiraltyWarrant
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: PiratePardon
+      exclusiveGroupId: null
+      gridX: 6.0
+      gridY: -2.0
+
+  - skill: &skillLawTribunal
+      uniqueId: LawTribunal
+      displayName: Trade Tribunal
+      description: The bench that prices a licence, settles a cargo and names a pirate
+      nodeType: Skill
+      requires:
+        - nodeId: LawAdmiraltyWarrant
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 3
+      targetEffectID: TradeTribunal
+      exclusiveGroupId: null
+      gridX: 7.0
+      gridY: -2.0
+
+  - skill: &skillLawPirateStanding
+      uniqueId: LawPirateStanding
+      displayName: Standing Among The Crews
+      description: The word that buys a passage, a warning and a fence's silence
+      nodeType: Skill
+      requires: []
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: PirateStanding
+      exclusiveGroupId: CleanStanding
+      gridX: 8.0
+      gridY: -2.0

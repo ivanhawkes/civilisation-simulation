@@ -37,7 +37,10 @@ Inside the core:
 - `Core/Simulation.h` - generates worlds from the ages, categories, items and name
   pools; gives each one an age, a population, specialities, production, demand and a
   stockpile; prices goods by scarcity, market-wide and per world; plans trades that pay
-  for their freight; advances a tick of production, consumption and trade.
+  for their freight; advances a tick of production, consumption and trade. A world's age
+  bounds the goods it can make, and the goods of the essential categories - the water,
+  food and fuel a population runs on, the medicines and the knowledge goods - are wanted
+  at every age, so a world that cannot make medicine is a buyer of it.
 
 The generation is deterministic for a seed, and the model uses only the fields the
 merged documents carry, so it runs on the data as it is.
@@ -240,11 +243,46 @@ not committed:
 | `ages.yaml` | The ages on their own. |
 | `categories.yaml` | The categories on their own. |
 
-The `*-base` keys - `ages-base`, `categories-base` and `item-base` - exist only to
-define the anchors used by the relative links, and `item-base` is repeated in every
-item file. `build.sh` explodes the links and drops them, so every key in a generated
-file appears exactly once, and each item carries the fields inherited from its category
-and age.
+Every input file is a complete YAML document with a base key (`ages-base`,
+`categories-base`, `item-base`, `skill-base`) that holds the anchors used by the
+relative links. The merge explodes the links and drops the base keys, so every key in a
+generated file appears exactly once and the output is a plain document, with no
+`aliases` and no comments, ready for the loader.
+
+The inputs are read in this order:
+
+| Source | Contents |
+| --- | --- |
+| `base/ages.yaml` | The ages. |
+| `base/categories.yaml` | The categories. |
+| `trade-items/chemicals.yaml` | Chemicals, fuels, medicines, pharmaceuticals, plastics, dyes, fertilisers, pesticides, drugs, explosives, paints, adhesives, solvents, lubricants, industrial gases, hybrid materials, nuclear materials. |
+| `trade-items/metals.yaml` | Metals and metal goods: iron, copper, bronze, tin, lead, zinc, aluminium, titanium, nickel, chromium, tungsten, cobalt, silver, gold, platinum, machinery, tools, weapons, jewellery, structural materials. |
+| `trade-items/minerals.yaml` | Coal, crude oil, sand, gravel, limestone, iron ore, copper ore, bauxite, gypsum, salt, phosphorus, potassium, aggregates. |
+| `trade-items/misc.yaml` | The remaining categories: water, consumables, textiles, timber, precious stones, information, writing, medical equipment. |
+| `trade-items/seeds.yaml` | Arable, pastoral, fish and tree seeds. |
+| `skill-tree/skills.yaml` | The crafts of the economy. |
+| `skill-tree/ages.yaml` | The ages that gate the tree. |
+| `skill-tree/spaceship.yaml` | The ship systems, as a skill tree of their own. |
+| `skill-tree/shipyards.yaml` | The yards that build and mend. |
+| `skill-tree/lanes.yaml` | The lanes and the formations that run them. |
+| `skill-tree/survey.yaml` | The survey and the claims it stakes. |
+| `skill-tree/habitats.yaml` | Habitats and terraforming. |
+| `skill-tree/piracy.yaml` | The pirate arts. |
+| `skill-tree/law.yaml` | The warrant, the pardon, the bench, the standing. |
+| `skill-tree/trade.yaml` | Docking licences, cargo insurance, the fence. |
+| `skill-tree/services.yaml` | Public medicine and the education system. |
+| `game-mode/full.yaml` | The full game mode, built from the anchors above. |
+| `game-mode/simple.yaml` | The small subset of items used for quick matches and testing. |
+
+The order matters: the ages and categories are read first because the item files link to
+their anchors, and the game-mode files last because they link to the item and skill
+anchors defined by everything before them.
+
+The `*-base` keys - `ages-base`, `categories-base`, `item-base` and `skill-base` -
+exist only to define the anchors used by the relative links, and `item-base` is repeated
+in every item file, `skill-base` in every file of the skill tree. `build.sh` explodes the
+links and drops them, so every key in a generated file appears exactly once, and each
+item carries the fields inherited from its category and age.
 
 `build.sh` concatenates the files into one stream and `yq ea` walks it document by
 document, so an item file's `*categoryChemicals` and `*ironAge` resolve against the
@@ -255,25 +293,132 @@ both pin v4.54.1, CMake warns on any other version, and `DataTests` asserts the 
 of the merged documents - ages, categories, items, skills - so a merge that quietly
 truncates the game fails the suite instead of shipping a short one.
 
-Because the merge flattens the anchors, an item's `categoryId` and `ageId` are written
-out as ordinary fields, and the core reads them as optional metadata.
+Each item file writes two links beside the anchors it merges, `categoryId` and `ageId`.
+The merge flattens the anchors, so the links arrive in the generated document as ordinary
+fields, and they are the two dials the economy has: `ageId` bounds the goods a world can
+produce, `categoryId` weights the goods a world wants. A good with no link is in every
+deck and wanted at the ordinary rate, so an item file that forgets the lines costs the
+model a gate without failing a load. `DataTests` asserts that every item of the full game
+carries both links and that the ids name a loaded age and a loaded category.
 
 The full item list in `game-mode/full.yaml` is a selection of the anchors defined in the
 `trade-items/*` files. After adding, removing or renaming an item, add its `- item:`
 reference to `game-mode/full.yaml` (and to `game-mode/simple.yaml` if the item belongs
-in the small game), then run `./build.sh` from the **/data** directory.
+in the small game), then run `./build.sh` from the **/data** directory. The same is true
+of the `- skill:` references of the skill tree: the anchors live in the `skill-tree/*`
+files, the list lives in the two `game-mode/*` files, and every node of the tree is in
+both game modes.
 
 `universe/solar-system-names.yaml` holds the name pools for the generated worlds. It is
 UTF-8, it is loaded by `Core/Universe.h`, and it is not part of the merge: `build.sh`
 does not read it.
 
-`skill-tree/skills.yaml` defines 17 skills, each with `maxTiers: 3` and
-`resourceCostPerTier: 1`, so the full game offers 51 tiers to buy. The skills are all
-root nodes with `requires: []` and `exclusiveGroupId: null`: the tree is a set of
-parallel branches, not a hierarchy, and `ProgressionManager::Build` validates that
-shape. `DataTests` asserts every skill is worth at least three tiers, so a merge that
-dropped `maxTiers` - the loader default is one tier, which flattens a branch to a
-single click - fails the suite.
+The skill tree is a set of anchors like the items: the eleven files of `skill-tree/*`
+define the nodes and their anchors - the crafts, the ages, the ship, the yards, the
+lanes, the survey, the habitats, the pirates, the law, the trade services and the public
+services - and the `game-mode/*` files select from them. The next section is about the
+tree.
+
+### The skill tree
+
+Every node is one of two kinds, and `nodeType` says which: a `Skill` is a craft that gets
+better as it is bought a tier at a time, and a `Tech` is a gate that is open or shut. The
+tree lives in eleven files:
+
+| File | Nodes | Shape |
+| --- | --- | --- |
+| `skill-tree/skills.yaml` | 17 crafts: Mining, Smelting, Agriculture, Fuel Refining | `nodeType: Skill`, `maxTiers: 3`, `resourceCostPerTier: 1`, all roots, no exclusive groups: parallel branches. |
+| `skill-tree/ages.yaml` | 14 age gates, one per age in `base/ages.yaml` | `nodeType: Tech`, `maxTiers: 1`, chained in age order, so each gate requires the gate of the age before it. The cost rises with the age, 1 to 5, so the ladder costs 31 units against the 1 a craft tier costs. |
+| `skill-tree/spaceship.yaml` | 25 ship systems of the long-haul trader | `nodeType: Skill`, `maxTiers: 3`, cost 3 for the drive, the laser mounts, the computers, the life support, the coating, the countermeasures and the repair party, 2 for the shield banks, the gun batteries, the thrusters, the arrays, the holds, the bunkers, the salvage rig, the emissions and the spares, no exclusive groups. |
+| `skill-tree/shipyards.yaml` | 4 yard nodes: the drydock, the outfitting line, the modular hull, the refit dock | `maxTiers: 3`, cost 2 to 4. The hulls the ship systems are fitted to. The modular hull asks the Information Age gate as well as the drydock. |
+| `skill-tree/lanes.yaml` | 4 lane nodes: convoy, escort wing, route ward, warden patrol | `maxTiers: 3`, cost 2 to 3. The formations a route is run with, and the warden's art is bought on top of the escort that escorts it. |
+| `skill-tree/survey.yaml` | 4 survey nodes: the deep survey, the mining claim, the claim refinery, the exclusive claim | `maxTiers: 3`, cost 2 to 3. A claim asks the survey that found the ground *and* the Mining craft that works it; the refinery asks Smelting. |
+| `skill-tree/habitats.yaml` | 4 habitat nodes: the domes, the closed loop, the atmosphere, the biosphere | `maxTiers: 3`, cost 3 to 4. The domes ask the Space Colonisation Age gate; the biosphere asks Agriculture. |
+| `skill-tree/piracy.yaml` | 4 pirate nodes: raider hulls, boarding parties, ransom exchange, safe harbours | `maxTiers: 3`, cost 2. The technology of the raider, from the hull that runs a trader down to the fence that lands the cargo. |
+| `skill-tree/law.yaml` | 4 law nodes: the admiralty warrant, the pardon, the tribunal, the standing among the crews | `maxTiers: 3`, cost 2 to 3. The warrant and the crews' standing are in the exclusive group `CleanStanding`. |
+| `skill-tree/trade.yaml` | 3 trade-service nodes: the docking licence, cargo insurance, the fencing network | `maxTiers: 3`, cost 1 to 2. Insurance asks the licence *and* the tribunal; the fence is the third member of `CleanStanding`. |
+| `skill-tree/services.yaml` | 2 public nodes: the medicine service, the education system | `maxTiers: 3`, cost 2. The demand side: medicine and education are demand, and these are the services a civilisation runs to meet it. |
+
+An age gate carries the `uniqueId` of its age: `InformationAge` is the age and the skill
+that opens computers, calculators, software and networks. The gate and the age are the
+same idea seen from the two ends, so a world generated in an age finds its gate by a
+lookup on the age, and no second naming scheme has to be kept in step. The grid puts the
+ladder on its own row at `gridY: -1.0`, in age order from left to right, with the ship
+systems on the row at `gridY: 1.0`.
+
+The ship systems are what a long-haul trader needs between worlds and against the pirates
+who live off that trade: `ShipShieldsFront`, `ShipShieldsSide` and `ShipShieldsRear` by
+arc of fire, `ShipGunsFront` and `ShipGunsRear`, `ShipLasersFront` and `ShipLasersRear`
+for the range the guns do not reach, `ShipEngineThrust` for the drive, `ShipManoeuvringJets`
+and `ShipAttitudeControl` for the working in space, `ShipSensorLongRange` with the
+`ShipSensorFireControl` and `ShipSensorCommercial` arrays on its mast, and the two
+computers that make the haul pay, `ShipNavigationComputer` for the jumps and
+`ShipTraderAI` for the cargo. The rest of the ship is the reason it is long haul:
+`ShipCargoHolds` and `ShipFuelBunkers` set the size of a run, `ShipSalvageRig` goes and
+brings back the cargo of a hull that cannot, `ShipLifeSupport` sets the days a crew can
+be out, and `ShipStealthCoating`, `ShipEmissionsControl` and `ShipCountermeasures`
+decide whether anyone sees the ship doing it. Under all of it sits the crew:
+`ShipCrewTraining` lets them work a bigger hull, `ShipDamageControl` keeps a ship flying
+with a screen down, `ShipSparesLockers` lets the party do it twice.
+
+Every system hangs off the one that has to be fitted first: each aft mount on its forward
+twin, the jets on the drive, the attitude control on the jets, the fire control and
+commercial arrays on the long range mast. The ship has one power feed and one dish, and
+the tree says so. Attitude control is the pointing that decides which arcs are in the
+fight, and fire control is the lock that fills them, so the propulsion line and the mast
+run into the guns and the screens. The links repeat that grammar down the hull: emissions
+control asks the coating, because a plate that hides a hull has to be run cold;
+countermeasures ask the side screen, because a burst is bought to cover an arc; the
+salvage rig asks the drive and the mast, because a tow is a propulsion job and a survey
+one; the spares ask the repair party; and the life support asks the crew and the side
+screen, because a breach is a damage-control problem in an arc no screen covers. No ship
+system is in an exclusive group, because a trader who can afford a forward and an aft
+screen fits both.
+
+The other eight trees are the ones a civilisation stands on, and they are where the ship
+meets the ground. The yards at `gridY: 2.0` build and mend the hulls the systems are
+fitted to; the lanes beside them run the routes the ship sails; the survey and the claims
+it stakes ask a craft as well as a sensor, so a mining claim needs the deep survey *and*
+the Mining craft, and the refinery that pays for the claim needs Smelting. The habitats
+at `gridY: 3.0` start at the Space Colonisation Age gate, because a dome is the
+technology that age is named for, and the biosphere seeded on top of the weather asks
+Agriculture. Below the age ladder, at `gridY: -2.0`, run the pirate arts, the law, the
+trade services and the public services: the raider hull, the boarding party, the ransom
+and the harbour; the warrant, the pardon, the bench and the standing among the crews; the
+docking licence, the cargo premium and the fence; the clinic and the school. Cargo
+insurance asks the licence that registers a ship *and* the bench that prices a cargo, and
+the fence asks the harbour that lands it: prerequisites that cross the rows are the point
+of the shape, and `DataTests` counts them, because a tree that stops linking is a set of
+lists.
+
+`CleanStanding` is the one exclusive group in the shipped data, and it is the reason the
+field exists: an admiralty warrant, a standing among the crews and a fence are one
+reputation spent three ways, so buying the warrant shuts the crews' tongue and the fence
+for good. `ProgressionManager::Validate` rejects a member that requires a rival of its
+own group, which is why the warrant and the standing are roots; the fence may ask a
+harbour, because a harbour is not a rival.
+
+The full tree is 85 nodes and 227 tiers, and `game-mode/simple.yaml` selects the same
+skills as `game-mode/full.yaml`: the items are what make the small game small, and a
+short tree would leave the gates, the ship and the standing trees out of the quick
+matches they are meant to test. `DataTests` asserts the scale of it - 71 crafts and ship
+systems three tiers deep, 14 gates - that every gate is one tier and sits on the gate of
+the age before, in age order, that the 25 ship systems and the 29 nodes of the standing
+trees exist with the effects and the costs they claim, that `CleanStanding` locks a chosen
+rival out, and that `ProgressionManager::Build` accepts the whole graph. The three-tier
+floor is asserted on the `Skill` nodes and not on the gates: a merge that dropped
+`maxTiers` lands on the loader default of one tier, which flattens a craft to a single
+click, and that is what the assertion is there to catch.
+
+Not in the tree, and not to be built without a decision on each: crew wages and morale;
+missions and contracts; fleets and task forces; price policy and market manipulation;
+research that takes time; population growth and migration; plague, wrecks and the other
+events that make a haul interesting; patrol and enforcement; government per world; the
+jump gate as infrastructure; and the refining of fuel as a chain of supply. The item data
+has a gap of the same shape: `SpaceAge` and `AIAge` ask for goods, and the merged full
+game mode has no item carrying those ages, because the item files open those sections and
+leave them empty. An age gate that opens no good is a gate with nothing behind it, and
+the production gate makes the absence show.
 
 ## Units, prices and storage
 

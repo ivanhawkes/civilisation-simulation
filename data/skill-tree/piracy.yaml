@@ -1,0 +1,83 @@
+---
+# The pirate tree: the technology of the raider, from the hull that runs a trader down
+# to the harbour that takes the cargo ashore. A player who trades the lanes buys the
+# other side of this tree in escorts and premiums, and a player who wants to know what
+# a raid costs is reading the right file.
+#
+# Field conventions are the ones used by skills.yaml:
+#
+#   nodeType           Skill throughout: raider hulls, boarding parties, ransom and
+#                      harbours all get better by the tier.
+#   maxTiers           3 everywhere: a tier is faster hulls, more parties, better terms,
+#                      deeper harbours, not a new kind of pirate.
+#   requires           The craft of the raid that has to exist first, and the tier of
+#                      it. Boarding needs the hull that catches the ship, the ransom
+#                      needs the prize worth ransoming, and the harbour needs the hull
+#                      that puts out.
+#   targetEffectID     The effect the engine drives from the tier: the hulls, the
+#                      parties, the ransom and the harbour.
+#   exclusiveGroupId   null inside this tree: a crew wants every pirate art it can
+#                      buy. The standing trees carry the exclusions, because the
+#                      choice that shuts a door is the one between the crews and the
+#                      warrant.
+#   gridX, gridY       The row at gridY -2.0, below the age ladder, with the law,
+#                      trade and service trees running on beside it.
+skill-base:
+
+  - skill: &skillPirateRaiderHulls
+      uniqueId: PirateRaiderHulls
+      displayName: Raider Hulls
+      description: The fast hull and the drive that runs a trader down
+      nodeType: Skill
+      requires: []
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: RaiderHulls
+      exclusiveGroupId: null
+      gridX: 0.0
+      gridY: -2.0
+
+  - skill: &skillPirateBoardingParties
+      uniqueId: PirateBoardingParties
+      displayName: Boarding Parties
+      description: The grapple, the cutters and the crew that comes over the rail
+      nodeType: Skill
+      requires:
+        - nodeId: PirateRaiderHulls
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: BoardingParties
+      exclusiveGroupId: null
+      gridX: 1.0
+      gridY: -2.0
+
+  - skill: &skillPirateRansomExchange
+      uniqueId: PirateRansomExchange
+      displayName: Ransom Exchange
+      description: The broker, the terms and the drop that turns a prize into credits
+      nodeType: Skill
+      requires:
+        - nodeId: PirateBoardingParties
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: RansomExchange
+      exclusiveGroupId: null
+      gridX: 2.0
+      gridY: -2.0
+
+  - skill: &skillPirateSafeHarbours
+      uniqueId: PirateSafeHarbours
+      displayName: Safe Harbours
+      description: The anchorages, the depots and the fence that take a cargo ashore
+      nodeType: Skill
+      requires:
+        - nodeId: PirateRaiderHulls
+          requiredTier: 1
+      maxTiers: 3
+      resourceCostPerTier: 2
+      targetEffectID: SafeHarbours
+      exclusiveGroupId: null
+      gridX: 3.0
+      gridY: -2.0
