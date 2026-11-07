@@ -23,9 +23,7 @@
 item-base:
 
   # Minerals
-  - item: &itemSalt
-      <<: *categoryMinerals
-      <<: *ironAge
+  - item:
       uniqueId: Salt
       categoryId: Minerals
       ageId: IronAge
@@ -37,9 +35,7 @@ item-base:
       density: 2.16
       packFactor: 0.55
 
-  - item: &itemLime
-      <<: *categoryMinerals
-      <<: *ironAge
+  - item:
       uniqueId: Lime
       categoryId: Minerals
       ageId: IronAge
@@ -51,9 +47,7 @@ item-base:
       density: 3.34
       packFactor: 0.31
 
-  - item: &itemGraphite
-      <<: *categoryMinerals
-      <<: *industrialAge
+  - item:
       uniqueId: Graphite
       categoryId: Minerals
       ageId: IndustrialAge
@@ -65,9 +59,7 @@ item-base:
       density: 2.26
       packFactor: 0.9
 
-  - item: &itemPotash
-      <<: *categoryMinerals
-      <<: *ironAge
+  - item:
       uniqueId: Potash
       categoryId: Minerals
       ageId: IronAge
@@ -79,9 +71,7 @@ item-base:
       density: 1.99
       packFactor: 0.58
 
-  - item: &itemNatron
-      <<: *categoryMinerals
-      <<: *ironAge
+  - item:
       uniqueId: Natron
       categoryId: Minerals
       ageId: IronAge

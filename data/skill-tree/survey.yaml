@@ -22,7 +22,7 @@
 #   gridX, gridY       The row at gridY 2.0, beside the yards and the lanes.
 skill-base:
 
-  - skill: &skillSurveyDeepRange
+  - skill:
       uniqueId: SurveyDeepRange
       displayName: Deep Survey
       description: The long look into the belt, the moons and the crust that finds the ore
@@ -35,7 +35,7 @@ skill-base:
       gridX: 10.0
       gridY: 2.0
 
-  - skill: &skillClaimMining
+  - skill:
       uniqueId: ClaimMining
       displayName: Mining Claim
       description: The ground staked on a strike, worked by the crew that can dig it
@@ -52,7 +52,7 @@ skill-base:
       gridX: 11.0
       gridY: 2.0
 
-  - skill: &skillClaimRefinery
+  - skill:
       uniqueId: ClaimRefinery
       displayName: Claim Refinery
       description: The crushing, leaching and smelting works that turn claim ore into metal
@@ -69,7 +69,7 @@ skill-base:
       gridX: 12.0
       gridY: 2.0
 
-  - skill: &skillClaimExclusive
+  - skill:
       uniqueId: ClaimExclusive
       displayName: Exclusive Claim
       description: The grant that shuts the other crews off a strike and everything near it

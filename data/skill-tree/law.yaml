@@ -27,7 +27,7 @@
 #                      trees, below the age ladder.
 skill-base:
 
-  - skill: &skillLawAdmiraltyWarrant
+  - skill:
       uniqueId: LawAdmiraltyWarrant
       displayName: Admiralty Warrant
       description: The licence that makes a raider a privateer and the prize a profit
@@ -40,7 +40,7 @@ skill-base:
       gridX: 5.0
       gridY: -2.0
 
-  - skill: &skillLawPiratePardon
+  - skill:
       uniqueId: LawPiratePardon
       displayName: Pirate Pardon
       description: The terms that bring a crew back inside the law and keep it there
@@ -55,7 +55,7 @@ skill-base:
       gridX: 6.0
       gridY: -2.0
 
-  - skill: &skillLawTribunal
+  - skill:
       uniqueId: LawTribunal
       displayName: Trade Tribunal
       description: The bench that prices a licence, settles a cargo and names a pirate
@@ -70,7 +70,7 @@ skill-base:
       gridX: 7.0
       gridY: -2.0
 
-  - skill: &skillLawPirateStanding
+  - skill:
       uniqueId: LawPirateStanding
       displayName: Standing Among The Crews
       description: The word that buys a passage, a warning and a fence's silence

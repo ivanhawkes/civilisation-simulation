@@ -1,6 +1,6 @@
 ---
 skill-base:
-  - skill: &skillMining
+  - skill:
       uniqueId: Mining
       displayName: Mining
       description: Extracts resources from the environment
@@ -13,7 +13,7 @@ skill-base:
       gridX: -10.0
       gridY: 0.0
 
-  - skill: &skillSmelting
+  - skill:
       uniqueId: Smelting
       displayName: Smelting
       description: Processes ores into usable metals
@@ -26,7 +26,7 @@ skill-base:
       gridX: -9.0
       gridY: 0.0
 
-  - skill: &skillLumber
+  - skill:
       uniqueId: Lumber
       displayName: Lumber
       description: Gathers wood from the environment
@@ -39,7 +39,7 @@ skill-base:
       gridX: -8.0
       gridY: 0.0
 
-  - skill: &skillHerbalism
+  - skill:
       uniqueId: Herbalism
       displayName: Herbalism
       description: Gathers herbs from the environment
@@ -52,7 +52,7 @@ skill-base:
       gridX: -7.0
       gridY: 0.0
 
-  - skill: &skillAgriculture
+  - skill:
       uniqueId: Agriculture
       displayName: Agriculture
       description: Cultivates crops from the environment
@@ -65,7 +65,7 @@ skill-base:
       gridX: -6.0
       gridY: 0.0
 
-  - skill: &skillAnimalHusbandry
+  - skill:
       uniqueId: AnimalHusbandry
       displayName: Animal Husbandry
       description: Raises animals for food and animal products
@@ -78,7 +78,7 @@ skill-base:
       gridX: -5.0
       gridY: 0.0
 
-  - skill: &skillAnimalProcessing
+  - skill:
       uniqueId: AnimalProcessing
       displayName: Animal Processing
       description: Processes animals into meat, hides, and furs
@@ -91,7 +91,7 @@ skill-base:
       gridX: -4.0
       gridY: 0.0
 
-  - skill: &skillFoodProcessing
+  - skill:
       uniqueId: FoodProcessing
       displayName: Food Processing
       description: Mills, bakes, brews, and ferments food
@@ -104,7 +104,7 @@ skill-base:
       gridX: -3.0
       gridY: 0.0
 
-  - skill: &skillKilnMaterials
+  - skill:
       uniqueId: KilnMaterials
       displayName: Kiln and Materials Production
       description: Fires clay and minerals into ceramics, glass, lime, and cement
@@ -117,7 +117,7 @@ skill-base:
       gridX: -2.0
       gridY: 0.0
 
-  - skill: &skillChemicalManufacturing
+  - skill:
       uniqueId: ChemicalManufacturing
       displayName: Chemical Manufacturing
       description: Processes raw materials into industrial and agricultural chemicals
@@ -130,7 +130,7 @@ skill-base:
       gridX: -1.0
       gridY: 0.0
 
-  - skill: &skillMetalworking
+  - skill:
       uniqueId: Metalworking
       displayName: Metalworking and Fabrication
       description: Alloys, casts, forges, and fabricates metal goods
@@ -143,7 +143,7 @@ skill-base:
       gridX: 0.0
       gridY: 0.0
 
-  - skill: &skillPublishing
+  - skill:
       uniqueId: Publishing
       displayName: Papermaking and Publishing
       description: Produces writing materials, ink, books, and scrolls
@@ -156,7 +156,7 @@ skill-base:
       gridX: 1.0
       gridY: 0.0
 
-  - skill: &skillPharmaceuticals
+  - skill:
       uniqueId: Pharmaceuticals
       displayName: Pharmaceutical Production
       description: Produces medicines through chemical and biological processes
@@ -169,7 +169,7 @@ skill-base:
       gridX: 2.0
       gridY: 0.0
 
-  - skill: &skillResearch
+  - skill:
       uniqueId: Research
       displayName: Research and Education
       description: Develops and teaches scientific and technical knowledge
@@ -182,7 +182,7 @@ skill-base:
       gridX: 3.0
       gridY: 0.0
 
-  - skill: &skillTextiles
+  - skill:
       uniqueId: Textiles
       displayName: Textile Production
       description: Spins and weaves fibers into textiles
@@ -195,7 +195,7 @@ skill-base:
       gridX: 4.0
       gridY: 0.0
 
-  - skill: &skillPolymers
+  - skill:
       uniqueId: Polymers
       displayName: Polymer Production
       description: Converts chemical feedstocks into polymer materials
@@ -208,7 +208,7 @@ skill-base:
       gridX: 5.0
       gridY: 0.0
 
-  - skill: &skillFuelRefining
+  - skill:
       uniqueId: FuelRefining
       displayName: Fuel Refining
       description: Refines energy resources into usable fuels

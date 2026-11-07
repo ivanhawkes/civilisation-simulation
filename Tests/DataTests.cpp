@@ -73,9 +73,10 @@ TEST_CASE(ages_load_from_the_generated_document)
 	const CivSimCore::Ages ages = LoadAges();
 
 	// A merge that quietly truncates is the failure mode of the pipeline: the external
-	// tool is yq, and an upstream change to how it resolves anchors can drop whole
-	// sections. A truncated game must not be allowed to pass as a small one, so the
-	// scale of the shipped data is asserted here.
+	// tool is yq, and an upstream change to how it folds the stream of source files, or a
+	// file dropped from the list it reads, can leave a whole section out. A truncated game
+	// must not be allowed to pass as a small one, so the scale of the shipped data is
+	// asserted here.
 	CHECK(ages.size() >= 12);
 
 	std::vector<std::string> ids;
@@ -134,9 +135,11 @@ TEST_CASE(every_item_in_the_full_game_mode_has_a_price)
 TEST_CASE(every_item_carries_its_age_and_category_link)
 {
 	// Generation reads item.ageId to bound what a world can make and item.categoryId to
-	// weight what it wants. The links are anchors in the item files and the merge writes
-	// them out as ordinary fields: a merge that lost them leaves every world a producer of
-	// every good, and a universe with no shortages is a universe with no trade.
+	// weight what it wants. The two links of an item are plain-text ids in the item file -
+	// the uniqueId of an age in base/ages.yaml, the uniqueId of a category in
+	// trade-items/categories.yaml - and the merge carries them into the shipped document:
+	// an item that lost them leaves every world a producer of every good, and a universe
+	// with no shortages is a universe with no trade.
 	const CivSimCore::Ages ages = LoadAges();
 	const CivSimCore::Categories categories = LoadCategories();
 	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);

@@ -27,9 +27,7 @@
 item-base:
 
   # Stone Age
-  - item: &itemCharcoal
-      <<: *categoryFuels
-      <<: *stoneAge
+  - item:
       uniqueId: Charcoal
       categoryId: Fuels
       ageId: StoneAge
@@ -41,9 +39,7 @@ item-base:
       density: 1.3
       packFactor: 0.35
 
-  - item: &itemPottery
-      <<: *categoryCrafts
-      <<: *stoneAge
+  - item:
       uniqueId: Pottery
       categoryId: Crafts
       ageId: StoneAge
@@ -55,9 +51,7 @@ item-base:
       density: 2.4
       packFactor: 0.55
 
-  - item: &itemPigments
-      <<: *categoryCrafts
-      <<: *stoneAge
+  - item:
       uniqueId: Pigments
       categoryId: Crafts
       ageId: StoneAge
@@ -69,9 +63,7 @@ item-base:
       density: 3.0
       packFactor: 0.45
 
-  - item: &itemSlaves
-      <<: *categoryUnknown
-      <<: *stoneAge
+  - item:
       uniqueId: Slaves
       categoryId: Unknown
       ageId: StoneAge
@@ -83,9 +75,7 @@ item-base:
       density: 1.0
       packFactor: 0.45
 
-  - item: &itemArdPlough
-      <<: *categoryFarmingEquipment
-      <<: *stoneAge
+  - item:
       uniqueId: ArdPlough
       categoryId: FarmingEquipment
       ageId: StoneAge
@@ -98,9 +88,7 @@ item-base:
       packFactor: 0.4
 
   # Copper Age
-  - item: &itemFlour
-      <<: *categoryConsumables
-      <<: *copperAge
+  - item:
       uniqueId: Flour
       categoryId: Consumables
       ageId: CopperAge
@@ -112,9 +100,7 @@ item-base:
       density: 1.5
       packFactor: 0.38
 
-  - item: &itemBread
-      <<: *categoryConsumables
-      <<: *copperAge
+  - item:
       uniqueId: Bread
       categoryId: Consumables
       ageId: CopperAge
@@ -126,9 +112,7 @@ item-base:
       density: 1.05
       packFactor: 0.27
 
-  - item: &itemBeer
-      <<: *categoryFerments
-      <<: *copperAge
+  - item:
       uniqueId: Beer
       categoryId: Ferments
       ageId: CopperAge
@@ -140,9 +124,7 @@ item-base:
       density: 1.01
       packFactor: 0.75
 
-  - item: &itemWine
-      <<: *categoryFerments
-      <<: *copperAge
+  - item:
       uniqueId: Wine
       categoryId: Ferments
       ageId: CopperAge
@@ -156,9 +138,7 @@ item-base:
 
   # Bronze Age
 
-  - item: &itemJewellry
-      <<: *categoryLuxuryGoods
-      <<: *bronzeAge
+  - item:
       uniqueId: Jewellry
       categoryId: LuxuryGoods
       ageId: BronzeAge
@@ -171,9 +151,7 @@ item-base:
       packFactor: 0.05
 
   # Iron Age
-  - item: &itemParchment
-      <<: *categoryWriting
-      <<: *ironAge
+  - item:
       uniqueId: Parchment
       categoryId: Writing
       ageId: IronAge
@@ -185,9 +163,7 @@ item-base:
       density: 1.3
       packFactor: 0.73
 
-  - item: &itemPapyrus
-      <<: *categoryWriting
-      <<: *ironAge
+  - item:
       uniqueId: Papyrus
       categoryId: Writing
       ageId: IronAge
@@ -199,9 +175,7 @@ item-base:
       density: 0.75
       packFactor: 0.78
 
-  - item: &itemInk
-      <<: *categoryWriting
-      <<: *ironAge
+  - item:
       uniqueId: Ink
       categoryId: Writing
       ageId: IronAge
@@ -213,9 +187,7 @@ item-base:
       density: 1.1
       packFactor: 0.8
 
-  - item: &itemVinegar
-      <<: *categoryFerments
-      <<: *ironAge
+  - item:
       uniqueId: Vinegar
       categoryId: Ferments
       ageId: IronAge
@@ -227,9 +199,7 @@ item-base:
       density: 1.01
       packFactor: 0.8
 
-  - item: &itemShaduf
-      <<: *categoryFarmingEquipment
-      <<: *ironAge
+  - item:
       uniqueId: Shaduf
       categoryId: FarmingEquipment
       ageId: IronAge
@@ -243,9 +213,7 @@ item-base:
 
   # Classical Age
 
-  - item: &itemMaths
-      <<: *categoryInformation
-      <<: *classicalAge
+  - item:
       uniqueId: Maths
       categoryId: Information
       ageId: ClassicalAge
@@ -257,9 +225,7 @@ item-base:
       density: 0.95
       packFactor: 0.85
 
-  - item: &itemAntikythera
-      <<: *categoryEngineering
-      <<: *classicalAge
+  - item:
       uniqueId: Antikythera
       categoryId: Engineering
       ageId: ClassicalAge
@@ -271,9 +237,7 @@ item-base:
       density: 8.8
       packFactor: 0.45
 
-  - item: &itemAstrolabe
-      <<: *categoryEngineering
-      <<: *classicalAge
+  - item:
       uniqueId: Astrolabe
       categoryId: Engineering
       ageId: ClassicalAge
@@ -285,9 +249,7 @@ item-base:
       density: 8.5
       packFactor: 0.5
 
-  - item: &itemChemistry
-      <<: *categoryInformation
-      <<: *classicalAge
+  - item:
       uniqueId: Chemistry
       categoryId: Information
       ageId: ClassicalAge
@@ -299,9 +261,7 @@ item-base:
       density: 0.95
       packFactor: 0.85
 
-  - item: &itemClock
-      <<: *categoryEngineering
-      <<: *classicalAge
+  - item:
       uniqueId: Clock
       categoryId: Engineering
       ageId: ClassicalAge
@@ -313,9 +273,7 @@ item-base:
       density: 3.0
       packFactor: 0.6
 
-  - item: &itemCeramics
-      <<: *categoryCrafts
-      <<: *classicalAge
+  - item:
       uniqueId: Ceramics
       categoryId: Crafts
       ageId: ClassicalAge
@@ -327,9 +285,7 @@ item-base:
       density: 2.4
       packFactor: 0.55
 
-  - item: &itemBooks
-      <<: *categoryWriting
-      <<: *classicalAge
+  - item:
       uniqueId: Books
       categoryId: Writing
       ageId: ClassicalAge
@@ -341,9 +297,7 @@ item-base:
       density: 0.95
       packFactor: 0.85
 
-  - item: &itemScrolls
-      <<: *categoryWriting
-      <<: *classicalAge
+  - item:
       uniqueId: Scrolls
       categoryId: Writing
       ageId: ClassicalAge
@@ -355,9 +309,7 @@ item-base:
       density: 1.1
       packFactor: 0.6
 
-  - item: &itemHides
-      <<: *categoryAnimalProducts
-      <<: *classicalAge
+  - item:
       uniqueId: Leatherhides
       categoryId: AnimalProducts
       ageId: ClassicalAge
@@ -369,9 +321,7 @@ item-base:
       density: 0.9
       packFactor: 0.8
 
-  - item: &itemFurs
-      <<: *categoryAnimalProducts
-      <<: *classicalAge
+  - item:
       uniqueId: Furs
       categoryId: AnimalProducts
       ageId: ClassicalAge
@@ -383,9 +333,7 @@ item-base:
       density: 0.8
       packFactor: 0.6
 
-  - item: &itemGlassware
-      <<: *categoryCrafts
-      <<: *classicalAge
+  - item:
       uniqueId: Glassware
       categoryId: Crafts
       ageId: ClassicalAge
@@ -397,9 +345,7 @@ item-base:
       density: 2.5
       packFactor: 0.05
 
-  - item: &itemCement
-      <<: *categoryConstructionMaterials
-      <<: *classicalAge
+  - item:
       uniqueId: Cement
       categoryId: ConstructionMaterials
       ageId: ClassicalAge
@@ -411,9 +357,7 @@ item-base:
       density: 3.15
       packFactor: 0.42
 
-  - item: &itemStill
-      <<: *categoryScientificEquipment
-      <<: *classicalAge
+  - item:
       uniqueId: Still
       categoryId: ScientificEquipment
       ageId: ClassicalAge
@@ -425,9 +369,7 @@ item-base:
       density: 8.9
       packFactor: 0.04
 
-  - item: &itemScrews
-      <<: *categoryConstructionMaterials
-      <<: *classicalAge
+  - item:
       uniqueId: Screws
       categoryId: ConstructionMaterials
       ageId: ClassicalAge
@@ -439,9 +381,7 @@ item-base:
       density: 7.85
       packFactor: 0.06
 
-  - item: &itemCompass
-      <<: *categoryScientificEquipment
-      <<: *classicalAge
+  - item:
       uniqueId: Compass
       categoryId: ScientificEquipment
       ageId: ClassicalAge
@@ -453,9 +393,7 @@ item-base:
       density: 5.0
       packFactor: 0.5
 
-  - item: &itemCoins
-      <<: *categoryCollectibles
-      <<: *classicalAge
+  - item:
       uniqueId: Coins
       categoryId: Collectibles
       ageId: ClassicalAge
@@ -467,9 +405,7 @@ item-base:
       density: 8.4
       packFactor: 0.4
 
-  - item: &itemSoap
-      <<: *categoryConsumables
-      <<: *classicalAge
+  - item:
       uniqueId: Soap
       categoryId: Consumables
       ageId: ClassicalAge
@@ -483,9 +419,7 @@ item-base:
 
   # Medieval Age
 
-  - item: &itemPhysics
-      <<: *categoryInformation
-      <<: *medievalAge
+  - item:
       uniqueId: Physics
       categoryId: Information
       ageId: MedievalAge
@@ -497,9 +431,7 @@ item-base:
       density: 0.95
       packFactor: 0.85
 
-  - item: &itemMicroscope
-      <<: *categoryScientificEquipment
-      <<: *medievalAge
+  - item:
       uniqueId: Microscope
       categoryId: ScientificEquipment
       ageId: MedievalAge
@@ -533,9 +465,7 @@ item-base:
 
 
   # Uncategorised
-  - item: &itemHomeAppliances
-      <<: *categoryAppliances
-      <<: *postIndustrialAge
+  - item:
       uniqueId: HomeAppliances
       categoryId: Appliances
       ageId: Post-industrialAge
@@ -547,9 +477,7 @@ item-base:
       density: 0.35
       packFactor: 0.85
 
-  - item: &itemElectronics
-      <<: *categoryElectronics
-      <<: *informationAge
+  - item:
       uniqueId: Electronics
       categoryId: Electronics
       ageId: InformationAge
@@ -561,9 +489,7 @@ item-base:
       density: 1.5
       packFactor: 0.55
 
-  - item: &itemAntibiotics
-      <<: *categoryMedicine
-      <<: *postIndustrialAge
+  - item:
       uniqueId: Antibiotics
       categoryId: Medicine
       ageId: Post-industrialAge
@@ -575,9 +501,7 @@ item-base:
       density: 1.14
       packFactor: 0.4
 
-  - item: &itemAnesthetics
-      <<: *categoryMedicine
-      <<: *industrialAge
+  - item:
       uniqueId: Anesthetics
       categoryId: Medicine
       ageId: IndustrialAge
@@ -589,9 +513,7 @@ item-base:
       density: 1.2
       packFactor: 0.45
 
-  - item: &itemAnalgesics
-      <<: *categoryMedicine
-      <<: *industrialAge
+  - item:
       uniqueId: Analgesics
       categoryId: Medicine
       ageId: IndustrialAge
@@ -603,9 +525,7 @@ item-base:
       density: 1.3
       packFactor: 0.5
 
-  - item: &itemGems
-      <<: *categoryLuxuryGoods
-      <<: *stoneAge
+  - item:
       uniqueId: Gems
       categoryId: LuxuryGoods
       ageId: StoneAge
@@ -617,9 +537,7 @@ item-base:
       density: 3.5
       packFactor: 0.65
 
-  - item: &itemDiamonds
-      <<: *categoryLuxuryGoods
-      <<: *stoneAge
+  - item:
       uniqueId: Diamonds
       categoryId: LuxuryGoods
       ageId: StoneAge
@@ -631,9 +549,7 @@ item-base:
       density: 3.51
       packFactor: 0.55
 
-  - item: &itemFineArt
-      <<: *categoryLuxuryGoods
-      <<: *classicalAge
+  - item:
       uniqueId: FineArt
       categoryId: LuxuryGoods
       ageId: ClassicalAge

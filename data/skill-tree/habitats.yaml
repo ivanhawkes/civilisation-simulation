@@ -25,7 +25,7 @@
 #   gridX, gridY       The row at gridY 3.0, above the yards, the lanes and the survey.
 skill-base:
 
-  - skill: &skillHabitatDomes
+  - skill:
       uniqueId: HabitatDomes
       displayName: Habitat Domes
       description: The pressure shells, the spacers and the land they stand on
@@ -40,7 +40,7 @@ skill-base:
       gridX: 0.0
       gridY: 3.0
 
-  - skill: &skillHabitatClosedLoop
+  - skill:
       uniqueId: HabitatClosedLoop
       displayName: Closed Life Support Loop
       description: The air, water and crops that recycle a dome into a place to live
@@ -55,7 +55,7 @@ skill-base:
       gridX: 1.0
       gridY: 3.0
 
-  - skill: &skillTerraformAtmosphere
+  - skill:
       uniqueId: TerraformAtmosphere
       displayName: Atmospheric Works
       description: The gas, the pressure and the weather a bare rock has to be given
@@ -70,7 +70,7 @@ skill-base:
       gridX: 2.0
       gridY: 3.0
 
-  - skill: &skillTerraformBiosphere
+  - skill:
       uniqueId: TerraformBiosphere
       displayName: Biosphere Seeding
       description: The soil, the seed and the herd that make an atmosphere pay its way

@@ -22,7 +22,7 @@
 #   gridX, gridY       The row at gridY -2.0, beside the law, pirate and service trees.
 skill-base:
 
-  - skill: &skillTradeDockingLicence
+  - skill:
       uniqueId: TradeDockingLicence
       displayName: Docking Licence
       description: The permit, the berth and the clearance that put a ship on a deck
@@ -35,7 +35,7 @@ skill-base:
       gridX: 10.0
       gridY: -2.0
 
-  - skill: &skillTradeInsurance
+  - skill:
       uniqueId: TradeInsurance
       displayName: Cargo Insurance
       description: The premium that pays for a hull, a cargo and a lane gone wrong
@@ -52,7 +52,7 @@ skill-base:
       gridX: 11.0
       gridY: -2.0
 
-  - skill: &skillTradeFencingNetwork
+  - skill:
       uniqueId: TradeFencingNetwork
       displayName: Fencing Network
       description: The outlets that take marked cargo, pay for it and ask nothing

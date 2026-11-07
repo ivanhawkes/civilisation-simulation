@@ -1,361 +1,209 @@
 ---
-# Every item and skill in the game. The definitions and their anchors live in
-# the trade-items/, skill-tree/ and base/ files; this list only selects them.
+# Every item and skill in the game. The definitions live in the trade-items/,
+# skill-tree/ and base/ files; this list only names them, by the uniqueId of an
+# item and the uniqueId of a node, and build.sh resolves the names into the
+# definitions when it merges.
 #
-# After adding, removing or renaming an item, add its reference here by hand.
+# After adding, removing or renaming an item, add its `- itemId:` reference here by
+# hand, and its `- skillId:` reference for a node of the tree: a name with no
+# definition behind it stops the build with the name printed.
 
 skills:
-  - skill:
-      <<: *skillMining
-  - skill:
-      <<: *skillSmelting
-  - skill:
-      <<: *skillLumber
-  - skill:
-      <<: *skillHerbalism
-  - skill:
-      <<: *skillAgriculture
-  - skill:
-      <<: *skillAnimalHusbandry
-  - skill:
-      <<: *skillAnimalProcessing
-  - skill:
-      <<: *skillFoodProcessing
-  - skill:
-      <<: *skillKilnMaterials
-  - skill:
-      <<: *skillChemicalManufacturing
-  - skill:
-      <<: *skillMetalworking
-  - skill:
-      <<: *skillPublishing
-  - skill:
-      <<: *skillPharmaceuticals
-  - skill:
-      <<: *skillResearch
-  - skill:
-      <<: *skillTextiles
-  - skill:
-      <<: *skillPolymers
-  - skill:
-      <<: *skillFuelRefining
+  - skillId: Mining
+  - skillId: Smelting
+  - skillId: Lumber
+  - skillId: Herbalism
+  - skillId: Agriculture
+  - skillId: AnimalHusbandry
+  - skillId: AnimalProcessing
+  - skillId: FoodProcessing
+  - skillId: KilnMaterials
+  - skillId: ChemicalManufacturing
+  - skillId: Metalworking
+  - skillId: Publishing
+  - skillId: Pharmaceuticals
+  - skillId: Research
+  - skillId: Textiles
+  - skillId: Polymers
+  - skillId: FuelRefining
 
   # The age gates: one per age, in age order. Each gate carries the uniqueId of its
   # age in base/ages.yaml, so a world's age finds its gate in the tree.
-  - skill:
-      <<: *skillStoneAge
-  - skill:
-      <<: *skillCopperAge
-  - skill:
-      <<: *skillBronzeAge
-  - skill:
-      <<: *skillIronAge
-  - skill:
-      <<: *skillClassicalAge
-  - skill:
-      <<: *skillMedievalAge
-  - skill:
-      <<: *skillPreIndustrialAge
-  - skill:
-      <<: *skillIndustrialAge
-  - skill:
-      <<: *skillPostIndustrialAge
-  - skill:
-      <<: *skillInformationAge
-  - skill:
-      <<: *skillAIAge
-  - skill:
-      <<: *skillSpaceAge
-  - skill:
-      <<: *skillSpaceColonisationAge
-  - skill:
-      <<: *skillSublimationAge
+  - skillId: StoneAge
+  - skillId: CopperAge
+  - skillId: BronzeAge
+  - skillId: IronAge
+  - skillId: ClassicalAge
+  - skillId: MedievalAge
+  - skillId: Pre-industrialAge
+  - skillId: IndustrialAge
+  - skillId: Post-industrialAge
+  - skillId: InformationAge
+  - skillId: AIAge
+  - skillId: SpaceAge
+  - skillId: SpaceColonisationAge
+  - skillId: SublimationAge
 
   # The systems of the long-haul trader: screens, guns, lasers, computers, the drive
   # that makes the running and the mast that sees what is out there.
-  - skill:
-      <<: *skillShipShieldsFront
-  - skill:
-      <<: *skillShipShieldsSide
-  - skill:
-      <<: *skillShipShieldsRear
-  - skill:
-      <<: *skillShipGunsFront
-  - skill:
-      <<: *skillShipGunsRear
-  - skill:
-      <<: *skillShipLasersFront
-  - skill:
-      <<: *skillShipLasersRear
-  - skill:
-      <<: *skillShipNavigationComputer
-  - skill:
-      <<: *skillShipTraderAI
-  - skill:
-      <<: *skillShipEngineThrust
-  - skill:
-      <<: *skillShipManoeuvringJets
-  - skill:
-      <<: *skillShipAttitudeControl
-  - skill:
-      <<: *skillShipSensorLongRange
-  - skill:
-      <<: *skillShipSensorFireControl
-  - skill:
-      <<: *skillShipSensorCommercial
+  - skillId: ShipShieldsFront
+  - skillId: ShipShieldsSide
+  - skillId: ShipShieldsRear
+  - skillId: ShipGunsFront
+  - skillId: ShipGunsRear
+  - skillId: ShipLasersFront
+  - skillId: ShipLasersRear
+  - skillId: ShipNavigationComputer
+  - skillId: ShipTraderAI
+  - skillId: ShipEngineThrust
+  - skillId: ShipManoeuvringJets
+  - skillId: ShipAttitudeControl
+  - skillId: ShipSensorLongRange
+  - skillId: ShipSensorFireControl
+  - skillId: ShipSensorCommercial
 
   # The rest of the ship: the haul, running quiet and the crew.
-  - skill:
-      <<: *skillShipCargoHolds
-  - skill:
-      <<: *skillShipFuelBunkers
-  - skill:
-      <<: *skillShipSalvageRig
-  - skill:
-      <<: *skillShipLifeSupport
-  - skill:
-      <<: *skillShipStealthCoating
-  - skill:
-      <<: *skillShipEmissionsControl
-  - skill:
-      <<: *skillShipCountermeasures
-  - skill:
-      <<: *skillShipCrewTraining
-  - skill:
-      <<: *skillShipDamageControl
-  - skill:
-      <<: *skillShipSparesLockers
+  - skillId: ShipCargoHolds
+  - skillId: ShipFuelBunkers
+  - skillId: ShipSalvageRig
+  - skillId: ShipLifeSupport
+  - skillId: ShipStealthCoating
+  - skillId: ShipEmissionsControl
+  - skillId: ShipCountermeasures
+  - skillId: ShipCrewTraining
+  - skillId: ShipDamageControl
+  - skillId: ShipSparesLockers
 
   # The yards: the docks, the lines and the hull production.
-  - skill:
-      <<: *skillYardDrydock
-  - skill:
-      <<: *skillYardOutfitting
-  - skill:
-      <<: *skillYardModularHulls
-  - skill:
-      <<: *skillYardRefitDocks
+  - skillId: YardDrydock
+  - skillId: YardOutfitting
+  - skillId: YardModularHulls
+  - skillId: YardRefitDocks
 
   # The lanes: convoy, escort, ward and patrol.
-  - skill:
-      <<: *skillLaneConvoy
-  - skill:
-      <<: *skillLaneEscortWing
-  - skill:
-      <<: *skillLaneRouteWard
-  - skill:
-      <<: *skillLaneWardenPatrol
+  - skillId: LaneConvoy
+  - skillId: LaneEscortWing
+  - skillId: LaneRouteWard
+  - skillId: LaneWardenPatrol
 
   # Survey and claims: the deep look, the strike and the works.
-  - skill:
-      <<: *skillSurveyDeepRange
-  - skill:
-      <<: *skillClaimMining
-  - skill:
-      <<: *skillClaimRefinery
-  - skill:
-      <<: *skillClaimExclusive
+  - skillId: SurveyDeepRange
+  - skillId: ClaimMining
+  - skillId: ClaimRefinery
+  - skillId: ClaimExclusive
 
   # Habitats and terraforming: the dome, the loop, the weather and the soil.
-  - skill:
-      <<: *skillHabitatDomes
-  - skill:
-      <<: *skillHabitatClosedLoop
-  - skill:
-      <<: *skillTerraformAtmosphere
-  - skill:
-      <<: *skillTerraformBiosphere
+  - skillId: HabitatDomes
+  - skillId: HabitatClosedLoop
+  - skillId: TerraformAtmosphere
+  - skillId: TerraformBiosphere
 
   # The pirate tree: hulls, boarding, ransom and harbours.
-  - skill:
-      <<: *skillPirateRaiderHulls
-  - skill:
-      <<: *skillPirateBoardingParties
-  - skill:
-      <<: *skillPirateRansomExchange
-  - skill:
-      <<: *skillPirateSafeHarbours
+  - skillId: PirateRaiderHulls
+  - skillId: PirateBoardingParties
+  - skillId: PirateRansomExchange
+  - skillId: PirateSafeHarbours
 
   # Law: the warrant, the pardon, the bench and the standing.
-  - skill:
-      <<: *skillLawAdmiraltyWarrant
-  - skill:
-      <<: *skillLawPiratePardon
-  - skill:
-      <<: *skillLawTribunal
-  - skill:
-      <<: *skillLawPirateStanding
+  - skillId: LawAdmiraltyWarrant
+  - skillId: LawPiratePardon
+  - skillId: LawTribunal
+  - skillId: LawPirateStanding
 
   # Trade services: the licence, the premium and the fence.
-  - skill:
-      <<: *skillTradeDockingLicence
-  - skill:
-      <<: *skillTradeInsurance
-  - skill:
-      <<: *skillTradeFencingNetwork
+  - skillId: TradeDockingLicence
+  - skillId: TradeInsurance
+  - skillId: TradeFencingNetwork
 
   # The demand side: public medicine and the education system.
-  - skill:
-      <<: *skillServicePublicMedicine
-  - skill:
-      <<: *skillServiceEducation
+  - skillId: ServicePublicMedicine
+  - skillId: ServiceEducation
 
 items:
 
   # Chemicals
-  - item:
-      <<: *itemSodiumHydroxide
-  - item:
-      <<: *itemNitrogen
-  - item:
-      <<: *itemPhosphorus
-  - item:
-      <<: *itemSulfur
-  - item:
-      <<: *itemSulfuricAcid
-  - item:
-      <<: *itemAntimony
-  - item:
-      <<: *itemChlorine
-  - item:
-      <<: *itemAmmonia
-  - item:
-      <<: *itemEthylene
-  - item:
-      <<: *itemNeodymium
-  - item:
-      <<: *itemGraphene
+  - itemId: SodiumHydroxide
+  - itemId: Nitrogen
+  - itemId: Phosphorus
+  - itemId: Sulfur
+  - itemId: SulfuricAcid
+  - itemId: Antimony
+  - itemId: Chlorine
+  - itemId: Ammonia
+  - itemId: Ethylene
+  - itemId: Neodymium
+  - itemId: Graphene
 
   # Metals
-  - item:
-      <<: *itemCopper
-  - item:
-      <<: *itemTin
-  - item:
-      <<: *itemGold
-  - item:
-      <<: *itemBrass
-  - item:
-      <<: *itemSilver
-  - item:
-      <<: *itemBronze
-  - item:
-      <<: *itemNickel
-  - item:
-      <<: *itemIron
-  - item:
-      <<: *itemLead
-  - item:
-      <<: *itemCobalt
-  - item:
-      <<: *itemLithium
-  - item:
-      <<: *itemMolybdenum
-  - item:
-      <<: *itemAluminium
-  - item:
-      <<: *itemPalladium
-  - item:
-      <<: *itemPlatinum
-  - item:
-      <<: *itemPotassium
-  - item:
-      <<: *itemRhodium
-  - item:
-      <<: *itemRuthenium
-  - item:
-      <<: *itemUranium
-  - item:
-      <<: *itemVanadium
-  - item:
-      <<: *itemZinc
+  - itemId: Copper
+  - itemId: Tin
+  - itemId: Gold
+  - itemId: Brass
+  - itemId: Silver
+  - itemId: Bronze
+  - itemId: Nickel
+  - itemId: Iron
+  - itemId: Lead
+  - itemId: Cobalt
+  - itemId: Lithium
+  - itemId: Molybdenum
+  - itemId: Aluminium
+  - itemId: Palladium
+  - itemId: Platinum
+  - itemId: Potassium
+  - itemId: Rhodium
+  - itemId: Ruthenium
+  - itemId: Uranium
+  - itemId: Vanadium
+  - itemId: Zinc
 
   # Minerals
-  - item:
-      <<: *itemSalt
-  - item:
-      <<: *itemLime
-  - item:
-      <<: *itemGraphite
-  - item:
-      <<: *itemPotash
-  - item:
-      <<: *itemNatron
+  - itemId: Salt
+  - itemId: Lime
+  - itemId: Graphite
+  - itemId: Potash
+  - itemId: Natron
 
   # Stone Age
-  - item:
-      <<: *itemCharcoal
-  - item:
-      <<: *itemPottery
-  - item:
-      <<: *itemPigments
-  - item:
-      <<: *itemSlaves
-  - item:
-      <<: *itemArdPlough
+  - itemId: Charcoal
+  - itemId: Pottery
+  - itemId: Pigments
+  - itemId: Slaves
+  - itemId: ArdPlough
   # Copper Age
-  - item:
-      <<: *itemFlour
-  - item:
-      <<: *itemBread
-  - item:
-      <<: *itemBeer
-  - item:
-      <<: *itemWine
+  - itemId: Flour
+  - itemId: Bread
+  - itemId: Beer
+  - itemId: Wine
   # Bronze Age
-  - item:
-      <<: *itemJewellry
+  - itemId: Jewellry
   # Iron Age
-  - item:
-      <<: *itemParchment
-  - item:
-      <<: *itemPapyrus
-  - item:
-      <<: *itemInk
-  - item:
-      <<: *itemVinegar
-  - item:
-      <<: *itemShaduf
+  - itemId: Parchment
+  - itemId: Papyrus
+  - itemId: Ink
+  - itemId: Vinegar
+  - itemId: Shaduf
   # Classical Age
-  - item:
-      <<: *itemMaths
-  - item:
-      <<: *itemAntikythera
-  - item:
-      <<: *itemAstrolabe
-  - item:
-      <<: *itemChemistry
-  - item:
-      <<: *itemClock
-  - item:
-      <<: *itemCeramics
-  - item:
-      <<: *itemBooks
-  - item:
-      <<: *itemScrolls
-  - item:
-      <<: *itemHides
-  - item:
-      <<: *itemFurs
-  - item:
-      <<: *itemGlassware
-  - item:
-      <<: *itemCement
-  - item:
-      <<: *itemStill
-  - item:
-      <<: *itemScrews
-  - item:
-      <<: *itemCompass
-  - item:
-      <<: *itemCoins
-  - item:
-      <<: *itemSoap
+  - itemId: Maths
+  - itemId: Antikythera
+  - itemId: Astrolabe
+  - itemId: Chemistry
+  - itemId: Clock
+  - itemId: Ceramics
+  - itemId: Books
+  - itemId: Scrolls
+  - itemId: Leatherhides
+  - itemId: Furs
+  - itemId: Glassware
+  - itemId: Cement
+  - itemId: Still
+  - itemId: Screws
+  - itemId: Compass
+  - itemId: Coins
+  - itemId: Soap
   # Medieval Age
-  - item:
-      <<: *itemPhysics
-  - item:
-      <<: *itemMicroscope
+  - itemId: Physics
+  - itemId: Microscope
   # Pre-industrial Age
   # Industrial Age
   # Post-industrial Age
@@ -364,41 +212,23 @@ items:
   # Space Age
   # Space Colonisation Age
   # Uncategorised
-  - item:
-      <<: *itemHomeAppliances
-  - item:
-      <<: *itemElectronics
-  - item:
-      <<: *itemAntibiotics
-  - item:
-      <<: *itemAnesthetics
-  - item:
-      <<: *itemAnalgesics
-  - item:
-      <<: *itemGems
-  - item:
-      <<: *itemDiamonds
-  - item:
-      <<: *itemFineArt
+  - itemId: HomeAppliances
+  - itemId: Electronics
+  - itemId: Antibiotics
+  - itemId: Anesthetics
+  - itemId: Analgesics
+  - itemId: Gems
+  - itemId: Diamonds
+  - itemId: FineArt
 
   # Seeds
-  - item:
-      <<: *itemWheatSeeds
-  - item:
-      <<: *itemBarleySeeds
-  - item:
-      <<: *itemOatSeeds
-  - item:
-      <<: *itemCornSeed
-  - item:
-      <<: *itemRiceSeeds
-  - item:
-      <<: *itemSorghumSeeds
-  - item:
-      <<: *itemPoppySeeds
-  - item:
-      <<: *itemCocoaSeeds
-  - item:
-      <<: *itemCocaSeeds
-  - item:
-      <<: *itemCanolaSeeds
+  - itemId: WheatSeeds
+  - itemId: BarleySeeds
+  - itemId: OatSeeds
+  - itemId: CornSeeds
+  - itemId: RiceSeeds
+  - itemId: SorghumSeeds
+  - itemId: PoppySeeds
+  - itemId: CocoaSeeds
+  - itemId: CocaSeeds
+  - itemId: CanolaSeeds

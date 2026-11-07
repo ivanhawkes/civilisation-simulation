@@ -20,9 +20,7 @@
 item-base:
 
   # Seeds
-  - item: &itemWheatSeeds
-      <<: *categorySeeds
-      <<: *copperAge
+  - item:
       uniqueId: WheatSeeds
       categoryId: Seeds
       ageId: CopperAge
@@ -34,9 +32,7 @@ item-base:
       density: 1.27
       packFactor: 0.61
 
-  - item: &itemBarleySeeds
-      <<: *categorySeeds
-      <<: *copperAge
+  - item:
       uniqueId: BarleySeeds
       categoryId: Seeds
       ageId: CopperAge
@@ -48,9 +44,7 @@ item-base:
       density: 1.3
       packFactor: 0.48
 
-  - item: &itemOatSeeds
-      <<: *categorySeeds
-      <<: *copperAge
+  - item:
       uniqueId: OatSeeds
       categoryId: Seeds
       ageId: CopperAge
@@ -62,9 +56,7 @@ item-base:
       density: 1.22
       packFactor: 0.41
 
-  - item: &itemCornSeed
-      <<: *categorySeeds
-      <<: *copperAge
+  - item:
       uniqueId: CornSeeds
       categoryId: Seeds
       ageId: CopperAge
@@ -76,9 +68,7 @@ item-base:
       density: 1.25
       packFactor: 0.58
 
-  - item: &itemRiceSeeds
-      <<: *categorySeeds
-      <<: *copperAge
+  - item:
       uniqueId: RiceSeeds
       categoryId: Seeds
       ageId: CopperAge
@@ -90,9 +80,7 @@ item-base:
       density: 1.32
       packFactor: 0.61
 
-  - item: &itemSorghumSeeds
-      <<: *categorySeeds
-      <<: *copperAge
+  - item:
       uniqueId: SorghumSeeds
       categoryId: Seeds
       ageId: CopperAge
@@ -104,9 +92,7 @@ item-base:
       density: 1.3
       packFactor: 0.51
 
-  - item: &itemPoppySeeds
-      <<: *categorySeeds
-      <<: *copperAge
+  - item:
       uniqueId: PoppySeeds
       categoryId: Seeds
       ageId: CopperAge
@@ -118,9 +104,7 @@ item-base:
       density: 1.25
       packFactor: 0.48
 
-  - item: &itemCocoaSeeds
-      <<: *categorySeeds
-      <<: *copperAge
+  - item:
       uniqueId: CocoaSeeds
       categoryId: Seeds
       ageId: CopperAge
@@ -132,9 +116,7 @@ item-base:
       density: 1.2
       packFactor: 0.46
 
-  - item: &itemCocaSeeds
-      <<: *categorySeeds
-      <<: *copperAge
+  - item:
       uniqueId: CocaSeeds
       categoryId: Seeds
       ageId: CopperAge
@@ -146,9 +128,7 @@ item-base:
       density: 1.25
       packFactor: 0.44
 
-  - item: &itemCanolaSeeds
-      <<: *categorySeeds
-      <<: *postIndustrialAge
+  - item:
       uniqueId: CanolaSeeds
       categoryId: Seeds
       ageId: Post-industrialAge

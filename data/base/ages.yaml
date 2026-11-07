@@ -1,89 +1,64 @@
 ---
-ages-base:
-  - age: &stoneAge
-      uniqueId: StoneAge
-      displayName: Stone Age
-  - age: &copperAge
-      uniqueId: CopperAge
-      displayName: Copper Age
-  - age: &bronzeAge
-      uniqueId: BronzeAge
-      displayName: Bronze Age
-  - age: &ironAge
-      uniqueId: IronAge
-      displayName: Iron Age
-  - age: &classicalAge
-      uniqueId: ClassicalAge
-      displayName: Classical Age
-  - age: &medievalAge
-      uniqueId: MedievalAge
-      displayName: Medieval Age
-  - age: &preIndustrialAge
-      uniqueId: Pre-industrialAge
-      displayName: Pre-industrial Age
-  - age: &industrialAge
-      uniqueId: IndustrialAge
-      displayName: Industrial Age
-  - age: &postIndustrialAge
-      uniqueId: Post-industrialAge
-      displayName: Post-industrial Age
-  - age: &informationAge
-      uniqueId: InformationAge
-      displayName: Information Age
-  - age: &aiAge
-      uniqueId: AIAge
-      displayName: AI Age
-  - age: &spaceAge
-      uniqueId: SpaceAge
-      displayName: Space Age
-  - age: &spaceColonisationAge
-      uniqueId: SpaceColonisationAge
-      displayName: Space Colonisation Age
-  - age: &sublimationAge
-      uniqueId: SublimationAge
-      displayName: Sublimation Age
-
+# The ages of the tech tree, in the order they are reached.
+#
+# The uniqueId of an age is the uniqueId of its gate in skill-tree/ages.yaml, and the
+# value the ageId of an item points at, so the same name opens the tree, bounds the
+# goods a world can produce and dates the world itself.
 ages:
   - age:
-      <<: *stoneAge
+      uniqueId: StoneAge
+      displayName: Stone Age
       description: Stone age
   - age:
-      <<: *copperAge
+      uniqueId: CopperAge
+      displayName: Copper Age
       description: Copper Age
   - age:
-      <<: *bronzeAge
+      uniqueId: BronzeAge
+      displayName: Bronze Age
       description: Bronze Age
   - age:
-      <<: *ironAge
+      uniqueId: IronAge
+      displayName: Iron Age
       description: Iron Age
   - age:
-      <<: *classicalAge
+      uniqueId: ClassicalAge
+      displayName: Classical Age
       description: Classical Age
   - age:
-      <<: *medievalAge
+      uniqueId: MedievalAge
+      displayName: Medieval Age
       description: Medieval Age
   - age:
-      <<: *preIndustrialAge
+      uniqueId: Pre-industrialAge
+      displayName: Pre-industrial Age
       description: Pre-industrial Age
   - age:
-      <<: *industrialAge
+      uniqueId: IndustrialAge
+      displayName: Industrial Age
       description: Industrial Age
   - age:
-      <<: *postIndustrialAge
+      uniqueId: Post-industrialAge
+      displayName: Post-industrial Age
       description: Post-industrial Age
   - age:
-      <<: *informationAge
+      uniqueId: InformationAge
+      displayName: Information Age
       description: Information Age
   - age:
-      <<: *aiAge
+      uniqueId: AIAge
+      displayName: AI Age
       description: AI Age
   - age:
-      <<: *spaceAge
+      uniqueId: SpaceAge
+      displayName: Space Age
       description: Space Age
   - age:
-      <<: *spaceColonisationAge
+      uniqueId: SpaceColonisationAge
+      displayName: Space Colonisation Age
       description: Space Colonisation Age
   - age:
-      <<: *sublimationAge
+      uniqueId: SublimationAge
+      displayName: Sublimation Age
       description: Nothingness
 ...

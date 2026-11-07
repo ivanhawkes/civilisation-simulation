@@ -76,19 +76,18 @@ if(YQ_EXECUTABLE)
             "The YAML merge may fail.")
     endif()
 
-    # The merge concatenates files that share anchors: an item file uses
-    # *categoryChemicals and *ironAge, which are defined in the category and age files.
-    # yq v4.54.1 resolves those across the concatenated stream, yq v4.54.2 scopes an
-    # anchor to its own document, as the YAML spec says, and the merge fails. The
-    # development shell pins v4.54.1, so that is the version this build is tested with.
+    # Every source file under data/ is a document yq loads on its own, and the files
+    # refer to each other by uniqueId, so no anchor has to survive the trip from one file
+    # to the next: any yq v4 builds the data. The development shell pins v4.54.1, and that
+    # is the version this merge is tested with, which is what the warning is about.
     set(CIVSIM_YQ_TESTED_VERSION "4.54.1")
     if(NOT YQ_VERSION_STRING MATCHES "${CIVSIM_YQ_TESTED_VERSION}")
         message(WARNING
             "The data merge is tested with mikefarah/yq v${CIVSIM_YQ_TESTED_VERSION}, the "
-            "version the development shell pins; found '${YQ_VERSION_STRING}'. yq v4.54.2 "
-            "scopes anchors to one document, so data/build.sh cannot resolve the anchors the "
-            "item files share and the data build fails. Use the devenv shell, install "
-            "v${CIVSIM_YQ_TESTED_VERSION}, or configure with -DBUILD_TESTING=OFF.")
+            "version the development shell pins; found '${YQ_VERSION_STRING}'. The merge is "
+            "plain v4 syntax and the source files link by uniqueId, so a v4 of any version "
+            "should build it. Use the devenv shell for the tested version, or configure "
+            "with -DBUILD_TESTING=OFF.")
     endif()
 
     # Only the source YAML, never the generated documents in data/core-config.

@@ -23,7 +23,7 @@
 #                      trees, below the age ladder they depend on.
 skill-base:
 
-  - skill: &skillServicePublicMedicine
+  - skill:
       uniqueId: ServicePublicMedicine
       displayName: Public Medicine Service
       description: The clinics, the immunisers and the drug ration a population is owed
@@ -38,7 +38,7 @@ skill-base:
       gridX: 14.0
       gridY: -2.0
 
-  - skill: &skillServiceEducation
+  - skill:
       uniqueId: ServiceEducation
       displayName: Education System
       description: The schools, the apprenticeships and the books that make a crew literate

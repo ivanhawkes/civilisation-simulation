@@ -28,7 +28,7 @@
 # second naming scheme has to be kept in step.
 skill-base:
 
-  - skill: &skillStoneAge
+  - skill:
       uniqueId: StoneAge
       displayName: Stone Age Technology
       description: Fire, dressed stone, bone and antler tools, and the working of hides
@@ -41,7 +41,7 @@ skill-base:
       gridX: -10.0
       gridY: -1.0
 
-  - skill: &skillCopperAge
+  - skill:
       uniqueId: CopperAge
       displayName: Copper Age Technology
       description: Smelted copper, the first metal tools and ornaments, and the wheel
@@ -56,7 +56,7 @@ skill-base:
       gridX: -9.0
       gridY: -1.0
 
-  - skill: &skillBronzeAge
+  - skill:
       uniqueId: BronzeAge
       displayName: Bronze Age Technology
       description: Alloyed bronze, the plough, the sail, the loom and the first writing
@@ -71,7 +71,7 @@ skill-base:
       gridX: -8.0
       gridY: -1.0
 
-  - skill: &skillIronAge
+  - skill:
       uniqueId: IronAge
       displayName: Iron Age Technology
       description: Smelted iron and steel, iron tools and weapons, and the keyed arch
@@ -86,7 +86,7 @@ skill-base:
       gridX: -7.0
       gridY: -1.0
 
-  - skill: &skillClassicalAge
+  - skill:
       uniqueId: ClassicalAge
       displayName: Classical Age Technology
       description: Mathematics, geared mechanisms, the water clock, the screw and roads
@@ -101,7 +101,7 @@ skill-base:
       gridX: -6.0
       gridY: -1.0
 
-  - skill: &skillMedievalAge
+  - skill:
       uniqueId: MedievalAge
       displayName: Medieval Age Technology
       description: Mechanical clockwork, optics, the blast furnace and the press
@@ -116,7 +116,7 @@ skill-base:
       gridX: -5.0
       gridY: -1.0
 
-  - skill: &skillPreIndustrialAge
+  - skill:
       uniqueId: Pre-industrialAge
       displayName: Pre-industrial Age Technology
       description: Precision mechanics, the telescope, the barometer and printed books
@@ -131,7 +131,7 @@ skill-base:
       gridX: -4.0
       gridY: -1.0
 
-  - skill: &skillIndustrialAge
+  - skill:
       uniqueId: IndustrialAge
       displayName: Industrial Age Technology
       description: Steam power, machine tools, the telegraph and the railway
@@ -146,7 +146,7 @@ skill-base:
       gridX: -3.0
       gridY: -1.0
 
-  - skill: &skillPostIndustrialAge
+  - skill:
       uniqueId: Post-industrialAge
       displayName: Post-industrial Age Technology
       description: Petrochemistry, electrical grids, flight, radio and mass electronics
@@ -161,7 +161,7 @@ skill-base:
       gridX: -2.0
       gridY: -1.0
 
-  - skill: &skillInformationAge
+  - skill:
       uniqueId: InformationAge
       displayName: Information Age Technology
       description: Microprocessors, computers, calculators, software and networks
@@ -176,7 +176,7 @@ skill-base:
       gridX: -1.0
       gridY: -1.0
 
-  - skill: &skillAIAge
+  - skill:
       uniqueId: AIAge
       displayName: AI Age Technology
       description: Machine learning, expert systems, robotics and autonomous trading
@@ -191,7 +191,7 @@ skill-base:
       gridX: 0.0
       gridY: -1.0
 
-  - skill: &skillSpaceAge
+  - skill:
       uniqueId: SpaceAge
       displayName: Space Age Technology
       description: Rocketry, orbital flight, satellites and space stations
@@ -206,7 +206,7 @@ skill-base:
       gridX: 1.0
       gridY: -1.0
 
-  - skill: &skillSpaceColonisationAge
+  - skill:
       uniqueId: SpaceColonisationAge
       displayName: Space Colonisation Age Technology
       description: Closed life support, orbital habitats and in-situ resource use
@@ -221,7 +221,7 @@ skill-base:
       gridX: 2.0
       gridY: -1.0
 
-  - skill: &skillSublimationAge
+  - skill:
       uniqueId: SublimationAge
       displayName: Sublimation Age Technology
       description: Compiled matter, uploaded minds and computation beyond the physical

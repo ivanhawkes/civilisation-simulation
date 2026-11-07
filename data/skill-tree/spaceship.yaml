@@ -36,7 +36,7 @@
 skill-base:
 
   # Shield banks: the screens, by arc of fire.
-  - skill: &skillShipShieldsFront
+  - skill:
       uniqueId: ShipShieldsFront
       displayName: Forward Shield Bank
       description: The screen that faces the pirate you are running down
@@ -49,7 +49,7 @@ skill-base:
       gridX: 0.0
       gridY: 1.0
 
-  - skill: &skillShipShieldsSide
+  - skill:
       uniqueId: ShipShieldsSide
       displayName: Beam Shield Bank
       description: The screen that covers the flanks when a raider circles you
@@ -64,7 +64,7 @@ skill-base:
       gridX: 1.0
       gridY: 1.0
 
-  - skill: &skillShipShieldsRear
+  - skill:
       uniqueId: ShipShieldsRear
       displayName: Aft Shield Bank
       description: The screen that covers the drive and the cargo of a raider astern
@@ -80,7 +80,7 @@ skill-base:
       gridY: 1.0
 
   # Gun batteries: solid rounds, by arc of fire.
-  - skill: &skillShipGunsFront
+  - skill:
       uniqueId: ShipGunsFront
       displayName: Forward Gun Battery
       description: The guns that fire along the chase line at the target ahead
@@ -93,7 +93,7 @@ skill-base:
       gridX: 4.0
       gridY: 1.0
 
-  - skill: &skillShipGunsRear
+  - skill:
       uniqueId: ShipGunsRear
       displayName: Aft Gun Battery
       description: The guns that fire over the drive at the raider astern
@@ -109,7 +109,7 @@ skill-base:
       gridY: 1.0
 
   # Laser mounts: energy beams for the range the guns do not reach.
-  - skill: &skillShipLasersFront
+  - skill:
       uniqueId: ShipLasersFront
       displayName: Forward Laser Mount
       description: The beam that burns out a raider at range, ahead of the gun line
@@ -124,7 +124,7 @@ skill-base:
       gridX: 6.0
       gridY: 1.0
 
-  - skill: &skillShipLasersRear
+  - skill:
       uniqueId: ShipLasersRear
       displayName: Aft Laser Mount
       description: The beam for the chaser you have no hope of out-running
@@ -140,7 +140,7 @@ skill-base:
       gridY: 1.0
 
   # Computer systems: the long haul and the market.
-  - skill: &skillShipNavigationComputer
+  - skill:
       uniqueId: ShipNavigationComputer
       displayName: Navigation Computer
       description: Plots the jumps, the fuel and the windows that make a long haul pay
@@ -153,7 +153,7 @@ skill-base:
       gridX: 9.0
       gridY: 1.0
 
-  - skill: &skillShipTraderAI
+  - skill:
       uniqueId: ShipTraderAI
       displayName: Trading AI
       description: Reads every market in range and picks the cargo that pays the freight
@@ -169,7 +169,7 @@ skill-base:
       gridY: 1.0
 
   # Propulsion: the drive that makes the running, and the thrusters that spend it.
-  - skill: &skillShipEngineThrust
+  - skill:
       uniqueId: ShipEngineThrust
       displayName: Thrust Drive
       description: The main drive, for the jump windows, the orbit climbs and the running start
@@ -182,7 +182,7 @@ skill-base:
       gridX: 12.0
       gridY: 1.0
 
-  - skill: &skillShipManoeuvringJets
+  - skill:
       uniqueId: ShipManoeuvringJets
       displayName: Manoeuvring Jets
       description: Vernier thrusters for station keeping, docking and the jink a missile cannot follow
@@ -197,7 +197,7 @@ skill-base:
       gridX: 13.0
       gridY: 1.0
 
-  - skill: &skillShipAttitudeControl
+  - skill:
       uniqueId: ShipAttitudeControl
       displayName: Attitude Control
       description: The pointing that puts the guns on the target and the screens to the front
@@ -213,7 +213,7 @@ skill-base:
       gridY: 1.0
 
   # Sensors: the mast that sees, and the arrays that read what it sees.
-  - skill: &skillShipSensorLongRange
+  - skill:
       uniqueId: ShipSensorLongRange
       displayName: Long Range Sensor Array
       description: The mast that sees the raider, the patrol and the drift before the raider sees you
@@ -226,7 +226,7 @@ skill-base:
       gridX: 16.0
       gridY: 1.0
 
-  - skill: &skillShipSensorFireControl
+  - skill:
       uniqueId: ShipSensorFireControl
       displayName: Fire Control Array
       description: The lock and the lead that puts a shot where the target will be
@@ -241,7 +241,7 @@ skill-base:
       gridX: 17.0
       gridY: 1.0
 
-  - skill: &skillShipSensorCommercial
+  - skill:
       uniqueId: ShipSensorCommercial
       displayName: Commercial Sensor Array
       description: The markets of a world, the cargo in the belt and the wreck worth salvaging, read from orbit
@@ -257,7 +257,7 @@ skill-base:
       gridY: 1.0
 
   # The haul: the cargo, the fuel that carries it and the air the crew breathe.
-  - skill: &skillShipCargoHolds
+  - skill:
       uniqueId: ShipCargoHolds
       displayName: Cargo Holds
       description: The holds that carry the long haul, and the braces that keep it safe
@@ -270,7 +270,7 @@ skill-base:
       gridX: 20.0
       gridY: 1.0
 
-  - skill: &skillShipFuelBunkers
+  - skill:
       uniqueId: ShipFuelBunkers
       displayName: Fuel Bunkers
       description: The bunkerage that buys the range to carry a haul the long way
@@ -285,7 +285,7 @@ skill-base:
       gridX: 21.0
       gridY: 1.0
 
-  - skill: &skillShipSalvageRig
+  - skill:
       uniqueId: ShipSalvageRig
       displayName: Salvage Rig
       description: The gear to open a wreck and bring its cargo out of the drift
@@ -300,7 +300,7 @@ skill-base:
       gridX: 22.0
       gridY: 1.0
 
-  - skill: &skillShipLifeSupport
+  - skill:
       uniqueId: ShipLifeSupport
       displayName: Life Support
       description: The air, water and heat a crew needs on a haul measured in weeks
@@ -316,7 +316,7 @@ skill-base:
       gridY: 1.0
 
   # Running quiet: the coating, the emissions and the answer to a lock.
-  - skill: &skillShipStealthCoating
+  - skill:
       uniqueId: ShipStealthCoating
       displayName: Stealth Coating
       description: The skin that keeps the ship out of the return a raider reads
@@ -329,7 +329,7 @@ skill-base:
       gridX: 25.0
       gridY: 1.0
 
-  - skill: &skillShipEmissionsControl
+  - skill:
       uniqueId: ShipEmissionsControl
       displayName: Emissions Control
       description: Running with the drive cold, the heat shed and the signature managed
@@ -344,7 +344,7 @@ skill-base:
       gridX: 26.0
       gridY: 1.0
 
-  - skill: &skillShipCountermeasures
+  - skill:
       uniqueId: ShipCountermeasures
       displayName: Countermeasures
       description: Chaff, flares and decoys, thrown at the moment the mast calls the lock
@@ -360,7 +360,7 @@ skill-base:
       gridY: 1.0
 
   # Crew: the training, the repair skill and the parts the repair needs.
-  - skill: &skillShipCrewTraining
+  - skill:
       uniqueId: ShipCrewTraining
       displayName: Crew Training
       description: The watch standards that make a crew of traders hold a ship together
@@ -373,7 +373,7 @@ skill-base:
       gridX: 29.0
       gridY: 1.0
 
-  - skill: &skillShipDamageControl
+  - skill:
       uniqueId: ShipDamageControl
       displayName: Damage Control
       description: The repair parties that weld a ship closed while it is still shooting
@@ -388,7 +388,7 @@ skill-base:
       gridX: 30.0
       gridY: 1.0
 
-  - skill: &skillShipSparesLockers
+  - skill:
       uniqueId: ShipSparesLockers
       displayName: Spares Lockers
       description: The gaskets, boards and feeder spares a repair party reaches for

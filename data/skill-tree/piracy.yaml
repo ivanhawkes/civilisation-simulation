@@ -24,7 +24,7 @@
 #                      trade and service trees running on beside it.
 skill-base:
 
-  - skill: &skillPirateRaiderHulls
+  - skill:
       uniqueId: PirateRaiderHulls
       displayName: Raider Hulls
       description: The fast hull and the drive that runs a trader down
@@ -37,7 +37,7 @@ skill-base:
       gridX: 0.0
       gridY: -2.0
 
-  - skill: &skillPirateBoardingParties
+  - skill:
       uniqueId: PirateBoardingParties
       displayName: Boarding Parties
       description: The grapple, the cutters and the crew that comes over the rail
@@ -52,7 +52,7 @@ skill-base:
       gridX: 1.0
       gridY: -2.0
 
-  - skill: &skillPirateRansomExchange
+  - skill:
       uniqueId: PirateRansomExchange
       displayName: Ransom Exchange
       description: The broker, the terms and the drop that turns a prize into credits
@@ -67,7 +67,7 @@ skill-base:
       gridX: 2.0
       gridY: -2.0
 
-  - skill: &skillPirateSafeHarbours
+  - skill:
       uniqueId: PirateSafeHarbours
       displayName: Safe Harbours
       description: The anchorages, the depots and the fence that take a cargo ashore

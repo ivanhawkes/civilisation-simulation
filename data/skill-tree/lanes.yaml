@@ -20,7 +20,7 @@
 #   gridX, gridY       The row at gridY 2.0, beside the yards and the survey tree.
 skill-base:
 
-  - skill: &skillLaneConvoy
+  - skill:
       uniqueId: LaneConvoy
       displayName: Convoy System
       description: The sailing schedule and the assembly that gathers a lane's tonnage
@@ -33,7 +33,7 @@ skill-base:
       gridX: 5.0
       gridY: 2.0
 
-  - skill: &skillLaneEscortWing
+  - skill:
       uniqueId: LaneEscortWing
       displayName: Escort Wing
       description: The hulls that fly with the convoy and answer when the mast calls
@@ -48,7 +48,7 @@ skill-base:
       gridX: 6.0
       gridY: 2.0
 
-  - skill: &skillLaneRouteWard
+  - skill:
       uniqueId: LaneRouteWard
       displayName: Route Ward
       description: The stations that hold the jump points a lane depends on
@@ -63,7 +63,7 @@ skill-base:
       gridX: 7.0
       gridY: 2.0
 
-  - skill: &skillLaneWardenPatrol
+  - skill:
       uniqueId: LaneWardenPatrol
       displayName: Warden Patrol
       description: The standing patrol that clears a lane and keeps it clear

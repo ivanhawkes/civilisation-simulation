@@ -23,9 +23,7 @@
 item-base:
 
   # Chemicals
-  - item: &itemSodiumHydroxide
-      <<: *categoryChemicals
-      <<: *ironAge
+  - item:
       uniqueId: SodiumHydroxide
       categoryId: Chemicals
       ageId: IronAge
@@ -37,9 +35,7 @@ item-base:
       density: 2.13
       packFactor: 0.54
 
-  - item: &itemNitrogen
-      <<: *categoryChemicals
-      <<: *industrialAge
+  - item:
       uniqueId: Nitrogen
       categoryId: Chemicals
       ageId: IndustrialAge
@@ -51,9 +47,7 @@ item-base:
       density: 0.808
       packFactor: 0.9
 
-  - item: &itemPhosphorus
-      <<: *categoryChemicals
-      <<: *industrialAge
+  - item:
       uniqueId: Phosphorus
       categoryId: Chemicals
       ageId: IndustrialAge
@@ -65,9 +59,7 @@ item-base:
       density: 1.82
       packFactor: 0.85
 
-  - item: &itemSulfur
-      <<: *categoryChemicals
-      <<: *industrialAge
+  - item:
       uniqueId: Sulfur
       categoryId: Chemicals
       ageId: IndustrialAge
@@ -79,9 +71,7 @@ item-base:
       density: 2.07
       packFactor: 0.63
 
-  - item: &itemSulfuricAcid
-      <<: *categoryChemicals
-      <<: *industrialAge
+  - item:
       uniqueId: SulfuricAcid
       categoryId: Chemicals
       ageId: IndustrialAge
@@ -95,9 +85,7 @@ item-base:
 
   # Antimony is a metalloid traded by mass in ingots and shot, like the metals,
   # not a chemical bought by volume. The 2025 export restrictions doubled it.
-  - item: &itemAntimony
-      <<: *categoryChemicals
-      <<: *industrialAge
+  - item:
       uniqueId: Antimony
       categoryId: Chemicals
       ageId: IndustrialAge
@@ -109,9 +97,7 @@ item-base:
       density: 6.68
       packFactor: 0.75
 
-  - item: &itemChlorine
-      <<: *categoryChemicals
-      <<: *industrialAge
+  - item:
       uniqueId: Chlorine
       categoryId: Chemicals
       ageId: IndustrialAge
@@ -123,9 +109,7 @@ item-base:
       density: 1.56
       packFactor: 0.9
 
-  - item: &itemAmmonia
-      <<: *categoryChemicals
-      <<: *industrialAge
+  - item:
       uniqueId: Ammonia
       categoryId: Chemicals
       ageId: IndustrialAge
@@ -137,9 +121,7 @@ item-base:
       density: 0.682
       packFactor: 0.9
 
-  - item: &itemEthylene
-      <<: *categoryChemicals
-      <<: *industrialAge
+  - item:
       uniqueId: Ethylene
       categoryId: Chemicals
       ageId: IndustrialAge
@@ -151,9 +133,7 @@ item-base:
       density: 0.567
       packFactor: 0.9
 
-  - item: &itemNeodymium
-      <<: *categoryChemicals
-      <<: *postIndustrialAge
+  - item:
       uniqueId: Neodymium
       categoryId: Chemicals
       ageId: Post-industrialAge
@@ -170,9 +150,7 @@ item-base:
   # 10 micrometre multilayer foil, which is what transfers as a flexible sheet.
   # The price is the 2025 figure for nanoplatelet and CVD film grades, which comes
   # out near 250 credits a kilogram once the film's own mass is counted.
-  - item: &itemGraphene
-      <<: *categoryChemicals
-      <<: *informationAge
+  - item:
       uniqueId: Graphene
       categoryId: Chemicals
       ageId: InformationAge

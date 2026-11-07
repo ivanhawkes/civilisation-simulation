@@ -56,11 +56,12 @@ process.
 - A C++20 compiler. The development shell pins LLVM 21 (`devenv.nix`).
 - mikefarah/yq v4: `data/build.sh` merges the source YAML with it, and the test suite
   reads the generated documents. The merge is tested with **v4.54.1**, the version the
-  development shell pins: v4.54.2 scopes YAML anchors to a single document, which the
-  shared anchors between the item files do not survive, and the data build fails. CMake
-  warns when the `yq` on `PATH` is not the tested version. A missing `yq` with the tests
-  enabled is a fatal configure error, rather than a suite that silently runs nothing:
-  build the core without the tests with `-DBUILD_TESTING=OFF`.
+  development shell pins. The source files refer to each other by `uniqueId`, so no
+  anchor has to survive the trip from one file to the next and any yq v4 builds the data;
+  CMake warns when the `yq` on `PATH` is not the tested version, which is the version the
+  merge is known to do the job with. A missing `yq` with the tests enabled is a fatal
+  configure error, rather than a suite that silently runs nothing: build the core without
+  the tests with `-DBUILD_TESTING=OFF`.
 - Git and network access at configure time: CMake fetches yaml-cpp 0.9.0 and FTXUI
   7.0.3.
 
@@ -218,10 +219,11 @@ vector does not duplicate entries, and a failed load leaves the container empty.
 
 ## Processing the YAML
 
-The YAML is edited as individual files with relative links and stored in **/data**. This
-is to keep them manageable and the ideas separate from each other during development. I
-am not aware of a way to make **yq** honour those links as separate files, so they are
-all combined into monolithic files before being used in the simulation.
+The YAML is edited as individual files that refer to each other by `uniqueId` and are
+stored in **/data**: an item names the category and the age it belongs to, and a
+game-mode file names the goods and the nodes it plays with. The split keeps the files
+manageable and the ideas separate from each other during development, and the merge
+resolves the references into monolithic documents before the simulation reads them.
 
 From the **/data** directory:
 
@@ -243,18 +245,20 @@ not committed:
 | `ages.yaml` | The ages on their own. |
 | `categories.yaml` | The categories on their own. |
 
-Every input file is a complete YAML document with a base key (`ages-base`,
-`categories-base`, `item-base`, `skill-base`) that holds the anchors used by the
-relative links. The merge explodes the links and drops the base keys, so every key in a
-generated file appears exactly once and the output is a plain document, with no
-`aliases` and no comments, ready for the loader.
+Every input file is a complete YAML document that **yq** loads on its own: the item
+definitions live under `item-base`, repeated in every item file, the nodes of the tree
+under `skill-base`, repeated in every file of the skill tree, and the ages and the
+categories under `ages` and `categories`. The merge reads the two base keys as a lookup
+keyed on `uniqueId`, selects from it and drops them, so every key in a generated file
+appears exactly once and the output is a plain document, with no anchors, no aliases and
+no cross-file references left in it, ready for the loader.
 
 The inputs are read in this order:
 
 | Source | Contents |
 | --- | --- |
 | `base/ages.yaml` | The ages. |
-| `base/categories.yaml` | The categories. |
+| `trade-items/categories.yaml` | The categories. |
 | `trade-items/chemicals.yaml` | Chemicals, fuels, medicines, pharmaceuticals, plastics, dyes, fertilisers, pesticides, drugs, explosives, paints, adhesives, solvents, lubricants, industrial gases, hybrid materials, nuclear materials. |
 | `trade-items/metals.yaml` | Metals and metal goods: iron, copper, bronze, tin, lead, zinc, aluminium, titanium, nickel, chromium, tungsten, cobalt, silver, gold, platinum, machinery, tools, weapons, jewellery, structural materials. |
 | `trade-items/minerals.yaml` | Coal, crude oil, sand, gravel, limestone, iron ore, copper ore, bauxite, gypsum, salt, phosphorus, potassium, aggregates. |
@@ -271,53 +275,59 @@ The inputs are read in this order:
 | `skill-tree/law.yaml` | The warrant, the pardon, the bench, the standing. |
 | `skill-tree/trade.yaml` | Docking licences, cargo insurance, the fence. |
 | `skill-tree/services.yaml` | Public medicine and the education system. |
-| `game-mode/full.yaml` | The full game mode, built from the anchors above. |
+| `game-mode/full.yaml` | The full game mode: the item and node ids selected from the definitions above. |
 | `game-mode/simple.yaml` | The small subset of items used for quick matches and testing. |
 
-The order matters: the ages and categories are read first because the item files link to
-their anchors, and the game-mode files last because they link to the item and skill
-anchors defined by everything before them.
+The order matters for the two lists the merge concatenates: `base/ages.yaml` fixes the
+age order and `trade-items/categories.yaml` the category order. Each game-mode file
+lists its own goods, so the sections of the file group the items of the document it
+generates.
 
-The `*-base` keys - `ages-base`, `categories-base`, `item-base` and `skill-base` -
-exist only to define the anchors used by the relative links, and `item-base` is repeated
-in every item file, `skill-base` in every file of the skill tree. `build.sh` explodes the
-links and drops them, so every key in a generated file appears exactly once, and each
-item carries the fields inherited from its category and age.
+The `item-base` and `skill-base` keys hold the definitions, and they are the only keys
+the merge reads as a lookup rather than as a list. Ages and categories have no base key:
+nothing is inherited from them any more, so their uniqueId and displayName are written
+once, in the list the game reads.
 
-`build.sh` concatenates the files into one stream and `yq ea` walks it document by
-document, so an item file's `*categoryChemicals` and `*ironAge` resolve against the
-anchors defined in the category and age files that precede them. That is yq behaviour
-across documents, and it is version dependent: v4.54.1 resolves them, v4.54.2 enforces
-the spec's per-document anchor scope and the merge fails. The development shell and CI
-both pin v4.54.1, CMake warns on any other version, and `DataTests` asserts the scale
-of the merged documents - ages, categories, items, skills - so a merge that quietly
-truncates the game fails the suite instead of shipping a short one.
+`build.sh` concatenates the definition files into one stream and `yq ea` folds that
+stream into the lookup: the ages, the categories, and `uniqueId` to definition maps for
+the items and the skills. Nothing crosses a file boundary as an anchor, so a yq that
+scopes anchors to one document - v4.54.2 does exactly that - builds the data as well as
+v4.54.1 does: the pin in the development shell, in CI and in the CMake warning is a
+tested version, not a requirement. `DataTests` asserts the scale of the merged documents
+- ages, categories, items, skills - so a merge that quietly truncates the game fails the
+suite instead of shipping a short one.
 
-Each item file writes two links beside the anchors it merges, `categoryId` and `ageId`.
-The merge flattens the anchors, so the links arrive in the generated document as ordinary
-fields, and they are the two dials the economy has: `ageId` bounds the goods a world can
-produce, `categoryId` weights the goods a world wants. A good with no link is in every
-deck and wanted at the ordinary rate, so an item file that forgets the lines costs the
-model a gate without failing a load. `DataTests` asserts that every item of the full game
-carries both links and that the ids name a loaded age and a loaded category.
+Each item writes two references, `categoryId` and `ageId`, and both are plain text: the
+`uniqueId` of a category in `trade-items/categories.yaml` and the `uniqueId` of an age in
+`base/ages.yaml`. They are the two dials the economy has: `ageId` bounds the goods a
+world can produce, `categoryId` weights the goods a world wants. A good with no reference
+is in every deck and wanted at the ordinary rate, so an item file that forgets the lines
+costs the model a gate without failing a load. `DataTests` asserts that every item of the
+full game carries both references and that the ids name a loaded age and a loaded
+category.
 
-The full item list in `game-mode/full.yaml` is a selection of the anchors defined in the
-`trade-items/*` files. After adding, removing or renaming an item, add its `- item:`
-reference to `game-mode/full.yaml` (and to `game-mode/simple.yaml` if the item belongs
-in the small game), then run `./build.sh` from the **/data** directory. The same is true
-of the `- skill:` references of the skill tree: the anchors live in the `skill-tree/*`
-files, the list lives in the two `game-mode/*` files, and every node of the tree is in
-both game modes.
+The full item list in `game-mode/full.yaml` is a selection of the items defined in the
+`trade-items/*` files, by id: `- itemId: Gold`. After adding, removing or renaming an
+item, add its `- itemId:` reference to `game-mode/full.yaml` (and to
+`game-mode/simple.yaml` if the item belongs in the small game), then run `./build.sh`
+from the **/data** directory. The same is true of the `- skillId:` references of the skill
+tree: the definitions live in the `skill-tree/*` files, the list lives in the two
+`game-mode/*` files, and every node of the tree is in both game modes.
+
+A reference with no definition behind it is the failure of a list typed by hand, and yq
+answers it with a null that the loader reads as an entry with no fields. `build.sh`
+compares the ids of a game-mode file with the ids of the definitions before it merges,
+and stops with the names it cannot resolve; the same check catches two definitions that
+share a `uniqueId`, which the lookup would answer with the one it read last.
 
 `universe/solar-system-names.yaml` holds the name pools for the generated worlds. It is
 UTF-8, it is loaded by `Core/Universe.h`, and it is not part of the merge: `build.sh`
 does not read it.
 
-The skill tree is a set of anchors like the items: the eleven files of `skill-tree/*`
-define the nodes and their anchors - the crafts, the ages, the ship, the yards, the
-lanes, the survey, the habitats, the pirates, the law, the trade services and the public
-services - and the `game-mode/*` files select from them. The next section is about the
-tree.
+The skill tree is a set of definitions like the items: the eleven files of `skill-tree/*`
+define the nodes - the crafts, the ages, the ship, the yards, the lanes, the survey, the
+habitats, the pirates, the law, the trade services and the public services - and the
+`game-mode/*` files select them by id. The next section is about the tree.
 
 ### The skill tree
 
@@ -476,7 +486,8 @@ are per kilogram rather than the per-troy-ounce quote the market uses, so gold i
 ## Continuous integration
 
 `.github/workflows/ci.yml` configures, builds, runs `ctest` and checks formatting, on
-the pinned yq v4.54.1. A second job configures with the tests enabled and `yq` absent,
+the pinned yq v4.54.1, the version the data merge is tested with. A second job
+configures with the tests enabled and `yq` absent,
 and fails if that configure succeeds: a suite that quietly disappears is the bug that
 job guards.
 

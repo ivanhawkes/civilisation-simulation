@@ -20,7 +20,7 @@
 #                      lane and survey trees running on beside it.
 skill-base:
 
-  - skill: &skillYardDrydock
+  - skill:
       uniqueId: YardDrydock
       displayName: Dry Dock
       description: The dock, the caisson and the lifts that put a hull in the yard
@@ -33,7 +33,7 @@ skill-base:
       gridX: 0.0
       gridY: 2.0
 
-  - skill: &skillYardOutfitting
+  - skill:
       uniqueId: YardOutfitting
       displayName: Outfitting Lines
       description: The lines that put the screens, guns, drive and mast onto a hull
@@ -48,7 +48,7 @@ skill-base:
       gridX: 1.0
       gridY: 2.0
 
-  - skill: &skillYardModularHulls
+  - skill:
       uniqueId: YardModularHulls
       displayName: Modular Hull Production
       description: Plate cut to a drawing and snapped together, so a hull is a product
@@ -65,7 +65,7 @@ skill-base:
       gridX: 2.0
       gridY: 2.0
 
-  - skill: &skillYardRefitDocks
+  - skill:
       uniqueId: YardRefitDocks
       displayName: Refit Docks
       description: The berths that take a working ship off a lane and put it back on
