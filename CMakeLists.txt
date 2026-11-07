@@ -13,6 +13,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Help Intellisense by exporting compile commands
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Keep the dependency version aligned with Scripts/FetchYamlCpp.sh.
 set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -25,6 +28,13 @@ FetchContent_Declare(
     GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(yaml-cpp)
+
+FetchContent_Declare(
+  ftxui
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/FTXUI.git
+  GIT_TAG v7.0.3
+)
+FetchContent_MakeAvailable(ftxui)
 
 set(CIVSIM_CORE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Source/CivSimCore")
 
@@ -43,8 +53,6 @@ endmacro()
 add_library(CivSimCore STATIC
     "${CIVSIM_CORE_DIR}/Private/Core/SimulationConfig.cpp"
     "${CIVSIM_CORE_DIR}/Public/Core/ProgressionManager.h"
-    "${CIVSIM_CORE_DIR}/Private/Tui/CivSimTui.cpp"
-    "${CIVSIM_CORE_DIR}/Public/Tui/CivSimTui.h"
 )
 
 target_include_directories(CivSimCore
@@ -62,10 +70,12 @@ apply_project_compiler_flags(CivSimCore)
 
 # ─── TUI Executable Definition ───
 add_executable(CivSimCoreTui
-    "${CMAKE_CURRENT_SOURCE_DIR}/Source/CivSimCoreTui/Main.cpp"
+    "${CIVSIM_CORE_DIR}/Private/Tui/CivSimTui.cpp"
+    "${CIVSIM_CORE_DIR}/Public/Tui/CivSimTui.h"
 )
 
-target_link_libraries(CivSimCoreTui PRIVATE CivSimCore)
+target_link_libraries(CivSimCoreTui 
+    PRIVATE CivSimCore ftxui::screen ftxui::component ftxui::dom)
 
 apply_project_compiler_flags(CivSimCoreTui)
 

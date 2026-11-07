@@ -22,3 +22,6 @@
 
 # Devenv
 .devenv
+
+# Clangd
+.cache/
