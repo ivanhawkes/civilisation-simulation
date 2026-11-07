@@ -52,7 +52,7 @@ endmacro()
 # ─── Core Library Definition ───
 add_library(CivSimCore STATIC
     "${CIVSIM_CORE_DIR}/Private/Core/SimulationConfig.cpp"
-    "${CIVSIM_CORE_DIR}/Public/Core/ProgressionManager.h"
+    "${CIVSIM_CORE_DIR}/Private/Core/ProgressionManager.cpp"
 )
 
 target_include_directories(CivSimCore
