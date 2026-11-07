@@ -260,6 +260,14 @@ in the small game), then run `./build.sh` from the **/data** directory.
 UTF-8, it is loaded by `Core/Universe.h`, and it is not part of the merge: `build.sh`
 does not read it.
 
+`skill-tree/skills.yaml` defines 17 skills, each with `maxTiers: 3` and
+`resourceCostPerTier: 1`, so the full game offers 51 tiers to buy. The skills are all
+root nodes with `requires: []` and `exclusiveGroupId: null`: the tree is a set of
+parallel branches, not a hierarchy, and `ProgressionManager::Build` validates that
+shape. `DataTests` asserts every skill is worth at least three tiers, so a merge that
+dropped `maxTiers` - the loader default is one tier, which flattens a branch to a
+single click - fails the suite.
+
 ## Continuous integration
 
 `.github/workflows/ci.yml` configures, builds, runs `ctest` and checks formatting, on

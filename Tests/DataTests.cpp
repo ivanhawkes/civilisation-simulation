@@ -151,7 +151,12 @@ TEST_CASE(nulls_in_the_skill_data_never_arrive_as_the_word_null)
 
 		CHECK(!skill.uniqueId.empty());
 		CHECK(!skill.displayName.empty());
-		CHECK(skill.maxTiers >= 1);
+
+		// The depth is a property of the design, not of the loader: a skill with no
+		// maxTiers defaults to one tier, which flattens every branch into a single
+		// click. A merge that dropped the field would pass the graph checks and leave a
+		// tree with nothing to research, so the depth is asserted here.
+		CHECK(skill.maxTiers >= 3);
 		CHECK(skill.resourceCostPerTier >= 0);
 	}
 }
@@ -168,6 +173,16 @@ TEST_CASE(the_skill_tree_is_a_valid_graph)
 	CHECK(progression.Build(full.skills, errorMessage));
 	CHECK_EQ(progression.GetRegistry().size(), full.skills.size());
 	CHECK_EQ(progression.NodeIds().size(), full.skills.size());
+
+	// Tier capacity across the tree: every skill has to be worth researching, and the
+	// total is what the player spends resources against.
+	int tierCapacity = 0;
+	for (const auto &skill : full.skills)
+	{
+		tierCapacity += progression.GetMaxTiers(skill.uniqueId);
+	}
+
+	CHECK(tierCapacity >= 3 * static_cast<int>(full.skills.size()));
 }
 
 TEST_CASE(the_simple_game_mode_is_a_smaller_subset_of_the_full_one)

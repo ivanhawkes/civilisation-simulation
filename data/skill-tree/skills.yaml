@@ -6,6 +6,7 @@ skill-base:
       description: Extracts resources from the environment
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -18,6 +19,7 @@ skill-base:
       description: Processes ores into usable metals
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -30,6 +32,7 @@ skill-base:
       description: Gathers wood from the environment
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -42,6 +45,7 @@ skill-base:
       description: Gathers herbs from the environment
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -54,6 +58,7 @@ skill-base:
       description: Cultivates crops from the environment
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -66,6 +71,7 @@ skill-base:
       description: Raises animals for food and animal products
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -78,6 +84,7 @@ skill-base:
       description: Processes animals into meat, hides, and furs
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -90,6 +97,7 @@ skill-base:
       description: Mills, bakes, brews, and ferments food
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -102,6 +110,7 @@ skill-base:
       description: Fires clay and minerals into ceramics, glass, lime, and cement
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -114,6 +123,7 @@ skill-base:
       description: Processes raw materials into industrial and agricultural chemicals
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -126,6 +136,7 @@ skill-base:
       description: Alloys, casts, forges, and fabricates metal goods
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -138,6 +149,7 @@ skill-base:
       description: Produces writing materials, ink, books, and scrolls
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -150,6 +162,7 @@ skill-base:
       description: Produces medicines through chemical and biological processes
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -162,6 +175,7 @@ skill-base:
       description: Develops and teaches scientific and technical knowledge
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -174,6 +188,7 @@ skill-base:
       description: Spins and weaves fibers into textiles
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -186,6 +201,7 @@ skill-base:
       description: Converts chemical feedstocks into polymer materials
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
@@ -198,6 +214,7 @@ skill-base:
       description: Refines energy resources into usable fuels
       nodeType: Skill
       requires: []
+      maxTiers: 3
       resourceCostPerTier: 1
       targetEffectID: null
       exclusiveGroupId: null
