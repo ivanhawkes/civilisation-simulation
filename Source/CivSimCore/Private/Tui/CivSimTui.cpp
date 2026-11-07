@@ -1,9 +1,51 @@
 #include <Tui/CivSimTui.h>
 #include <ftxui/component/component.hpp>
 #include <ftxui/dom/elements.hpp>
+#include <ftxui/dom/flexbox_config.hpp>
 
 
 using namespace ftxui;
+
+
+Element wrapLogText(const std::string &value)
+{
+	Elements lines;
+	FlexboxConfig config;
+	config.SetGap(0, 0);
+
+	std::size_t lineStart = 0;
+	while (true)
+	{
+		const auto lineEnd = value.find('\n', lineStart);
+		const std::string_view line(
+		    value.data() + lineStart,
+		    (lineEnd == std::string::npos ? value.size() : lineEnd) - lineStart);
+		Elements characters;
+		for (std::size_t offset = 0; offset < line.size();)
+		{
+			const auto firstByte = static_cast<unsigned char>(line[offset]);
+			std::size_t characterLength = 1;
+			if ((firstByte & 0xE0) == 0xC0)
+				characterLength = 2;
+			else if ((firstByte & 0xF0) == 0xE0)
+				characterLength = 3;
+			else if ((firstByte & 0xF8) == 0xF0)
+				characterLength = 4;
+			characterLength = std::min(characterLength, line.size() - offset);
+			characters.push_back(text(line.substr(offset, characterLength)));
+			offset += characterLength;
+		}
+		if (characters.empty())
+			characters.push_back(text(""));
+		lines.push_back(flexbox(std::move(characters), config));
+
+		if (lineEnd == std::string::npos)
+			break;
+		lineStart = lineEnd + 1;
+	}
+
+	return vbox(std::move(lines));
+}
 
 
 // --- CATPPUCCIN MOCHA PALETTE DEFINITIONS ---
@@ -124,6 +166,12 @@ void CivSimTui::Run()
 	    inputBox,
 	    [&](Event event)
 	    {
+		    if (event == Event::CtrlD)
+		    {
+			    inputData = "quit";
+			    event = Event::Return;
+		    }
+
 		    // Tab Completion
 		    if (event == Event::Tab)
 		    {
@@ -209,18 +257,18 @@ void CivSimTui::Run()
 			    if (i == log_focus_index)
 			    {
 				    // Apply focus tracker attribute to the very last line item
-				    logElements.push_back(vbox({paragraph(historyLog[i])}) | focus);
+				    logElements.push_back(wrapLogText(historyLog[i]) | focus);
 			    }
 			    else
 			    {
-				    logElements.push_back(vbox({paragraph(historyLog[i])}));
+				    logElements.push_back(wrapLogText(historyLog[i]));
 			    }
 		    }
 
 		    // 2. Left Pane Layout with Dynamic Prompt Colors
 		    auto left_pane =
 		        vbox(
-		            {vbox(std::move(logElements)) | frame | flex | border | Mocha::Text,
+		            {vbox(std::move(logElements)) | yframe | flex | border | Mocha::Text,
 		             hbox({
 		                 // Choose the prompt color dynamically based on state
 		                 text(last_command_failed ? " ✘ mocha-repl ❯ " : " ✔ mocha-repl ❯ ") | bold |
