@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  core:
+    name: build, test, format
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The local shell pins LLVM 21 through devenv. The runner uses its own clang:
+      # the core is plain C++20 with no compiler-specific code, and clang-format in
+      # this job is the same binary family that formats, so the check is consistent.
+      - name: Install the toolchain
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y clang cmake ninja-build
+
+      # The data build is mikefarah/yq v4 syntax. apt has no such package, so the
+      # release binary is used, and the version is printed to make a swap obvious.
+      - name: Install mikefarah/yq v4
+        run: |
+          set -euo pipefail
+          sudo curl -fsSL -o /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      # Formatting is a build step, not a review preference: every commit has to pass
+      # it, so review diffs stay about behaviour.
+      - name: Format check
+        run: |
+          set -euo pipefail
+          find Source Tests -name '*.h' -o -name '*.hpp' -o -name '*.cpp' -print | sort \
+            | xargs -r clang-format --dry-run -Werror
+
+  # The test suite reads YAML with yq at build time. Before this was checked, a machine
+  # without yq configured fine, built fine and ran no tests at all.
+  missing-yq-fails-loudly:
+    name: a missing yq fails the test build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the toolchain
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y clang cmake ninja-build
+
+      - name: Configure without yq on PATH
+        run: |
+          set -euo pipefail
+          if command -v yq >/dev/null; then
+            sudo rm -f "$(command -v yq)"
+          fi
+          if cmake -S . -B build-no-yq -G Ninja -DCMAKE_CXX_COMPILER=clang++ \
+               -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON; then
+            echo "configure succeeded, so a machine without yq still loses the test suite"
+            exit 1
+          fi
+
+      - name: The failure names yq and the remedy
+        run: |
+          set -euo pipefail
+          cmake -S . -B build-no-yq -G Ninja -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON 2>&1 | tee configure.log
+          grep -qi 'yq' configure.log
+          grep -qi 'test' configure.log

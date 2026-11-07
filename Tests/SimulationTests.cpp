@@ -1,89 +1,466 @@
-#include "Core/SimulationConfig.h"
-#include <iostream>
+#include "Core/Simulation.h"
+#include "TestFramework.h"
+#include <algorithm>
 #include <string>
 #include <vector>
 
+
 namespace
 {
-// Reports a load failure and asks for the generated documents.
-void ReportFailure(const std::string &FilePath, const std::string &ErrorMessage)
+CivSimCore::Ages MakeAges(std::size_t count)
 {
-	std::cerr << "Failed to load '" << FilePath
-	          << "'. Is the generated YAML present? Build the CivSimData target "
-	             "(cmake --build <build-dir>) to create data/core-config.\n"
-	          << "Error: " << ErrorMessage << '\n';
-}
+	CivSimCore::Ages ages;
 
-// Fails when a configuration loaded no entries, which would hide a merge problem.
-bool CheckNotEmpty(const std::string &Label, std::size_t Count)
-{
-	if (Count == 0)
+	for (std::size_t index = 0; index < count; ++index)
 	{
-		std::cerr << "No " << Label << " entries were loaded.\n";
-		return false;
+		CivSimCore::AgeNode age;
+		age.uniqueId = "Age" + std::to_string(index);
+		age.displayName = "Age " + std::to_string(index);
+		ages.push_back(age);
 	}
 
-	std::cout << "Number of " << Label << ": " << Count << " entries\n";
+	return ages;
+}
 
-	return true;
+CivSimCore::Categories MakeCategories(std::size_t count)
+{
+	CivSimCore::Categories categories;
+
+	for (std::size_t index = 0; index < count; ++index)
+	{
+		CivSimCore::CategoryNode category;
+		category.uniqueId = "Category" + std::to_string(index);
+		category.displayName = category.uniqueId;
+		categories.push_back(category);
+	}
+
+	return categories;
+}
+
+CivSimCore::Items MakeItems(std::size_t count)
+{
+	CivSimCore::Items items;
+
+	for (std::size_t index = 0; index < count; ++index)
+	{
+		CivSimCore::ItemNode item;
+		item.uniqueId = "Good" + std::to_string(index);
+		item.displayName = item.uniqueId;
+		item.basePrice = std::to_string(10.0 * static_cast<double>(index + 1));
+		items.push_back(item);
+	}
+
+	return items;
+}
+
+CivSimCore::UniverseNamePools MakePools(std::size_t namesPerPool)
+{
+	CivSimCore::UniverseNamePools pools;
+
+	std::vector<std::string> latin;
+	std::vector<std::string> greek;
+
+	for (std::size_t index = 0; index < namesPerPool; ++index)
+	{
+		latin.push_back("Latin" + std::to_string(index));
+		greek.push_back("Greek" + std::to_string(index));
+	}
+
+	pools.AddPool("latin", latin);
+	pools.AddPool("greek", greek);
+
+	return pools;
+}
+
+CivSimCore::GenerateOptions MakeOptions(unsigned count, unsigned seed)
+{
+	CivSimCore::GenerateOptions options;
+	options.civilisationCount = count;
+	options.seed = seed;
+
+	return options;
+}
+
+struct Scenario
+{
+	CivSimCore::Ages ages = MakeAges(4);
+	CivSimCore::Categories categories = MakeCategories(6);
+	CivSimCore::Items items = MakeItems(12);
+	CivSimCore::UniverseNamePools pools = MakePools(20);
+};
+
+std::string Dump(const CivSimCore::Civilisation &civ)
+{
+	std::string text = civ.id + "|" + civ.name + "|" + civ.pool + "|" + civ.ageId + "|" +
+	                   std::to_string(civ.population) + "|" + std::to_string(civ.treasury);
+
+	for (const auto &entry : civ.production)
+	{
+		text += "|p" + entry.first + std::to_string(entry.second);
+	}
+
+	for (const auto &entry : civ.demand)
+	{
+		text += "|d" + entry.first + std::to_string(entry.second);
+	}
+
+	for (const auto &specialty : civ.specialties)
+	{
+		text += "|s" + specialty;
+	}
+
+	return text;
 }
 } // namespace
 
-int main(int argc, char **argv)
+
+TEST_CASE(generation_checks_its_inputs)
 {
-	if (argc != 4)
-	{
-		std::cerr << "Usage: " << argv[0]
-		          << " <data/core-config/ages.yaml> <data/core-config/categories.yaml> "
-		             "<data/core-config/full.yaml>\n";
-
-		return 2;
-	}
-
-	const std::string agesConfigFilePath{argv[1]};
-	const std::string categoriesConfigFilePath{argv[2]};
-	const std::string gameModeFullFilePath{argv[3]};
-
+	Scenario scenario;
 	std::string errorMessage;
-	bool passed = true;
+	CivSimCore::Simulation simulation;
 
-	CivSimCore::Ages ages;
-	if (!CivSimCore::LoadConfigAges(agesConfigFilePath, ages, errorMessage))
+	CHECK(!simulation.IsGenerated());
+	CHECK_EQ(simulation.GetTick(), 0LL);
+
+	CHECK(!simulation.Generate(
+	    CivSimCore::Ages{}, scenario.categories, scenario.items, scenario.pools, MakeOptions(3, 1),
+	    errorMessage));
+	CHECK_CONTAINS(errorMessage, "at least one age");
+
+	CHECK(!simulation.Generate(
+	    scenario.ages, CivSimCore::Categories{}, scenario.items, scenario.pools, MakeOptions(3, 1),
+	    errorMessage));
+	CHECK_CONTAINS(errorMessage, "at least one category");
+
+	CHECK(!simulation.Generate(
+	    scenario.ages, scenario.categories, CivSimCore::Items{}, scenario.pools, MakeOptions(3, 1),
+	    errorMessage));
+	CHECK_CONTAINS(errorMessage, "at least one item");
+
+	CivSimCore::UniverseNamePools noPools;
+	CHECK(!simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, noPools, MakeOptions(3, 1), errorMessage));
+	CHECK_CONTAINS(errorMessage, "name pool");
+
+	CHECK(!simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(0, 1),
+	    errorMessage));
+	CHECK_CONTAINS(errorMessage, "at least 1");
+
+	CivSimCore::GenerateOptions badBounds = MakeOptions(3, 1);
+	badBounds.minSpecialties = 4;
+	badBounds.maxSpecialties = 2;
+	CHECK(!simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, badBounds, errorMessage));
+	CHECK_CONTAINS(errorMessage, "minSpecialties");
+
+	CivSimCore::GenerateOptions tooMany = MakeOptions(3, 1);
+	tooMany.maxSpecialties = 99;
+	CHECK(!simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, tooMany, errorMessage));
+	CHECK_CONTAINS(errorMessage, "categories");
+
+	CHECK(!simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(1000, 1),
+	    errorMessage));
+	CHECK_CONTAINS(errorMessage, "not enough");
+
+	CHECK(!simulation.IsGenerated());
+}
+
+TEST_CASE(generation_is_deterministic)
+{
+	Scenario scenario;
+	std::string errorMessage;
+
+	CivSimCore::Simulation first;
+	CivSimCore::Simulation second;
+
+	CHECK(first.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(6, 7),
+	    errorMessage));
+	CHECK(second.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(6, 7),
+	    errorMessage));
+
+	CHECK_EQ(first.GetCivilisations().size(), std::size_t(6));
+	CHECK_EQ(second.GetCivilisations().size(), std::size_t(6));
+
+	for (std::size_t index = 0; index < first.GetCivilisations().size(); ++index)
 	{
-		ReportFailure(agesConfigFilePath, errorMessage);
-
-		return 1;
+		CHECK_EQ(Dump(first.GetCivilisations()[index]), Dump(second.GetCivilisations()[index]));
 	}
 
-	passed &= CheckNotEmpty("ages", ages.size());
+	// A different seed is a different universe.
+	CivSimCore::Simulation third;
+	CHECK(third.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(6, 8),
+	    errorMessage));
 
-	CivSimCore::Categories categories;
-	if (!CivSimCore::LoadConfigCategories(categoriesConfigFilePath, categories, errorMessage))
+	bool identical = true;
+	for (std::size_t index = 0; index < first.GetCivilisations().size(); ++index)
 	{
-		ReportFailure(categoriesConfigFilePath, errorMessage);
-
-		return 1;
+		identical =
+		    identical && Dump(first.GetCivilisations()[index]) == Dump(third.GetCivilisations()[index]);
 	}
 
-	passed &= CheckNotEmpty("categories", categories.size());
+	CHECK(!identical);
+}
 
-	CivSimCore::GameModeNode gameModeConfig;
-	if (!CivSimCore::LoadConfigGameMode(gameModeFullFilePath, gameModeConfig, errorMessage))
+TEST_CASE(names_are_unique_and_come_from_the_pools)
+{
+	Scenario scenario;
+	std::string errorMessage;
+	CivSimCore::Simulation simulation;
+
+	CHECK(simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(24, 3),
+	    errorMessage));
+
+	std::vector<std::string> seen;
+	for (const auto &civ : simulation.GetCivilisations())
 	{
-		ReportFailure(gameModeFullFilePath, errorMessage);
+		CHECK(std::find(seen.begin(), seen.end(), civ.name) == seen.end());
+		seen.push_back(civ.name);
 
-		return 1;
+		CHECK(civ.pool == "latin" || civ.pool == "greek");
+		CHECK(civ.name.rfind("Latin", 0) == 0 || civ.name.rfind("Greek", 0) == 0);
+		CHECK(civ.id.rfind("Civ-", 0) == 0);
+		CHECK(!civ.ageId.empty());
+		CHECK(!civ.specialties.empty());
+		CHECK(civ.specialties.size() <= 4);
+		CHECK(civ.population > 0.0);
+		CHECK(!civ.production.empty());
+		CHECK_EQ(civ.demand.size(), std::size_t(12));
 	}
 
-	passed &= CheckNotEmpty("items", gameModeConfig.items.size());
-	passed &= CheckNotEmpty("skills", gameModeConfig.skills.size());
+	// Ids are sequential and Find accepts both forms, case insensitively.
+	CHECK(simulation.FindCivilisation("Civ-01") != nullptr);
+	CHECK(simulation.FindCivilisation("civ-01") != nullptr);
+	CHECK(simulation.FindCivilisation(simulation.GetCivilisations()[3].name) != nullptr);
+	CHECK(simulation.FindCivilisation("Civ-99") == nullptr);
+}
 
-	if (!passed)
+TEST_CASE(scarce_goods_cost_more)
+{
+	Scenario scenario;
+	std::string errorMessage;
+	CivSimCore::Simulation simulation;
+
+	// One world: the goods it makes are in surplus and the goods it cannot make have
+	// no supply at all, so the two groups sit on opposite sides of the base price.
+	CHECK(simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(1, 5),
+	    errorMessage));
+
+	const CivSimCore::Civilisation &civ = simulation.GetCivilisations()[0];
+
+	std::size_t checked = 0;
+	for (const auto &item : simulation.GetItems())
 	{
-		return 1;
+		const double basePrice = CivSimCore::Simulation::BasePrice(item);
+		CHECK(basePrice > 0.0);
+
+		const double price = simulation.GetPrice(item.uniqueId);
+		const double ratio = price / basePrice;
+
+		if (civ.production.find(item.uniqueId) == civ.production.end())
+		{
+			CHECK(ratio > 1.0);
+			++checked;
+		}
+		else
+		{
+			CHECK(ratio < 1.0);
+		}
 	}
 
-	std::cout << "CivSimCore YAML test passed.\n";
+	CHECK(checked > std::size_t(0));
+	CHECK(simulation.GetPriceIndex() > 0.0);
+	CHECK_NEAR(simulation.GetPrice("Nope"), 0.0, 0.0001);
+}
 
-	return 0;
+TEST_CASE(local_prices_move_with_the_local_balance)
+{
+	Scenario scenario;
+	std::string errorMessage;
+	CivSimCore::Simulation simulation;
+
+	CHECK(simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(4, 11),
+	    errorMessage));
+
+	for (const auto &civ : simulation.GetCivilisations())
+	{
+		for (const auto &entry : civ.production)
+		{
+			// A world that makes the good sells it below the market.
+			CHECK(simulation.GetLocalPrice(civ.id, entry.first) < simulation.GetPrice(entry.first));
+		}
+
+		for (const auto &item : simulation.GetItems())
+		{
+			if (civ.production.find(item.uniqueId) == civ.production.end())
+			{
+				// A world that needs the good pays above the market.
+				CHECK(
+				    simulation.GetLocalPrice(civ.id, item.uniqueId) >
+				    simulation.GetPrice(item.uniqueId));
+			}
+		}
+	}
+
+	CHECK_NEAR(simulation.GetLocalPrice("Nope", "Good0"), 0.0, 0.0001);
+}
+
+TEST_CASE(trade_routes_pay_for_themselves)
+{
+	Scenario scenario;
+	std::string errorMessage;
+	CivSimCore::Simulation simulation;
+
+	CHECK(simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(8, 2),
+	    errorMessage));
+
+	const std::vector<CivSimCore::TradeRoute> all = simulation.PlanTrade(100);
+	CHECK(!all.empty());
+
+	for (const auto &route : all)
+	{
+		CHECK(route.profit > 0.0);
+		CHECK(route.quantity > 0.0);
+		CHECK(route.unitBuyPrice > route.unitSellPrice);
+		CHECK(route.freight > 0.0);
+		CHECK(route.sellerId != route.buyerId);
+		CHECK(simulation.FindCivilisation(route.sellerId) != nullptr);
+		CHECK(simulation.FindCivilisation(route.buyerId) != nullptr);
+	}
+
+	// Sorted best first, and the limit is respected.
+	for (std::size_t index = 1; index < all.size(); ++index)
+	{
+		CHECK(all[index - 1].profit >= all[index].profit);
+	}
+
+	CHECK_EQ(simulation.PlanTrade(3).size(), std::size_t(3));
+	CHECK_EQ(simulation.PlanTrade(0).size(), std::size_t(0));
+}
+
+TEST_CASE(ticks_move_production_consumption_and_trade)
+{
+	Scenario scenario;
+	std::string errorMessage;
+	CivSimCore::Simulation simulation;
+
+	CHECK(simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(8, 2),
+	    errorMessage));
+
+	CHECK_EQ(simulation.GetTick(), 0LL);
+	CHECK_EQ(simulation.PlanTrade(5).size(), std::size_t(5));
+
+	CHECK(simulation.AdvanceTick(errorMessage));
+	CHECK_EQ(simulation.GetTick(), 1LL);
+
+	// A world opens with four ticks of stock for the goods it cannot make, so the
+	// first tick is clean and the shortages arrive as the stock runs out.
+	std::size_t shortageCivs = 0;
+	for (const auto &civ : simulation.GetCivilisations())
+	{
+		CHECK_EQ(civ.shortageTicks, 0u);
+		shortageCivs += civ.shortageTicks > 0 ? 1 : 0;
+	}
+	CHECK_EQ(shortageCivs, std::size_t(0));
+
+	for (int index = 0; index < 10; ++index)
+	{
+		CHECK(simulation.AdvanceTick(errorMessage));
+	}
+
+	CHECK_EQ(simulation.GetTick(), 11LL);
+
+	bool anyShortage = false;
+	for (const auto &civ : simulation.GetCivilisations())
+	{
+		if (civ.shortageTicks > 0)
+		{
+			anyShortage = true;
+			CHECK(civ.unmetDemand > 0.0);
+		}
+	}
+	CHECK(anyShortage);
+
+	CHECK_CONTAINS(simulation.StatusLine(), "tick 11");
+	CHECK_CONTAINS(simulation.StatusLine(), "8 worlds");
+	CHECK_CONTAINS(simulation.StatusLine(), "price index");
+}
+
+TEST_CASE(advancing_needs_a_generated_universe)
+{
+	CivSimCore::Simulation simulation;
+	std::string errorMessage;
+
+	CHECK(!simulation.AdvanceTick(errorMessage));
+	CHECK_CONTAINS(errorMessage, "generate the universe");
+
+	CHECK_CONTAINS(simulation.StatusLine(), "no universe");
+	CHECK_CONTAINS(simulation.DescribeCivilisation("Civ-01"), "no civilisation");
+}
+
+TEST_CASE(describing_a_world)
+{
+	Scenario scenario;
+	std::string errorMessage;
+	CivSimCore::Simulation simulation;
+
+	CHECK(simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(3, 4),
+	    errorMessage));
+
+	const CivSimCore::Civilisation &civ = simulation.GetCivilisations()[1];
+	const std::string text = simulation.DescribeCivilisation(civ.id);
+
+	CHECK_CONTAINS(text, civ.id);
+	CHECK_CONTAINS(text, civ.name);
+	CHECK_CONTAINS(text, civ.pool);
+	CHECK_CONTAINS(text, civ.ageId);
+	CHECK_CONTAINS(text, "population");
+	CHECK_CONTAINS(text, "specialties");
+	CHECK_CONTAINS(text, "needs not produced");
+	CHECK_CONTAINS(text, "shortages");
+}
+
+TEST_CASE(base_price_must_be_a_number)
+{
+	CivSimCore::ItemNode item;
+	item.uniqueId = "Odd";
+	item.basePrice = "five pounds";
+	CHECK_NEAR(CivSimCore::Simulation::BasePrice(item), 0.0, 0.0001);
+
+	item.basePrice = "5.6312";
+	CHECK_NEAR(CivSimCore::Simulation::BasePrice(item), 5.6312, 0.0001);
+
+	item.basePrice.clear();
+	CHECK_NEAR(CivSimCore::Simulation::BasePrice(item), 0.0, 0.0001);
+
+	Scenario scenario;
+	std::string errorMessage;
+	CivSimCore::Simulation simulation;
+	CHECK(simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(2, 6),
+	    errorMessage));
+
+	CHECK(simulation.FindItem("Good3") != nullptr);
+	CHECK(simulation.FindItem("Nope") == nullptr);
+	CHECK_NEAR(simulation.GetPrice("Nope"), 0.0, 0.0001);
+	CHECK_NEAR(simulation.GetLocalPrice("Civ-01", "Nope"), 0.0, 0.0001);
+
+	CHECK_CONTAINS(CivSimCore::FormatNumber(12.3456), "12.35");
+}
+
+int main()
+{
+	return civtest::Run("SimulationTests");
 }

@@ -16,11 +16,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Help Intellisense by exporting compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Keep the dependency version aligned with Scripts/FetchYamlCpp.sh.
-set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
-
 FetchContent_Declare(
     yaml-cpp
     GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
@@ -54,14 +49,21 @@ set(CIVSIM_DATA_OUTPUTS
 find_program(YQ_EXECUTABLE NAMES yq)
 find_program(BASH_PROGRAM NAMES bash)
 
-if(NOT YQ_EXECUTABLE)
-    message(WARNING
-        "yq was not found: the generated YAML in data/core-config cannot be built "
-        "and the test suite is disabled. Activate the development shell (direnv allow) "
-        "or install mikefarah/yq v4.")
-elseif(NOT BASH_PROGRAM)
-    message(WARNING "bash was not found: data/build.sh cannot be run.")
-else()
+if(YQ_EXECUTABLE AND NOT BASH_PROGRAM)
+    message(FATAL_ERROR "data/build.sh needs bash, and bash was not found.")
+endif()
+
+if(NOT YQ_EXECUTABLE AND BUILD_TESTING)
+    # A missing yq takes the generated documents and the data test suite with it.
+    # Refuse the configure rather than configure a test suite that runs nothing.
+    message(FATAL_ERROR
+        "yq (mikefarah/yq v4) was not found: the generated YAML in data/core-config cannot "
+        "be built and the data test suite cannot run. Activate the development shell "
+        "(direnv allow) or install mikefarah/yq v4. Build without the tests with "
+        "-DBUILD_TESTING=OFF.")
+endif()
+
+if(YQ_EXECUTABLE)
     execute_process(
         COMMAND "${YQ_EXECUTABLE}" --version
         OUTPUT_VARIABLE YQ_VERSION_STRING
@@ -107,7 +109,9 @@ endmacro()
 # ─── Core Library Definition ───
 add_library(CivSimCore STATIC
     "${CIVSIM_CORE_DIR}/Private/Core/SimulationConfig.cpp"
+    "${CIVSIM_CORE_DIR}/Private/Core/Universe.cpp"
     "${CIVSIM_CORE_DIR}/Private/Core/ProgressionManager.cpp"
+    "${CIVSIM_CORE_DIR}/Private/Core/Simulation.cpp"
 )
 
 target_include_directories(CivSimCore
@@ -135,27 +139,46 @@ target_link_libraries(CivSimCoreTui
 apply_project_compiler_flags(CivSimCoreTui)
 
 # ─── Test Suite Generation ───
-if(BUILD_TESTING AND TARGET CivSimData)
-    add_executable(CivSimCoreTests
-        Tests/SimulationTests.cpp
-    )
+# The unit suites feed the loaders temporary documents they write themselves, so they
+# need no data step. The data suite reads the generated documents and depends on the
+# CivSimData target.
+if(BUILD_TESTING)
+    # Each suite is its own executable, with its own ctest entry.
+    function(civsim_add_test SUITE_NAME)
+        cmake_parse_arguments(PARSE_ARGV 1 TEST "" "" "SOURCES;ARGS")
 
-    target_link_libraries(CivSimCoreTests PRIVATE CivSimCore)
+        add_executable(${SUITE_NAME} ${TEST_SOURCES})
 
-    # Apply configuration to the test binary executable target so GDB can parse its breakpoints!
-    apply_project_compiler_flags(CivSimCoreTests)
+        target_link_libraries(${SUITE_NAME} PRIVATE CivSimCore)
 
-    add_dependencies(CivSimCoreTests CivSimData)
+        # Apply configuration to the test binary executable target so GDB can parse its breakpoints!
+        apply_project_compiler_flags(${SUITE_NAME})
 
-    add_test(
-        NAME CivSimCoreTests
-        COMMAND CivSimCoreTests
-            "${CIVSIM_DATA_OUTPUT_DIR}/ages.yaml"
-            "${CIVSIM_DATA_OUTPUT_DIR}/categories.yaml"
-            "${CIVSIM_DATA_OUTPUT_DIR}/full.yaml"
-    )
+        target_include_directories(${SUITE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/Tests")
 
-    set_tests_properties(CivSimCoreTests PROPERTIES
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-    )
+        add_test(NAME ${SUITE_NAME} COMMAND ${SUITE_NAME} ${TEST_ARGS})
+        set_tests_properties(${SUITE_NAME} PROPERTIES
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        )
+    endfunction()
+
+    civsim_add_test(ConfigTests SOURCES Tests/ConfigTests.cpp)
+    civsim_add_test(UniverseTests SOURCES Tests/UniverseTests.cpp)
+    civsim_add_test(ProgressionTests SOURCES Tests/ProgressionTests.cpp)
+    civsim_add_test(SimulationTests SOURCES Tests/SimulationTests.cpp)
+
+    if(TARGET CivSimData)
+        # The data suite reads the generated documents, the way the game loads them.
+        civsim_add_test(DataTests
+            SOURCES Tests/DataTests.cpp
+            ARGS
+                "${CIVSIM_DATA_OUTPUT_DIR}/ages.yaml"
+                "${CIVSIM_DATA_OUTPUT_DIR}/categories.yaml"
+                "${CIVSIM_DATA_OUTPUT_DIR}/full.yaml"
+                "${CIVSIM_DATA_OUTPUT_DIR}/simple.yaml"
+                "${CIVSIM_DATA_SOURCE_DIR}/universe/solar-system-names.yaml"
+        )
+
+        add_dependencies(DataTests CivSimData)
+    endif()
 endif()

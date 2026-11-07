@@ -1,34 +1,105 @@
 #pragma once
 
+#include "Core/ProgressionManager.h"
+#include "Core/Simulation.h"
+#include "Core/SimulationConfig.h"
+#include "Core/Universe.h"
 #include <atomic>
+#include <chrono>
+#include <fstream>
 #include <ftxui/component/screen_interactive.hpp>
+#include <string>
 #include <thread>
+#include <vector>
 
 
+// Terminal front-end used to exercise the core during development: it loads the
+// generated configuration, generates a universe, advances it and runs trades.
+//
+// The command handling is separate from the rendering, so the behaviour can be used
+// from a script and the front-end stays a thin shell.
 class CivSimTui
 {
   public:
 	CivSimTui();
 
+	// Joins the refresh thread: the thread must never outlive this object, and a
+	// std::thread destroyed while joinable calls std::terminate.
+	~CivSimTui();
+
+	CivSimTui(const CivSimTui &) = delete;
+	CivSimTui &operator=(const CivSimTui &) = delete;
+
 	void Run();
 
+	// Runs one command line and returns the text to append to the log. An empty
+	// result means the log was cleared. Sets quit_requested for quit and exit.
+	std::string Evaluate(const std::string &Line);
+
+	bool IsQuitRequested() const
+	{
+		return quitRequested;
+	}
+
+	// Prompt marker: a tick after a good command, a cross after a failed one.
+	const std::string &PromptMark() const
+	{
+		return promptMark;
+	}
+
+	// Commands for completion and for the sidebar, in the order the help lists them.
+	const std::vector<std::string> &Commands() const
+	{
+		return commands;
+	}
+
   private:
+	std::string CommandHelp();
+	std::string CommandVersion();
+	std::string CommandStatus();
+	std::string CommandLoad(const std::string &Directory);
+	std::string CommandGenerate(const std::string &Argument);
+	std::string CommandList();
+	std::string CommandShow(const std::string &Argument);
+	std::string CommandPrices(const std::string &Argument);
+	std::string CommandPlan(const std::string &Argument);
+	std::string CommandTick(const std::string &Argument);
+	std::string CommandSkills();
+	std::string CommandUpgrade(const std::string &Argument);
+
+	bool LoadConfiguration(const std::string &Directory, std::string &ErrorMessage);
+	static unsigned ParseCount(const std::string &Text, unsigned Fallback, unsigned Maximum);
+
+	void StopRefreshThread();
+
+	// One line per log entry, flushed as it is written: watching the file from tmux
+	// while the UI runs is how a UI bug gets caught, and a crash mid-frame must not
+	// take the transcript with it.
+	static std::ofstream OpenSessionLog();
+	void AppendSessionLog(const std::string &text);
+
+	std::ofstream logFile_;
+
 	std::vector<std::string> commands;
 
-	std::string Eval(const std::string &line, ftxui::ScreenInteractive &screen);
+	CivSimCore::Ages ages;
+	CivSimCore::Categories categories;
+	CivSimCore::GameModeNode gameMode;
+	CivSimCore::UniverseNamePools names;
+	CivSimCore::Simulation simulation;
+	CivSimCore::ProgressionManager progression;
 
-	// Add to your private member variables
-	std::chrono::steady_clock::time_point start_time;
+	std::string dataDirectory{"data/core-config"};
+	std::string universeFile{"data/universe/solar-system-names.yaml"};
+	bool configLoaded{false};
+	bool quitRequested{false};
+	std::string promptMark{" \u2714 "};
 
-	// Allow us to run asynchronously for refreshing the UI and other background tasks.
-	std::thread refresh_thread;
+	std::chrono::steady_clock::time_point startTime;
 
-	// Signal when it is time for the background thread to stop.
-	std::atomic<bool> run_thread{true};
+	// Log line the frame follows: the newest line until the player scrolls back.
+	int logFocusIndex{0};
 
-	// Allow highlighting of the last command based on its success or failure status.
-	bool last_command_failed = false;
-
-	// Add to your private member variables
-	int log_focus_index = 0;
+	std::thread refreshThread;
+	std::atomic<bool> runThread{true};
 };

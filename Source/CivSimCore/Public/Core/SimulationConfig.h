@@ -61,6 +61,13 @@ struct ItemNode
 	// Description of the item.
 	std::string description;
 
+	// Category and age links. Optional: the merged documents in data/core-config
+	// resolve the category and age anchors through '<<', and the item's own uniqueId
+	// overwrites the inherited one, so these fields arrive empty. They are read when
+	// present so a data set that carries the links works unchanged.
+	std::string categoryId;
+	std::string ageId;
+
 	// The number of units that can fit into one cubic metre of storage.
 	std::string unitsPerCubicMetre;
 
@@ -93,7 +100,7 @@ struct SkillNode
 	// Type of the node (Tech or Skill).
 	NodeType nodeType;
 
-	// Maximum number of tiers this skill can have.
+	// Maximum number of tiers this skill can have. Must be at least 1.
 	int maxTiers{1};
 
 	// List of skills required to unlock this skill.
@@ -123,18 +130,22 @@ struct GameModeNode
 	Skills skills;
 };
 
-// Loads the ages configuration from a YAML file and returns a vector of AgeNode
-// structures. Returns true if the configuration was loaded successfully, false otherwise.
+// Configuration loaders. Each loader replaces the contents of its output
+// container: calling a loader twice with the same file gives the same entries,
+// never duplicated ones.
+//
+// Every loader returns true when the file parsed cleanly, false and a message in
+// ErrorMessage when it did not. Missing, null and mistyped required fields are
+// reported with the index and key of the offending entry.
+
+// Loads the ages configuration from a YAML file into a vector of AgeNode.
 bool LoadConfigAges(const std::string &FilePath, Ages &Ages, std::string &ErrorMessage);
 
-// Loads the categories configuration from a YAML file and returns a vector of
-// CategoryNode structures. Returns true if the configuration was loaded successfully,
-// false otherwise.
+// Loads the categories configuration from a YAML file into a vector of CategoryNode.
 bool LoadConfigCategories(
     const std::string &FilePath, Categories &Categories, std::string &ErrorMessage);
 
-// Loads the items configuration from a YAML file and returns a GameModeNode.
-// Returns true if the configuration was loaded successfully, false otherwise.
+// Loads the items and skills of a game mode from a YAML file into a GameModeNode.
 bool LoadConfigGameMode(
     const std::string &FilePath, GameModeNode &GameModeConfig, std::string &ErrorMessage);
 } // namespace CivSimCore

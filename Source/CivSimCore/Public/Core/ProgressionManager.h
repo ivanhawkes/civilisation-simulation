@@ -1,104 +1,96 @@
-/**
-    AI suggested code for handling the progression of skills in a game. This is
-    intended to manage skill unlocking, prerequisites, and exclusive groups.
-
-    It builds, but remains untested and may require further refinement.
-*/
-
 #pragma once
 
 #include "Core/SimulationConfig.h"
-#include <iostream>
+#include <map>
+#include <set>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
+#include <vector>
 
 
 namespace CivSimCore
 {
+enum class UpgradeResult
+{
+	Success,
+	UnknownNode,
+	MaxTier,
+	ExclusiveLock,
+	Prerequisites,
+	InsufficientResources
+};
+
+const char *DescribeUpgradeResult(UpgradeResult Result);
+
+// Manages the skill tree: registration, graph validation, tier upgrades and the
+// resource pool that pays for them.
+//
+// The registry is a std::map keyed by node id so iteration order is identical on every
+// platform: the UI and the tests depend on that.
+//
+// This is library code: it writes nothing to the console. Every failure returns a
+// reason, either as an UpgradeResult or as a message.
 class ProgressionManager
 {
-  private:
-	std::unordered_map<std::string, SkillNode> skillRegistry;
-
-	// Tracking active runtime state.
-	std::unordered_map<std::string, int> unlockedSkillTiers; // NodeId -> current_tier
-	std::unordered_set<std::string> lockedExclusiveGroups;
-
   public:
-	void RegisterNode(const SkillNode &node)
-	{
-		skillRegistry[node.uniqueId] = node;
-	}
+	// Registers one node. Rejects an empty id, a duplicate id, maxTiers below 1, a
+	// negative cost, a self prerequisite and a prerequisite asking for tier 0.
+	bool RegisterNode(const SkillNode &Node, std::string &ErrorMessage);
 
+	// Registers every node and then validates the whole graph. Replaces any state
+	// built by an earlier call, including the resource pool.
+	bool Build(const Skills &Nodes, std::string &ErrorMessage);
 
-	int GetCurrentTier(const std::string &NodeId) const
-	{
-		auto it = unlockedSkillTiers.find(NodeId);
-		return (it != unlockedSkillTiers.end()) ? it->second : 0;
-	}
+	// Checks the registered graph: prerequisites pointing at unknown nodes, prerequisite
+	// cycles, a required tier above the prerequisite's own maxTiers, and a skill that
+	// requires a node competing with it in the same exclusive group. Those last two
+	// make a branch unreachable: the game can never research it.
+	bool Validate(std::string &ErrorMessage) const;
 
+	bool HasNode(const std::string &NodeId) const;
 
-	bool CanUpgrade(const std::string &NodeId) const
-	{
-		auto it = skillRegistry.find(NodeId);
-		if (it == skillRegistry.end())
-			return false;
+	// Node ids in sorted order.
+	std::vector<std::string> NodeIds() const;
 
-		const auto &node = it->second;
-		int current_tier = GetCurrentTier(NodeId);
+	// Tier reached by a node: 0 means locked.
+	int GetCurrentTier(const std::string &NodeId) const;
 
-		// Cap check
-		if (current_tier >= node.maxTiers)
-			return false;
+	// maxTiers of a node, 0 when the node is unknown.
+	int GetMaxTiers(const std::string &NodeId) const;
 
-		// Exclusion check (only blocks Tier 1 purchases)
-		if (current_tier == 0 && !node.exclusiveGroupId.empty())
-		{
-			if (lockedExclusiveGroups.count(node.exclusiveGroupId))
-			{
-				return false;
-			}
-		}
+	// Unlocked groups: every node sharing one of these ids is locked out.
+	bool IsGroupLocked(const std::string &GroupId) const;
 
-		// Multi-tier Prerequisite check
-		for (const auto &prereq : node.requiredSkills)
-		{
-			if (GetCurrentTier(prereq.nodeId) < prereq.requiredTier)
-			{
-				return false;
-			}
-		}
+	// A group is locked out once one of its members has been unlocked.
+	bool IsNodeLockedOut(const std::string &NodeId) const;
 
-		return true;
-	}
+	bool CanUpgrade(const std::string &NodeId) const;
 
+	// Why CanUpgrade is false, empty when the upgrade is allowed.
+	std::string UpgradeBlockReason(const std::string &NodeId) const;
 
-	bool TryUpgrade(const std::string &NodeId)
-	{
-		if (!CanUpgrade(NodeId))
-			return false;
+	// Upgrades one tier, spending resourceCostPerTier from the pool. Leaves the state
+	// untouched when the upgrade is not allowed or not affordable.
+	UpgradeResult TryUpgrade(const std::string &NodeId);
+	bool TryUpgrade(const std::string &NodeId, std::string &ErrorMessage);
 
-		const auto &node = skillRegistry[NodeId];
+	// Resource pool: never negative.
+	int GetResources() const;
+	void SetResources(int Amount);
+	void AddResources(int Amount);
 
-		// Upgrade the tier
-		unlockedSkillTiers[NodeId]++;
+	// One node as a line for the UI, for example "Mining tier 2/5 (cost 1/tier)".
+	std::string Describe(const std::string &NodeId) const;
 
-		// If this was the first point, activate the mutual exclusion lockout
-		if (unlockedSkillTiers[NodeId] == 1 && !node.exclusiveGroupId.empty())
-		{
-			lockedExclusiveGroups.insert(node.exclusiveGroupId);
-		}
+	// One line describing the whole tree for the UI.
+	std::string Summary() const;
 
-		std::cout << "Upgraded " << node.displayName << " to Tier "
-		          << unlockedSkillTiers[NodeId] << "\n";
-		return true;
-	}
+	// Nodes available to the UI, keyed by id, in sorted order.
+	const std::map<std::string, SkillNode> &GetRegistry() const;
 
-	// Exposed for the UI layer to read state cleanly
-	const std::unordered_map<std::string, SkillNode> &GetRegistry() const
-	{
-		return skillRegistry;
-	}
+  private:
+	std::map<std::string, SkillNode> registry;
+	std::map<std::string, int> unlockedTiers;
+	std::set<std::string> lockedExclusiveGroups;
+	int resources{0};
 };
 } // namespace CivSimCore
