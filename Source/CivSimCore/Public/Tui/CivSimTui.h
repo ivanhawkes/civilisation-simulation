@@ -28,4 +28,7 @@ class CivSimTui
 
 	// Allow highlighting of the last command based on its success or failure status.
 	bool last_command_failed = false;
+
+	// Add to your private member variables
+	int log_focus_index = 0;
 };

@@ -109,6 +109,9 @@ void CivSimTui::Run()
 	    "Welcome to the FTXUI Advanced REPL!",
 	    "Type your command below. Press [Tab] to complete, [Up/Down] for history."};
 
+	// Track selection focus point for the scroll anchor
+	log_focus_index = (int)historyLog.size() - 1;
+
 	// Track user's command history for up/down navigation
 	std::vector<std::string> commandHistory;
 	int historyIndex = -1;
@@ -186,6 +189,9 @@ void CivSimTui::Run()
 			    {
 				    historyLog.push_back(output);
 			    }
+
+			    // FIX: Update scroll anchor index to match the new bottom of your log array
+			    log_focus_index = (int)historyLog.size() - 1;
 			    return true;
 		    }
 
@@ -196,14 +202,22 @@ void CivSimTui::Run()
 	    inputHandler,
 	    [&]
 	    {
-		    // Pack up your existing history view elements into a distinct Left Pane
-		    // component
+		    // 1. Pack up history elements using standard vbox wrappers with focused highlights
 		    Elements logElements;
-		    for (const auto &line : historyLog)
-		    { // Use your renamed history container here
-			    logElements.push_back(text(line));
+		    for (int i = 0; i < (int)historyLog.size(); ++i)
+		    {
+			    if (i == log_focus_index)
+			    {
+				    // Apply focus tracker attribute to the very last line item
+				    logElements.push_back(vbox({paragraph(historyLog[i])}) | focus);
+			    }
+			    else
+			    {
+				    logElements.push_back(vbox({paragraph(historyLog[i])}));
+			    }
 		    }
-		    // Left Pane Layout Update with Dynamic Prompt Colors
+
+		    // 2. Left Pane Layout with Dynamic Prompt Colors
 		    auto left_pane =
 		        vbox(
 		            {vbox(std::move(logElements)) | frame | flex | border | Mocha::Text,
@@ -223,45 +237,41 @@ void CivSimTui::Run()
 		                       std::chrono::steady_clock::now() - start_time)
 		                       .count();
 
-		    // Construct your new brand-new Sidebar component
+		    // 3. Right Pane Sidebar with manual line spacing and your exact original colors
 		    auto right_pane =
 		        vbox(
 		            {text("   SYSTEM METRICS ") | bold | center | color(Color::Green) |
 		                 Mocha::Lavender,
 		             separator() | Mocha::Surface0,
 		             vbox({
+		                 text(""), // Manual spacing row
 		                 hbox(
-		                     {text("Game Time:      "), text(std::to_string(elapsed) + "s") |
-		                                                    color(Color::Yellow) | Mocha::Text}),
+		                     {text("  Game Time:      "), text(std::to_string(elapsed) + "s") |
+		                                                      color(Color::Yellow) | Mocha::Text}),
 		                 hbox(
-		                     {text("History Size:"),
+		                     {text("  History Size:   "),
 		                      text(std::to_string(commandHistory.size())) | Mocha::Text}),
+		                 text(""), // Manual spacing row
 		             }),
 		             separator() | Mocha::Surface0,
-		             vbox({
-		                 hbox(
-		                     {text("Game Time:      "), text(std::to_string(elapsed) + "s") |
-		                                                    color(Color::Yellow) | Mocha::Text}),
-		                 hbox(
-		                     {text("History Size:"),
-		                      text(std::to_string(commandHistory.size())) | Mocha::Text}),
-		             }),
-		             separator(),
 		             text("   Commands ") | bold | center | color(Color::Cyan) | Mocha::Peach,
 		             separator() | Mocha::Surface0,
 		             vbox({
-		                 text(" • help    • status") | Mocha::Subtext0,
-		                 text(" • version • config") | Mocha::Subtext0,
-		                 text(" • clear   • exit") | Mocha::Red,
+		                 text(""), // Manual spacing row
+		                 text("   • help    • status") | Mocha::Subtext0,
+		                 text("   • version • config") | Mocha::Subtext0,
+		                 text("   • clear   • exit") | Mocha::Red,
+		                 text(""), // Manual spacing row
 		             }) | color(Color::GrayDark) |
 		                 Mocha::Surface0}) |
-		        Mocha::BaseBg | border |
+		        Mocha::BaseBg | border | Mocha::Surface0 |
 		        size(
 		            WIDTH, EQUAL, 30); // Hard lock the sidebar pane size to exactly 30 terminal columns
 
-		    // Combine both components horizontally using 'hbox'
+		    // 4. Combine both components horizontally using 'hbox'
 		    return hbox({left_pane, right_pane});
 	    });
+
 
 	// Start the refresh thread to periodically push custom events for re-rendering
 	refresh_thread = std::thread(
