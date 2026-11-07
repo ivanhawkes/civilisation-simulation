@@ -1,3 +1,11 @@
+# Formatting rules for Source/ and Tests/, enforced by CI and by the pre-merge hook.
+#
+# Needs clang-format 20 or newer: BinPackParameters below is a string ("BinPack"),
+# which became the spelling in LLVM 20; an older formatter calls it an "invalid
+# boolean" and cannot read this file at all. The development shell and CI both use
+# LLVM 21.1.8, so the gate checks the rules with the same version that formats.
+#
+#   find Source Tests -name '*.h' -o -name '*.cpp' | xargs clang-format -i
 BasedOnStyle: Microsoft
 AlignAfterOpenBracket: AlwaysBreak
 AllowShortBlocksOnASingleLine: Always

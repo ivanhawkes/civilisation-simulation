@@ -46,11 +46,26 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
+      # The .clang-format uses LLVM 20+ spellings - BinPackParameters: BinPack is a
+      # string, not a boolean - so a formatter older than 20 cannot read it at all and
+      # reports "invalid boolean" for every file. Pin the formatter to LLVM 21.1.8, the
+      # version the development shell's clang-tools provides, so the gate checks the
+      # same rules the developer formats with. The PyPI wheel carries the binary, so
+      # this costs a download of a couple of megabytes.
+      - name: Install clang-format 21.1.8
+        run: |
+          set -euo pipefail
+          python3 -m pip install --user clang-format==21.1.8
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          clang-format --version
+          clang-format --version | grep -q '21.1.8'
+
       # Formatting is a build step, not a review preference: every commit has to pass
       # it, so review diffs stay about behaviour.
       - name: Format check
         run: |
           set -euo pipefail
+          export PATH="$HOME/.local/bin:$PATH"
           find Source Tests -name '*.h' -o -name '*.hpp' -o -name '*.cpp' -print | sort \
             | xargs -r clang-format --dry-run -Werror
 
