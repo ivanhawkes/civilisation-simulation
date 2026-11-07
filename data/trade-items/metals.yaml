@@ -24,9 +24,9 @@ item-base:
 
   # Metals
   - item:
-      uniqueId: Copper
-      categoryId: Metals
-      ageId: CopperAge
+      itemId: ItemCopper
+      categoryId: CategoryMetals
+      ageId: AgeCopper
       displayName: Copper
       description: Copper ingots
       unitsPerCubicMetre: 8960
@@ -36,9 +36,9 @@ item-base:
       packFactor: 0.85
 
   - item:
-      uniqueId: Tin
-      categoryId: Metals
-      ageId: BronzeAge
+      itemId: ItemTin
+      categoryId: CategoryMetals
+      ageId: AgeBronze
       displayName: Tin
       description: Tin ingots
       unitsPerCubicMetre: 7270
@@ -48,9 +48,9 @@ item-base:
       packFactor: 0.85
 
   - item:
-      uniqueId: Gold
-      categoryId: Metals
-      ageId: BronzeAge
+      itemId: ItemGold
+      categoryId: CategoryMetals
+      ageId: AgeBronze
       displayName: Gold
       description: Gold ingots
       unitsPerCubicMetre: 19320
@@ -60,9 +60,9 @@ item-base:
       packFactor: 0.8
 
   - item:
-      uniqueId: Brass
-      categoryId: Metals
-      ageId: BronzeAge
+      itemId: ItemBrass
+      categoryId: CategoryMetals
+      ageId: AgeBronze
       displayName: Brass
       description: Brass ingots
       unitsPerCubicMetre: 8500
@@ -72,9 +72,9 @@ item-base:
       packFactor: 0.85
 
   - item:
-      uniqueId: Silver
-      categoryId: Metals
-      ageId: BronzeAge
+      itemId: ItemSilver
+      categoryId: CategoryMetals
+      ageId: AgeBronze
       displayName: Silver
       description: Silver ingots
       unitsPerCubicMetre: 10490
@@ -84,9 +84,9 @@ item-base:
       packFactor: 0.8
 
   - item:
-      uniqueId: Bronze
-      categoryId: Metals
-      ageId: BronzeAge
+      itemId: ItemBronze
+      categoryId: CategoryMetals
+      ageId: AgeBronze
       displayName: Bronze
       description: Bronze ingots
       unitsPerCubicMetre: 8800
@@ -96,9 +96,9 @@ item-base:
       packFactor: 0.85
 
   - item:
-      uniqueId: Nickel
-      categoryId: Metals
-      ageId: BronzeAge
+      itemId: ItemNickel
+      categoryId: CategoryMetals
+      ageId: AgeBronze
       displayName: Nickel
       description: Nickel ingots
       unitsPerCubicMetre: 8910
@@ -108,9 +108,9 @@ item-base:
       packFactor: 0.85
 
   - item:
-      uniqueId: Iron
-      categoryId: Metals
-      ageId: IronAge
+      itemId: ItemIron
+      categoryId: CategoryMetals
+      ageId: AgeIron
       displayName: Iron
       description: Iron ingots
       unitsPerCubicMetre: 7870
@@ -120,9 +120,9 @@ item-base:
       packFactor: 0.8
 
   - item:
-      uniqueId: Lead
-      categoryId: Metals
-      ageId: IronAge
+      itemId: ItemLead
+      categoryId: CategoryMetals
+      ageId: AgeIron
       displayName: Lead
       description: Lead ingots
       unitsPerCubicMetre: 11340
@@ -132,9 +132,9 @@ item-base:
       packFactor: 0.9
 
   - item:
-      uniqueId: Cobalt
-      categoryId: Metals
-      ageId: IndustrialAge
+      itemId: ItemCobalt
+      categoryId: CategoryMetals
+      ageId: AgeIndustrial
       displayName: Cobalt
       description: Cobalt ingots
       unitsPerCubicMetre: 8900
@@ -144,9 +144,9 @@ item-base:
       packFactor: 0.85
 
   - item:
-      uniqueId: Lithium
-      categoryId: Metals
-      ageId: IndustrialAge
+      itemId: ItemLithium
+      categoryId: CategoryMetals
+      ageId: AgeIndustrial
       displayName: Lithium
       description: Lithium ingots
       unitsPerCubicMetre: 534
@@ -156,9 +156,9 @@ item-base:
       packFactor: 0.55
 
   - item:
-      uniqueId: Molybdenum
-      categoryId: Metals
-      ageId: IndustrialAge
+      itemId: ItemMolybdenum
+      categoryId: CategoryMetals
+      ageId: AgeIndustrial
       displayName: Molybdenum
       description: Molybdenum ingots
       unitsPerCubicMetre: 10280
@@ -168,9 +168,9 @@ item-base:
       packFactor: 0.8
 
   - item:
-      uniqueId: Aluminium
-      categoryId: Metals
-      ageId: IndustrialAge
+      itemId: ItemAluminium
+      categoryId: CategoryMetals
+      ageId: AgeIndustrial
       displayName: Aluminium
       description: Aluminium ingots
       unitsPerCubicMetre: 2700
@@ -180,9 +180,9 @@ item-base:
       packFactor: 0.7
 
   - item:
-      uniqueId: Palladium
-      categoryId: Metals
-      ageId: IndustrialAge
+      itemId: ItemPalladium
+      categoryId: CategoryMetals
+      ageId: AgeIndustrial
       displayName: Palladium
       description: Palladium ingots
       unitsPerCubicMetre: 12020
@@ -192,9 +192,9 @@ item-base:
       packFactor: 0.8
 
   - item:
-      uniqueId: Platinum
-      categoryId: Metals
-      ageId: IndustrialAge
+      itemId: ItemPlatinum
+      categoryId: CategoryMetals
+      ageId: AgeIndustrial
       displayName: Platinum
       description: Platinum ingots
       unitsPerCubicMetre: 21450
@@ -208,9 +208,9 @@ item-base:
   # figure at 20 C, and the packFactor is the headspace the tank leaves for
   # expansion. Alkali metals carry a handling surcharge over the element price.
   - item:
-      uniqueId: Potassium
-      categoryId: Metals
-      ageId: IndustrialAge
+      itemId: ItemPotassium
+      categoryId: CategoryMetals
+      ageId: AgeIndustrial
       displayName: Potassium
       description: Potassium ingots
       unitsPerCubicMetre: 1
@@ -220,9 +220,9 @@ item-base:
       packFactor: 0.9
 
   - item:
-      uniqueId: Rhodium
-      categoryId: Metals
-      ageId: IndustrialAge
+      itemId: ItemRhodium
+      categoryId: CategoryMetals
+      ageId: AgeIndustrial
       displayName: Rhodium
       description: Rhodium ingots
       unitsPerCubicMetre: 12410
@@ -232,9 +232,9 @@ item-base:
       packFactor: 0.8
 
   - item:
-      uniqueId: Ruthenium
-      categoryId: Metals
-      ageId: IndustrialAge
+      itemId: ItemRuthenium
+      categoryId: CategoryMetals
+      ageId: AgeIndustrial
       displayName: Ruthenium
       description: Ruthenium ingots
       unitsPerCubicMetre: 12450
@@ -248,9 +248,9 @@ item-base:
   # headspace, which leaves the 1.66 tonnes a cubic metre a drummed powder fills.
   # The price is the 2025 spot figure for the concentrate, not the far costlier metal.
   - item:
-      uniqueId: Uranium
-      categoryId: Metals
-      ageId: IndustrialAge
+      itemId: ItemUranium
+      categoryId: CategoryMetals
+      ageId: AgeIndustrial
       displayName: Uranium
       description: Uranium, oxide concentrate in sealed drums
       unitsPerCubicMetre: 8300
@@ -260,9 +260,9 @@ item-base:
       packFactor: 0.2
 
   - item:
-      uniqueId: Vanadium
-      categoryId: Metals
-      ageId: IndustrialAge
+      itemId: ItemVanadium
+      categoryId: CategoryMetals
+      ageId: AgeIndustrial
       displayName: Vanadium
       description: Vanadium ingots
       unitsPerCubicMetre: 6110
@@ -272,9 +272,9 @@ item-base:
       packFactor: 0.8
 
   - item:
-      uniqueId: Zinc
-      categoryId: Metals
-      ageId: IndustrialAge
+      itemId: ItemZinc
+      categoryId: CategoryMetals
+      ageId: AgeIndustrial
       displayName: Zinc
       description: Zinc ingots
       unitsPerCubicMetre: 7140

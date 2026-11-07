@@ -463,9 +463,9 @@ std::string CivSimTui::CommandPrices(const std::string &argument)
 			continue;
 		}
 
-		const double price = simulation.GetPrice(item.uniqueId);
+		const double price = simulation.GetPrice(item.itemId);
 
-		priced.push_back({price / basePrice, item.uniqueId, basePrice, price});
+		priced.push_back({price / basePrice, item.itemId, basePrice, price});
 	}
 
 	std::sort(

@@ -15,7 +15,7 @@ CivSimCore::Ages MakeAges(std::size_t count)
 	for (std::size_t index = 0; index < count; ++index)
 	{
 		CivSimCore::AgeNode age;
-		age.uniqueId = "Age" + std::to_string(index);
+		age.ageId = "Age" + std::to_string(index);
 		age.displayName = "Age " + std::to_string(index);
 		ages.push_back(age);
 	}
@@ -30,8 +30,8 @@ CivSimCore::Categories MakeCategories(std::size_t count)
 	for (std::size_t index = 0; index < count; ++index)
 	{
 		CivSimCore::CategoryNode category;
-		category.uniqueId = "Category" + std::to_string(index);
-		category.displayName = category.uniqueId;
+		category.categoryId = "Category" + std::to_string(index);
+		category.displayName = category.categoryId;
 		categories.push_back(category);
 	}
 
@@ -45,8 +45,8 @@ CivSimCore::Items MakeItems(std::size_t count)
 	for (std::size_t index = 0; index < count; ++index)
 	{
 		CivSimCore::ItemNode item;
-		item.uniqueId = "Good" + std::to_string(index);
-		item.displayName = item.uniqueId;
+		item.itemId = "Good" + std::to_string(index);
+		item.displayName = item.itemId;
 		item.basePrice = std::to_string(10.0 * static_cast<double>(index + 1));
 		items.push_back(item);
 	}
@@ -263,10 +263,10 @@ TEST_CASE(scarce_goods_cost_more)
 		const double basePrice = CivSimCore::Simulation::BasePrice(item);
 		CHECK(basePrice > 0.0);
 
-		const double price = simulation.GetPrice(item.uniqueId);
+		const double price = simulation.GetPrice(item.itemId);
 		const double ratio = price / basePrice;
 
-		if (civ.production.find(item.uniqueId) == civ.production.end())
+		if (civ.production.find(item.itemId) == civ.production.end())
 		{
 			CHECK(ratio > 1.0);
 			++checked;
@@ -302,12 +302,10 @@ TEST_CASE(local_prices_move_with_the_local_balance)
 
 		for (const auto &item : simulation.GetItems())
 		{
-			if (civ.production.find(item.uniqueId) == civ.production.end())
+			if (civ.production.find(item.itemId) == civ.production.end())
 			{
 				// A world that needs the good pays above the market.
-				CHECK(
-				    simulation.GetLocalPrice(civ.id, item.uniqueId) >
-				    simulation.GetPrice(item.uniqueId));
+				CHECK(simulation.GetLocalPrice(civ.id, item.itemId) > simulation.GetPrice(item.itemId));
 			}
 		}
 	}
@@ -436,7 +434,7 @@ TEST_CASE(describing_a_world)
 TEST_CASE(base_price_must_be_a_number)
 {
 	CivSimCore::ItemNode item;
-	item.uniqueId = "Odd";
+	item.itemId = "Odd";
 	item.basePrice = "five pounds";
 	CHECK_NEAR(CivSimCore::Simulation::BasePrice(item), 0.0, 0.0001);
 
@@ -464,7 +462,7 @@ TEST_CASE(base_price_must_be_a_number)
 TEST_CASE(a_world_makes_only_the_goods_of_its_age_and_earlier)
 {
 	// The merged documents write an ageId onto every good, and the economy reads it as a
-	// production gate: a StoneAge world has no antibiotics to make. A good with no age of
+	// production gate: a world at AgeStone has no antibiotics to make. A good with no age of
 	// its own is in every deck, because a missing link is not a licence to make nothing.
 	Scenario scenario;
 	scenario.ages = MakeAges(4);
@@ -478,17 +476,17 @@ TEST_CASE(a_world_makes_only_the_goods_of_its_age_and_earlier)
 	for (std::size_t index = 0; index < 12; ++index)
 	{
 		CivSimCore::ItemNode item;
-		item.uniqueId = "Good" + std::to_string(index);
-		item.displayName = item.uniqueId;
+		item.itemId = "Good" + std::to_string(index);
+		item.displayName = item.itemId;
 		item.basePrice = std::to_string(10.0 * static_cast<double>(index + 1));
 		item.ageId = "Age" + std::to_string(index % 4);
 
-		ranks.emplace_back(item.uniqueId, index % 4);
+		ranks.emplace_back(item.itemId, index % 4);
 		scenario.items.push_back(item);
 	}
 
 	CivSimCore::ItemNode timeless;
-	timeless.uniqueId = "Timeless";
+	timeless.itemId = "Timeless";
 	timeless.displayName = "Timeless";
 	timeless.basePrice = "40";
 	scenario.items.push_back(timeless);
@@ -520,7 +518,7 @@ TEST_CASE(a_world_makes_only_the_goods_of_its_age_and_earlier)
 
 		for (const auto &entry : civ.production)
 		{
-			if (entry.first == timeless.uniqueId)
+			if (entry.first == timeless.itemId)
 			{
 				++madeTimelessGoods;
 
@@ -564,10 +562,11 @@ TEST_CASE(medicine_and_knowledge_goods_are_demanded_at_every_age)
 	scenario.ages = MakeAges(1);
 
 	scenario.categories.clear();
-	for (const char *id : {"Medicine", "Information", "Metals", "Crafts"})
+	for (const char *id :
+	     {"CategoryMedicine", "CategoryInformation", "CategoryMetals", "CategoryCrafts"})
 	{
 		CivSimCore::CategoryNode category;
-		category.uniqueId = id;
+		category.categoryId = id;
 		category.displayName = id;
 		category.type = id;
 		scenario.categories.push_back(category);
@@ -577,17 +576,17 @@ TEST_CASE(medicine_and_knowledge_goods_are_demanded_at_every_age)
 	for (std::size_t index = 0; index < 30; ++index)
 	{
 		CivSimCore::ItemNode essential;
-		essential.uniqueId = "Need" + std::to_string(index);
-		essential.displayName = essential.uniqueId;
+		essential.itemId = "Need" + std::to_string(index);
+		essential.displayName = essential.itemId;
 		essential.basePrice = "20";
-		essential.categoryId = (index % 2 == 0) ? "Medicine" : "Information";
+		essential.categoryId = (index % 2 == 0) ? "CategoryMedicine" : "CategoryInformation";
 		scenario.items.push_back(essential);
 
 		CivSimCore::ItemNode ordinary;
-		ordinary.uniqueId = "Ware" + std::to_string(index);
-		ordinary.displayName = ordinary.uniqueId;
+		ordinary.itemId = "Ware" + std::to_string(index);
+		ordinary.displayName = ordinary.itemId;
 		ordinary.basePrice = "20";
-		ordinary.categoryId = (index % 2 == 0) ? "Metals" : "Crafts";
+		ordinary.categoryId = (index % 2 == 0) ? "CategoryMetals" : "CategoryCrafts";
 		scenario.items.push_back(ordinary);
 	}
 

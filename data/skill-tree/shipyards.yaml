@@ -21,7 +21,7 @@
 skill-base:
 
   - skill:
-      uniqueId: YardDrydock
+      skillId: SkillYardDrydock
       displayName: Dry Dock
       description: The dock, the caisson and the lifts that put a hull in the yard
       nodeType: Skill
@@ -34,12 +34,12 @@ skill-base:
       gridY: 2.0
 
   - skill:
-      uniqueId: YardOutfitting
+      skillId: SkillYardOutfitting
       displayName: Outfitting Lines
       description: The lines that put the screens, guns, drive and mast onto a hull
       nodeType: Skill
       requires:
-        - nodeId: YardDrydock
+        - nodeId: SkillYardDrydock
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 2
@@ -49,14 +49,14 @@ skill-base:
       gridY: 2.0
 
   - skill:
-      uniqueId: YardModularHulls
+      skillId: SkillYardModularHulls
       displayName: Modular Hull Production
       description: Plate cut to a drawing and snapped together, so a hull is a product
       nodeType: Skill
       requires:
-        - nodeId: YardDrydock
+        - nodeId: SkillYardDrydock
           requiredTier: 1
-        - nodeId: InformationAge
+        - nodeId: AgeInformation
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 3
@@ -66,12 +66,12 @@ skill-base:
       gridY: 2.0
 
   - skill:
-      uniqueId: YardRefitDocks
+      skillId: SkillYardRefitDocks
       displayName: Refit Docks
       description: The berths that take a working ship off a lane and put it back on
       nodeType: Skill
       requires:
-        - nodeId: YardOutfitting
+        - nodeId: SkillYardOutfitting
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 2

@@ -78,7 +78,7 @@ class ProgressionManager
 	void SetResources(int Amount);
 	void AddResources(int Amount);
 
-	// One node as a line for the UI, for example "Mining tier 2/5 (cost 1/tier)".
+	// One node as a line for the UI, for example "SkillMining tier 2/5 (cost 1/tier)".
 	std::string Describe(const std::string &NodeId) const;
 
 	// One line describing the whole tree for the UI.

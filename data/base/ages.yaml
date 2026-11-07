@@ -1,64 +1,64 @@
 ---
 # The ages of the tech tree, in the order they are reached.
 #
-# The uniqueId of an age is the uniqueId of its gate in skill-tree/ages.yaml, and the
+# The ageId of an age is the skillId of its gate in skill-tree/ages.yaml, and the
 # value the ageId of an item points at, so the same name opens the tree, bounds the
 # goods a world can produce and dates the world itself.
 ages:
   - age:
-      uniqueId: StoneAge
+      ageId: AgeStone
       displayName: Stone Age
       description: Stone age
   - age:
-      uniqueId: CopperAge
+      ageId: AgeCopper
       displayName: Copper Age
       description: Copper Age
   - age:
-      uniqueId: BronzeAge
+      ageId: AgeBronze
       displayName: Bronze Age
       description: Bronze Age
   - age:
-      uniqueId: IronAge
+      ageId: AgeIron
       displayName: Iron Age
       description: Iron Age
   - age:
-      uniqueId: ClassicalAge
+      ageId: AgeClassical
       displayName: Classical Age
       description: Classical Age
   - age:
-      uniqueId: MedievalAge
+      ageId: AgeMedieval
       displayName: Medieval Age
       description: Medieval Age
   - age:
-      uniqueId: Pre-industrialAge
+      ageId: AgePre-industrial
       displayName: Pre-industrial Age
       description: Pre-industrial Age
   - age:
-      uniqueId: IndustrialAge
+      ageId: AgeIndustrial
       displayName: Industrial Age
       description: Industrial Age
   - age:
-      uniqueId: Post-industrialAge
+      ageId: AgePost-industrial
       displayName: Post-industrial Age
       description: Post-industrial Age
   - age:
-      uniqueId: InformationAge
+      ageId: AgeInformation
       displayName: Information Age
       description: Information Age
   - age:
-      uniqueId: AIAge
+      ageId: AgeAI
       displayName: AI Age
       description: AI Age
   - age:
-      uniqueId: SpaceAge
+      ageId: AgeSpace
       displayName: Space Age
       description: Space Age
   - age:
-      uniqueId: SpaceColonisationAge
+      ageId: AgeSpaceColonisation
       displayName: Space Colonisation Age
       description: Space Colonisation Age
   - age:
-      uniqueId: SublimationAge
+      ageId: AgeSublimation
       displayName: Sublimation Age
       description: Nothingness
 ...

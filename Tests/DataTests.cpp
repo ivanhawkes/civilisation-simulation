@@ -25,7 +25,7 @@ std::vector<std::string> Ids(const CivSimCore::Items &items)
 
 	for (const auto &item : items)
 	{
-		ids.push_back(item.uniqueId);
+		ids.push_back(item.itemId);
 	}
 
 	return ids;
@@ -37,6 +37,32 @@ bool HasDuplicates(const std::vector<std::string> &values)
 	std::sort(sorted.begin(), sorted.end());
 
 	return std::adjacent_find(sorted.begin(), sorted.end()) != sorted.end();
+}
+
+// The tree a node belongs to. A node id runs namespace marker, tree and node: the
+// yard drydock is SkillYardDrydock, the gate of the Space Colonisation Age is
+// AgeSpaceColonisation, so the tree is the run after the marker, up to its own first
+// capital.
+std::string TreeLabel(const std::string &NodeId)
+{
+	const std::size_t markerEnd = NodeId.find_first_of("A-Z");
+
+	if (markerEnd == std::string::npos)
+	{
+		return NodeId;
+	}
+
+	const std::string marker = NodeId.substr(0, markerEnd);
+	const std::string rest = NodeId.substr(markerEnd);
+
+	if (marker != "Skill" && marker != "Age")
+	{
+		return marker;
+	}
+
+	const std::size_t treeEnd = rest.find_first_of("A-Z");
+
+	return treeEnd == std::string::npos ? rest : rest.substr(0, treeEnd);
 }
 
 CivSimCore::Ages LoadAges()
@@ -82,9 +108,9 @@ TEST_CASE(ages_load_from_the_generated_document)
 	std::vector<std::string> ids;
 	for (const auto &age : ages)
 	{
-		CHECK(!age.uniqueId.empty());
+		CHECK(!age.ageId.empty());
 		CHECK(!age.displayName.empty());
-		ids.push_back(age.uniqueId);
+		ids.push_back(age.ageId);
 	}
 
 	CHECK(!HasDuplicates(ids));
@@ -99,11 +125,11 @@ TEST_CASE(categories_load_from_the_generated_document)
 	std::vector<std::string> ids;
 	for (const auto &category : categories)
 	{
-		CHECK(!category.uniqueId.empty());
+		CHECK(!category.categoryId.empty());
 		CHECK(!category.displayName.empty());
 		CHECK(!category.type.empty());
 		CHECK(!category.description.empty());
-		ids.push_back(category.uniqueId);
+		ids.push_back(category.categoryId);
 	}
 
 	CHECK(!HasDuplicates(ids));
@@ -119,7 +145,7 @@ TEST_CASE(every_item_in_the_full_game_mode_has_a_price)
 
 	for (const auto &item : full.items)
 	{
-		CHECK(!item.uniqueId.empty());
+		CHECK(!item.itemId.empty());
 		CHECK(!item.displayName.empty());
 		CHECK(!item.unitType.empty());
 
@@ -136,7 +162,7 @@ TEST_CASE(every_item_carries_its_age_and_category_link)
 {
 	// Generation reads item.ageId to bound what a world can make and item.categoryId to
 	// weight what it wants. The two links of an item are plain-text ids in the item file -
-	// the uniqueId of an age in base/ages.yaml, the uniqueId of a category in
+	// the ageId of an age in base/ages.yaml, the categoryId of a category in
 	// trade-items/categories.yaml - and the merge carries them into the shipped document:
 	// an item that lost them leaves every world a producer of every good, and a universe
 	// with no shortages is a universe with no trade.
@@ -147,13 +173,13 @@ TEST_CASE(every_item_carries_its_age_and_category_link)
 	std::vector<std::string> ageIds;
 	for (const auto &age : ages)
 	{
-		ageIds.push_back(age.uniqueId);
+		ageIds.push_back(age.ageId);
 	}
 
 	std::vector<std::string> categoryIds;
 	for (const auto &category : categories)
 	{
-		categoryIds.push_back(category.uniqueId);
+		categoryIds.push_back(category.categoryId);
 	}
 
 	CHECK(full.items.size() >= 80);
@@ -165,6 +191,81 @@ TEST_CASE(every_item_carries_its_age_and_category_link)
 
 		CHECK(std::find(ageIds.begin(), ageIds.end(), item.ageId) != ageIds.end());
 		CHECK(std::find(categoryIds.begin(), categoryIds.end(), item.categoryId) != categoryIds.end());
+	}
+}
+
+TEST_CASE(the_id_of_a_definition_names_the_kind_of_thing_it_is)
+{
+	// Every id is prefixed with the kind of thing it names: Age for an age, Category for
+	// a category, Item for a good, Skill for a node of the tree. A reference in a
+	// require, a game mode or the link of an item therefore says which table it points
+	// into, and one word can name a craft and a shelf of goods at once without the two
+	// tables colliding. The ages drop the old Age postfix for the prefix, so no id ends
+	// with the word it starts with.
+	const CivSimCore::Ages ages = LoadAges();
+	const CivSimCore::Categories categories = LoadCategories();
+	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
+
+	std::vector<std::string> ageIds;
+	for (const auto &age : ages)
+	{
+		CHECK(age.ageId.rfind("Age", 0) == 0);
+		CHECK(age.ageId.rfind("Age") != age.ageId.size() - 3);
+		ageIds.push_back(age.ageId);
+	}
+
+	std::vector<std::string> names = ageIds;
+
+	std::vector<std::string> categoryIds;
+	for (const auto &category : categories)
+	{
+		CHECK(category.categoryId.rfind("Category", 0) == 0);
+		categoryIds.push_back(category.categoryId);
+		names.push_back(category.categoryId);
+	}
+
+	const std::vector<std::string> itemIds = Ids(full.items);
+	for (const std::string &itemId : itemIds)
+	{
+		CHECK(itemId.rfind("Item", 0) == 0);
+		names.push_back(itemId);
+	}
+
+	std::vector<std::string> skillIds;
+	for (const auto &skill : full.skills)
+	{
+		// The gate of an age carries the ageId of the age it opens, so the gate is the
+		// one name the tree shares with another table, and it is shared by design.
+		const bool isGate = std::find(ageIds.begin(), ageIds.end(), skill.skillId) != ageIds.end();
+
+		CHECK(isGate ? skill.skillId.rfind("Age", 0) == 0 : skill.skillId.rfind("Skill", 0) == 0);
+		skillIds.push_back(skill.skillId);
+
+		if (!isGate)
+		{
+			names.push_back(skill.skillId);
+		}
+	}
+
+	// One name, one kind of thing: the same word is never an age, a category, a good and
+	// a node in turn, so a reference needs no lookup to say what it resolves to.
+	CHECK(names.size() >= 200);
+	CHECK(!HasDuplicates(names));
+
+	// The words the data reuses across the tables are the test of the rule: one word
+	// works a bench and stacks a pallet, and the two ids never meet.
+	for (const std::string &word : {"Pharmaceuticals", "Polymers", "Textiles"})
+	{
+		CHECK(std::find(skillIds.begin(), skillIds.end(), "Skill" + word) != skillIds.end());
+		CHECK(
+		    std::find(categoryIds.begin(), categoryIds.end(), "Category" + word) != categoryIds.end());
+	}
+
+	for (const std::string &word : {"Electronics", "Slaves"})
+	{
+		CHECK(std::find(itemIds.begin(), itemIds.end(), "Item" + word) != itemIds.end());
+		CHECK(
+		    std::find(categoryIds.begin(), categoryIds.end(), "Category" + word) != categoryIds.end());
 	}
 }
 
@@ -187,7 +288,7 @@ TEST_CASE(nulls_in_the_skill_data_never_arrive_as_the_word_null)
 		CHECK(skill.targetEffectID != "null");
 		CHECK(skill.targetEffectID != "~");
 
-		CHECK(!skill.uniqueId.empty());
+		CHECK(!skill.skillId.empty());
 		CHECK(!skill.displayName.empty());
 
 		// The depth is a property of the design, not of the loader: a skill with no
@@ -211,7 +312,7 @@ TEST_CASE(nulls_in_the_skill_data_never_arrive_as_the_word_null)
 
 TEST_CASE(the_age_gates_are_the_ages)
 {
-	// Every age has one gate, the gate carries the age's own uniqueId, and the gates
+	// Every age has one gate, the gate carries the age's own ageId as its skillId, and the gates
 	// form the age ladder: each gate requires the gate of the age before it, and the
 	// first gate in age order is the only one with nothing under it.
 	const CivSimCore::Ages ages = LoadAges();
@@ -222,7 +323,7 @@ TEST_CASE(the_age_gates_are_the_ages)
 	{
 		if (skill.nodeType == CivSimCore::NodeType::Tech)
 		{
-			gates[skill.uniqueId] = skill;
+			gates[skill.skillId] = skill;
 		}
 	}
 
@@ -231,7 +332,7 @@ TEST_CASE(the_age_gates_are_the_ages)
 	int gatesWithNoPrerequisite = 0;
 	for (const CivSimCore::AgeNode &age : ages)
 	{
-		const auto gate = gates.find(age.uniqueId);
+		const auto gate = gates.find(age.ageId);
 		CHECK(gate != gates.end());
 
 		if (gate == gates.end())
@@ -271,23 +372,23 @@ TEST_CASE(the_ship_systems_are_worth_the_trip)
 	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
 
 	const std::vector<std::string> shipSystems = {
-	    "ShipShieldsFront",    "ShipShieldsSide",        "ShipShieldsRear",
-	    "ShipGunsFront",       "ShipGunsRear",           "ShipLasersFront",
-	    "ShipLasersRear",      "ShipNavigationComputer", "ShipTraderAI",
-	    "ShipEngineThrust",    "ShipManoeuvringJets",    "ShipAttitudeControl",
-	    "ShipSensorLongRange", "ShipSensorFireControl",  "ShipSensorCommercial",
-	    "ShipCargoHolds",      "ShipFuelBunkers",        "ShipSalvageRig",
-	    "ShipLifeSupport",     "ShipStealthCoating",     "ShipEmissionsControl",
-	    "ShipCountermeasures", "ShipCrewTraining",       "ShipDamageControl",
-	    "ShipSparesLockers",
+	    "SkillShipShieldsFront",    "SkillShipShieldsSide",        "SkillShipShieldsRear",
+	    "SkillShipGunsFront",       "SkillShipGunsRear",           "SkillShipLasersFront",
+	    "SkillShipLasersRear",      "SkillShipNavigationComputer", "SkillShipTraderAI",
+	    "SkillShipEngineThrust",    "SkillShipManoeuvringJets",    "SkillShipAttitudeControl",
+	    "SkillShipSensorLongRange", "SkillShipSensorFireControl",  "SkillShipSensorCommercial",
+	    "SkillShipCargoHolds",      "SkillShipFuelBunkers",        "SkillShipSalvageRig",
+	    "SkillShipLifeSupport",     "SkillShipStealthCoating",     "SkillShipEmissionsControl",
+	    "SkillShipCountermeasures", "SkillShipCrewTraining",       "SkillShipDamageControl",
+	    "SkillShipSparesLockers",
 	};
 
 	std::map<std::string, CivSimCore::SkillNode> ship;
 	for (const auto &skill : full.skills)
 	{
-		if (skill.uniqueId.rfind("Ship", 0) == 0)
+		if (skill.skillId.rfind("SkillShip", 0) == 0)
 		{
-			ship[skill.uniqueId] = skill;
+			ship[skill.skillId] = skill;
 		}
 	}
 
@@ -318,25 +419,27 @@ TEST_CASE(the_standing_trees_are_in_the_game)
 	// weather, the pirate arts, the law, the trade services and the demand side. Each
 	// node is a tier-deep capability with an effect to drive, every prerequisite names a
 	// node the tree has, and the links that cross trees - the refinery on the Smelting
-	// craft, the biosphere on Agriculture, the insurance on the tribunal - are the point
-	// of the whole shape: a tree that stands alone is a list, not a tree.
+	// craft, the biosphere on the Agriculture craft, the insurance on the tribunal - are
+	// the point of the whole shape: a tree that stands alone is a list, not a tree.
 	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
 
 	const std::vector<std::string> standingTrees = {
-	    "YardDrydock",         "YardOutfitting",        "YardModularHulls",     "YardRefitDocks",
-	    "LaneConvoy",          "LaneEscortWing",        "LaneRouteWard",        "LaneWardenPatrol",
-	    "SurveyDeepRange",     "ClaimMining",           "ClaimRefinery",        "ClaimExclusive",
-	    "HabitatDomes",        "HabitatClosedLoop",     "TerraformAtmosphere",  "TerraformBiosphere",
-	    "PirateRaiderHulls",   "PirateBoardingParties", "PirateRansomExchange", "PirateSafeHarbours",
-	    "LawAdmiraltyWarrant", "LawPiratePardon",       "LawTribunal",          "LawPirateStanding",
-	    "TradeDockingLicence", "TradeInsurance",        "TradeFencingNetwork",  "ServicePublicMedicine",
-	    "ServiceEducation",
+	    "SkillYardDrydock",           "SkillYardOutfitting",     "SkillYardModularHulls",
+	    "SkillYardRefitDocks",        "SkillLaneConvoy",         "SkillLaneEscortWing",
+	    "SkillLaneRouteWard",         "SkillLaneWardenPatrol",   "SkillSurveyDeepRange",
+	    "SkillClaimMining",           "SkillClaimRefinery",      "SkillClaimExclusive",
+	    "SkillHabitatDomes",          "SkillHabitatClosedLoop",  "SkillTerraformAtmosphere",
+	    "SkillTerraformBiosphere",    "SkillPirateRaiderHulls",  "SkillPirateBoardingParties",
+	    "SkillPirateRansomExchange",  "SkillPirateSafeHarbours", "SkillLawAdmiraltyWarrant",
+	    "SkillLawPiratePardon",       "SkillLawTribunal",        "SkillLawPirateStanding",
+	    "SkillTradeDockingLicence",   "SkillTradeInsurance",     "SkillTradeFencingNetwork",
+	    "SkillServicePublicMedicine", "SkillServiceEducation",
 	};
 
 	std::map<std::string, CivSimCore::SkillNode> nodes;
 	for (const auto &skill : full.skills)
 	{
-		nodes[skill.uniqueId] = skill;
+		nodes[skill.skillId] = skill;
 	}
 
 	std::size_t crossTreeLinks = 0;
@@ -368,9 +471,8 @@ TEST_CASE(the_standing_trees_are_in_the_game)
 			// A prerequisite outside the node's own tree is the link that makes the
 			// shape a tree: the yard that needs the age gate, the claim that needs the
 			// craft, the insurance that needs the bench.
-			const std::string left = nodeId.substr(0, nodeId.find_first_of("A-Z"));
-			const std::string right =
-			    prerequisite.nodeId.substr(0, prerequisite.nodeId.find_first_of("A-Z"));
+			const std::string left = TreeLabel(nodeId);
+			const std::string right = TreeLabel(prerequisite.nodeId);
 			if (left != right)
 			{
 				++crossTreeLinks;
@@ -392,9 +494,9 @@ TEST_CASE(one_clean_choice_locks_the_rest_of_the_standing)
 	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
 
 	const std::vector<std::string> members = {
-	    "LawAdmiraltyWarrant",
-	    "LawPirateStanding",
-	    "TradeFencingNetwork",
+	    "SkillLawAdmiraltyWarrant",
+	    "SkillLawPirateStanding",
+	    "SkillTradeFencingNetwork",
 	};
 
 	CivSimCore::ProgressionManager progression;
@@ -426,17 +528,18 @@ TEST_CASE(one_clean_choice_locks_the_rest_of_the_standing)
 
 	progression.SetResources(30);
 
-	CHECK_EQ(progression.TryUpgrade("LawAdmiraltyWarrant"), CivSimCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillLawAdmiraltyWarrant"), CivSimCore::UpgradeResult::Success);
 	CHECK(progression.IsGroupLocked("CleanStanding"));
-	CHECK(progression.IsNodeLockedOut("LawPirateStanding"));
-	CHECK(progression.IsNodeLockedOut("TradeFencingNetwork"));
-	CHECK_EQ(progression.TryUpgrade("LawPirateStanding"), CivSimCore::UpgradeResult::ExclusiveLock);
+	CHECK(progression.IsNodeLockedOut("SkillLawPirateStanding"));
+	CHECK(progression.IsNodeLockedOut("SkillTradeFencingNetwork"));
+	CHECK_EQ(
+	    progression.TryUpgrade("SkillLawPirateStanding"), CivSimCore::UpgradeResult::ExclusiveLock);
 
 	// The warrant is the root the tribunal hangs off, and the tribunal is not in the
 	// group: the choice shuts the rivals out, it does not pull the branch under them.
-	CHECK(!progression.IsNodeLockedOut("LawTribunal"));
-	CHECK_EQ(progression.TryUpgrade("LawTribunal"), CivSimCore::UpgradeResult::Success);
-	CHECK(progression.GetCurrentTier("LawTribunal") >= 1);
+	CHECK(!progression.IsNodeLockedOut("SkillLawTribunal"));
+	CHECK_EQ(progression.TryUpgrade("SkillLawTribunal"), CivSimCore::UpgradeResult::Success);
+	CHECK(progression.GetCurrentTier("SkillLawTribunal") >= 1);
 }
 
 TEST_CASE(the_skill_tree_is_a_valid_graph)
@@ -460,7 +563,7 @@ TEST_CASE(the_skill_tree_is_a_valid_graph)
 	int gates = 0;
 	for (const auto &skill : full.skills)
 	{
-		const int tiers = progression.GetMaxTiers(skill.uniqueId);
+		const int tiers = progression.GetMaxTiers(skill.skillId);
 		tierCapacity += tiers;
 
 		if (skill.nodeType == CivSimCore::NodeType::Tech)
@@ -507,7 +610,7 @@ TEST_CASE(the_simple_game_mode_is_a_smaller_subset_of_the_full_one)
 		std::vector<std::string> ids;
 		for (const auto &skill : full.skills)
 		{
-			ids.push_back(skill.uniqueId);
+			ids.push_back(skill.skillId);
 		}
 
 		return ids;
@@ -515,7 +618,7 @@ TEST_CASE(the_simple_game_mode_is_a_smaller_subset_of_the_full_one)
 
 	for (const auto &skill : simple.skills)
 	{
-		CHECK(std::find(fullSkills.begin(), fullSkills.end(), skill.uniqueId) != fullSkills.end());
+		CHECK(std::find(fullSkills.begin(), fullSkills.end(), skill.skillId) != fullSkills.end());
 	}
 }
 

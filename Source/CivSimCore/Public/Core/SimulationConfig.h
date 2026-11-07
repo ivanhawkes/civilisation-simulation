@@ -21,8 +21,9 @@ struct Prerequisite
 
 struct AgeNode
 {
-	// Unique identifier for the age.
-	std::string uniqueId;
+	// Identifier of the age: the ageId an item names as its age, and the id the
+	// skillId of the age's gate in the tree repeats.
+	std::string ageId;
 
 	// Display name of the age.
 	std::string displayName;
@@ -35,8 +36,8 @@ using Ages = std::vector<AgeNode>;
 
 struct CategoryNode
 {
-	// Unique identifier for the category.
-	std::string uniqueId;
+	// Identifier of the category: the categoryId an item names as its category.
+	std::string categoryId;
 
 	// Display name of the category.
 	std::string displayName;
@@ -52,8 +53,8 @@ using Categories = std::vector<CategoryNode>;
 
 struct ItemNode
 {
-	// Unique identifier for the item.
-	std::string uniqueId;
+	// Identifier of the item: the itemId a game-mode file names to select the good.
+	std::string itemId;
 
 	// Display name of the item.
 	std::string displayName;
@@ -62,7 +63,7 @@ struct ItemNode
 	std::string description;
 
 	// Category and age links. Optional: the merged documents in data/core-config
-	// resolve the category and age anchors through '<<', and the item's own uniqueId
+	// resolve the category and age anchors through '<<', and the item's own itemId
 	// overwrites the inherited one, so these fields arrive empty. They are read when
 	// present so a data set that carries the links works unchanged.
 	std::string categoryId;
@@ -91,8 +92,10 @@ using Items = std::vector<ItemNode>;
 
 struct SkillNode
 {
-	// Unique identifier for the skill.
-	std::string uniqueId;
+	// Identifier of the node: the skillId a game-mode file names to select the node,
+	// the skillId of the age whose gate a Tech node is, and the nodeId a
+	// prerequisite names.
+	std::string skillId;
 
 	// Display name of the skill.
 	std::string displayName;

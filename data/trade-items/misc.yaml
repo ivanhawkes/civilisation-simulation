@@ -28,9 +28,9 @@ item-base:
 
   # Stone Age
   - item:
-      uniqueId: Charcoal
-      categoryId: Fuels
-      ageId: StoneAge
+      itemId: ItemCharcoal
+      categoryId: CategoryFuels
+      ageId: AgeStone
       displayName: Charcoal
       description: Wood with all the moisture removed
       unitsPerCubicMetre: 1
@@ -40,9 +40,9 @@ item-base:
       packFactor: 0.35
 
   - item:
-      uniqueId: Pottery
-      categoryId: Crafts
-      ageId: StoneAge
+      itemId: ItemPottery
+      categoryId: CategoryCrafts
+      ageId: AgeStone
       displayName: Pottery
       description: Pottery
       unitsPerCubicMetre: 150
@@ -52,9 +52,9 @@ item-base:
       packFactor: 0.55
 
   - item:
-      uniqueId: Pigments
-      categoryId: Crafts
-      ageId: StoneAge
+      itemId: ItemPigments
+      categoryId: CategoryCrafts
+      ageId: AgeStone
       displayName: Pigments
       description: Pigments
       unitsPerCubicMetre: 1000
@@ -64,9 +64,9 @@ item-base:
       packFactor: 0.45
 
   - item:
-      uniqueId: Slaves
-      categoryId: Unknown
-      ageId: StoneAge
+      itemId: ItemSlaves
+      categoryId: CategoryUnknown
+      ageId: AgeStone
       displayName: Slaves
       description: Slaves
       unitsPerCubicMetre: 7
@@ -76,9 +76,9 @@ item-base:
       packFactor: 0.45
 
   - item:
-      uniqueId: ArdPlough
-      categoryId: FarmingEquipment
-      ageId: StoneAge
+      itemId: ItemArdPlough
+      categoryId: CategoryFarmingEquipment
+      ageId: AgeStone
       displayName: Ard Plough
       description: ArdPlough
       unitsPerCubicMetre: 25
@@ -89,9 +89,9 @@ item-base:
 
   # Copper Age
   - item:
-      uniqueId: Flour
-      categoryId: Consumables
-      ageId: CopperAge
+      itemId: ItemFlour
+      categoryId: CategoryConsumables
+      ageId: AgeCopper
       displayName: Flour
       description: Flour
       unitsPerCubicMetre: 1
@@ -101,9 +101,9 @@ item-base:
       packFactor: 0.38
 
   - item:
-      uniqueId: Bread
-      categoryId: Consumables
-      ageId: CopperAge
+      itemId: ItemBread
+      categoryId: CategoryConsumables
+      ageId: AgeCopper
       displayName: Bread
       description: Bread
       unitsPerCubicMetre: 1
@@ -113,9 +113,9 @@ item-base:
       packFactor: 0.27
 
   - item:
-      uniqueId: Beer
-      categoryId: Ferments
-      ageId: CopperAge
+      itemId: ItemBeer
+      categoryId: CategoryFerments
+      ageId: AgeCopper
       displayName: Beer
       description: Beer
       unitsPerCubicMetre: 1
@@ -125,9 +125,9 @@ item-base:
       packFactor: 0.75
 
   - item:
-      uniqueId: Wine
-      categoryId: Ferments
-      ageId: CopperAge
+      itemId: ItemWine
+      categoryId: CategoryFerments
+      ageId: AgeCopper
       displayName: Wine
       description: Wine
       unitsPerCubicMetre: 1
@@ -139,9 +139,9 @@ item-base:
   # Bronze Age
 
   - item:
-      uniqueId: Jewellry
-      categoryId: LuxuryGoods
-      ageId: BronzeAge
+      itemId: ItemJewellry
+      categoryId: CategoryLuxuryGoods
+      ageId: AgeBronze
       displayName: Jewellry
       description: Jewellry
       unitsPerCubicMetre: 40000
@@ -152,9 +152,9 @@ item-base:
 
   # Iron Age
   - item:
-      uniqueId: Parchment
-      categoryId: Writing
-      ageId: IronAge
+      itemId: ItemParchment
+      categoryId: CategoryWriting
+      ageId: AgeIron
       displayName: Parchment
       description: Parchment
       unitsPerCubicMetre: 20000
@@ -164,9 +164,9 @@ item-base:
       packFactor: 0.73
 
   - item:
-      uniqueId: Papyrus
-      categoryId: Writing
-      ageId: IronAge
+      itemId: ItemPapyrus
+      categoryId: CategoryWriting
+      ageId: AgeIron
       displayName: Papyrus
       description: Papyrus
       unitsPerCubicMetre: 50000
@@ -176,9 +176,9 @@ item-base:
       packFactor: 0.78
 
   - item:
-      uniqueId: Ink
-      categoryId: Writing
-      ageId: IronAge
+      itemId: ItemInk
+      categoryId: CategoryWriting
+      ageId: AgeIron
       displayName: Ink
       description: Ink
       unitsPerCubicMetre: 1
@@ -188,9 +188,9 @@ item-base:
       packFactor: 0.8
 
   - item:
-      uniqueId: Vinegar
-      categoryId: Ferments
-      ageId: IronAge
+      itemId: ItemVinegar
+      categoryId: CategoryFerments
+      ageId: AgeIron
       displayName: Vinegar
       description: Vinegar
       unitsPerCubicMetre: 1
@@ -200,9 +200,9 @@ item-base:
       packFactor: 0.8
 
   - item:
-      uniqueId: Shaduf
-      categoryId: FarmingEquipment
-      ageId: IronAge
+      itemId: ItemShaduf
+      categoryId: CategoryFarmingEquipment
+      ageId: AgeIron
       displayName: Shaduf
       description: Water transporting equipment
       unitsPerCubicMetre: 12
@@ -214,9 +214,9 @@ item-base:
   # Classical Age
 
   - item:
-      uniqueId: Maths
-      categoryId: Information
-      ageId: ClassicalAge
+      itemId: ItemMaths
+      categoryId: CategoryInformation
+      ageId: AgeClassical
       displayName: Maths
       description: Knowledge of maths
       unitsPerCubicMetre: 500
@@ -226,9 +226,9 @@ item-base:
       packFactor: 0.85
 
   - item:
-      uniqueId: Antikythera
-      categoryId: Engineering
-      ageId: ClassicalAge
+      itemId: ItemAntikythera
+      categoryId: CategoryEngineering
+      ageId: AgeClassical
       displayName: Antikythera
       description: Device for mapping the stars
       unitsPerCubicMetre: 4000
@@ -238,9 +238,9 @@ item-base:
       packFactor: 0.45
 
   - item:
-      uniqueId: Astrolabe
-      categoryId: Engineering
-      ageId: ClassicalAge
+      itemId: ItemAstrolabe
+      categoryId: CategoryEngineering
+      ageId: AgeClassical
       displayName: Astrolabe
       description: Device for mapping the stars
       unitsPerCubicMetre: 2000
@@ -250,9 +250,9 @@ item-base:
       packFactor: 0.5
 
   - item:
-      uniqueId: Chemistry
-      categoryId: Information
-      ageId: ClassicalAge
+      itemId: ItemChemistry
+      categoryId: CategoryInformation
+      ageId: AgeClassical
       displayName: Chemistry
       description: Knowledge of chemistry
       unitsPerCubicMetre: 500
@@ -262,9 +262,9 @@ item-base:
       packFactor: 0.85
 
   - item:
-      uniqueId: Clock
-      categoryId: Engineering
-      ageId: ClassicalAge
+      itemId: ItemClock
+      categoryId: CategoryEngineering
+      ageId: AgeClassical
       displayName: Clock
       description: A time-keeping instrument e.g. pocket watch, grandfather clock
       unitsPerCubicMetre: 200
@@ -274,9 +274,9 @@ item-base:
       packFactor: 0.6
 
   - item:
-      uniqueId: Ceramics
-      categoryId: Crafts
-      ageId: ClassicalAge
+      itemId: ItemCeramics
+      categoryId: CategoryCrafts
+      ageId: AgeClassical
       displayName: Ceramics
       description: Ceramics
       unitsPerCubicMetre: 300
@@ -286,9 +286,9 @@ item-base:
       packFactor: 0.55
 
   - item:
-      uniqueId: Books
-      categoryId: Writing
-      ageId: ClassicalAge
+      itemId: ItemBooks
+      categoryId: CategoryWriting
+      ageId: AgeClassical
       displayName: Books
       description: Bound volumes containing sheets of paper or parchment
       unitsPerCubicMetre: 2000
@@ -298,9 +298,9 @@ item-base:
       packFactor: 0.85
 
   - item:
-      uniqueId: Scrolls
-      categoryId: Writing
-      ageId: ClassicalAge
+      itemId: ItemScrolls
+      categoryId: CategoryWriting
+      ageId: AgeClassical
       displayName: Scrolls
       description: Single texts wrapped in a cylinder with a sheath for protection
       unitsPerCubicMetre: 1000
@@ -310,9 +310,9 @@ item-base:
       packFactor: 0.6
 
   - item:
-      uniqueId: Leatherhides
-      categoryId: AnimalProducts
-      ageId: ClassicalAge
+      itemId: ItemLeatherhides
+      categoryId: CategoryAnimalProducts
+      ageId: AgeClassical
       displayName: Leather hides
       description: The tanned leather hides of animals
       unitsPerCubicMetre: 100
@@ -322,9 +322,9 @@ item-base:
       packFactor: 0.8
 
   - item:
-      uniqueId: Furs
-      categoryId: AnimalProducts
-      ageId: ClassicalAge
+      itemId: ItemFurs
+      categoryId: CategoryAnimalProducts
+      ageId: AgeClassical
       displayName: Furs
       description: The skinned fur of an animal
       unitsPerCubicMetre: 150
@@ -334,9 +334,9 @@ item-base:
       packFactor: 0.6
 
   - item:
-      uniqueId: Glassware
-      categoryId: Crafts
-      ageId: ClassicalAge
+      itemId: ItemGlassware
+      categoryId: CategoryCrafts
+      ageId: AgeClassical
       displayName: Glassware
       description: Blown glass vessels
       unitsPerCubicMetre: 400
@@ -346,9 +346,9 @@ item-base:
       packFactor: 0.05
 
   - item:
-      uniqueId: Cement
-      categoryId: ConstructionMaterials
-      ageId: ClassicalAge
+      itemId: ItemCement
+      categoryId: CategoryConstructionMaterials
+      ageId: AgeClassical
       displayName: Cement
       description: Burnt and crushed limestone
       unitsPerCubicMetre: 1
@@ -358,9 +358,9 @@ item-base:
       packFactor: 0.42
 
   - item:
-      uniqueId: Still
-      categoryId: ScientificEquipment
-      ageId: ClassicalAge
+      itemId: ItemStill
+      categoryId: CategoryScientificEquipment
+      ageId: AgeClassical
       displayName: Still
       description: Distillation equipment
       unitsPerCubicMetre: 2
@@ -370,9 +370,9 @@ item-base:
       packFactor: 0.04
 
   - item:
-      uniqueId: Screws
-      categoryId: ConstructionMaterials
-      ageId: ClassicalAge
+      itemId: ItemScrews
+      categoryId: CategoryConstructionMaterials
+      ageId: AgeClassical
       displayName: Screws
       description: Screws
       unitsPerCubicMetre: 100000
@@ -382,9 +382,9 @@ item-base:
       packFactor: 0.06
 
   - item:
-      uniqueId: Compass
-      categoryId: ScientificEquipment
-      ageId: ClassicalAge
+      itemId: ItemCompass
+      categoryId: CategoryScientificEquipment
+      ageId: AgeClassical
       displayName: Compass
       description: Compass
       unitsPerCubicMetre: 2000
@@ -394,9 +394,9 @@ item-base:
       packFactor: 0.5
 
   - item:
-      uniqueId: Coins
-      categoryId: Collectibles
-      ageId: ClassicalAge
+      itemId: ItemCoins
+      categoryId: CategoryCollectibles
+      ageId: AgeClassical
       displayName: Coins
       description: Local currency
       unitsPerCubicMetre: 500000
@@ -406,9 +406,9 @@ item-base:
       packFactor: 0.4
 
   - item:
-      uniqueId: Soap
-      categoryId: Consumables
-      ageId: ClassicalAge
+      itemId: ItemSoap
+      categoryId: CategoryConsumables
+      ageId: AgeClassical
       displayName: Soap
       description: Soap
       unitsPerCubicMetre: 9000
@@ -420,9 +420,9 @@ item-base:
   # Medieval Age
 
   - item:
-      uniqueId: Physics
-      categoryId: Information
-      ageId: MedievalAge
+      itemId: ItemPhysics
+      categoryId: CategoryInformation
+      ageId: AgeMedieval
       displayName: Physics
       description: Knowledge of Physics
       unitsPerCubicMetre: 500
@@ -432,9 +432,9 @@ item-base:
       packFactor: 0.85
 
   - item:
-      uniqueId: Microscope
-      categoryId: ScientificEquipment
-      ageId: MedievalAge
+      itemId: ItemMicroscope
+      categoryId: CategoryScientificEquipment
+      ageId: AgeMedieval
       displayName: Microscope
       description: Microscope
       unitsPerCubicMetre: 200
@@ -466,9 +466,9 @@ item-base:
 
   # Uncategorised
   - item:
-      uniqueId: HomeAppliances
-      categoryId: Appliances
-      ageId: Post-industrialAge
+      itemId: ItemHomeAppliances
+      categoryId: CategoryAppliances
+      ageId: AgePost-industrial
       displayName: Home Appliances
       description: Typical modern home appliances e.g. fridge, oven, washing machine
       unitsPerCubicMetre: 1
@@ -478,9 +478,9 @@ item-base:
       packFactor: 0.85
 
   - item:
-      uniqueId: Electronics
-      categoryId: Electronics
-      ageId: InformationAge
+      itemId: ItemElectronics
+      categoryId: CategoryElectronics
+      ageId: AgeInformation
       displayName: Electronics
       description: Televisions, phones, tablets, game consoles
       unitsPerCubicMetre: 800
@@ -490,9 +490,9 @@ item-base:
       packFactor: 0.55
 
   - item:
-      uniqueId: Antibiotics
-      categoryId: Medicine
-      ageId: Post-industrialAge
+      itemId: ItemAntibiotics
+      categoryId: CategoryMedicine
+      ageId: AgePost-industrial
       displayName: Antibiotics
       description: Antibiotics
       unitsPerCubicMetre: 1140
@@ -502,9 +502,9 @@ item-base:
       packFactor: 0.4
 
   - item:
-      uniqueId: Anesthetics
-      categoryId: Medicine
-      ageId: IndustrialAge
+      itemId: ItemAnesthetics
+      categoryId: CategoryMedicine
+      ageId: AgeIndustrial
       displayName: Anesthetics
       description: Anesthetics
       unitsPerCubicMetre: 1200
@@ -514,9 +514,9 @@ item-base:
       packFactor: 0.45
 
   - item:
-      uniqueId: Analgesics
-      categoryId: Medicine
-      ageId: IndustrialAge
+      itemId: ItemAnalgesics
+      categoryId: CategoryMedicine
+      ageId: AgeIndustrial
       displayName: Analgesics
       description: Analgesics
       unitsPerCubicMetre: 1300
@@ -526,9 +526,9 @@ item-base:
       packFactor: 0.5
 
   - item:
-      uniqueId: Gems
-      categoryId: LuxuryGoods
-      ageId: StoneAge
+      itemId: ItemGems
+      categoryId: CategoryLuxuryGoods
+      ageId: AgeStone
       displayName: Gems
       description: Gems
       unitsPerCubicMetre: 3500000
@@ -538,9 +538,9 @@ item-base:
       packFactor: 0.65
 
   - item:
-      uniqueId: Diamonds
-      categoryId: LuxuryGoods
-      ageId: StoneAge
+      itemId: ItemDiamonds
+      categoryId: CategoryLuxuryGoods
+      ageId: AgeStone
       displayName: Diamonds
       description: Diamonds
       unitsPerCubicMetre: 3510000
@@ -550,9 +550,9 @@ item-base:
       packFactor: 0.55
 
   - item:
-      uniqueId: FineArt
-      categoryId: LuxuryGoods
-      ageId: ClassicalAge
+      itemId: ItemFineArt
+      categoryId: CategoryLuxuryGoods
+      ageId: AgeClassical
       displayName: Fine Art
       description: Fine art
       unitsPerCubicMetre: 15

@@ -5,8 +5,8 @@ cd "$(dirname "$0")"
 
 # The files that define the game: the ages, the categories, every item and every
 # node of the skill tree. Every one of them is a complete YAML document that yq
-# loads on its own, and the files refer to each other by uniqueId - the categoryId
-# and ageId of an item names a category and an age, the skillId and itemId of a
+# loads on its own, and the files refer to each other by id - the categoryId and
+# ageId of an item names a category and an age, the skillId and itemId of a
 # game-mode file name a node and a good - and never by anchors. Nothing has to
 # survive the trip from one file to the next, so any yq v4 builds the game.
 DEFINITIONS=(
@@ -35,11 +35,11 @@ DEFINITIONS=(
 #
 #   .ages         the ages, in age order
 #   .categories   the categories
-#   .items        a map from uniqueId to the item definition
-#   .skills       a map from uniqueId to the skill definition
+#   .items        a map from itemId to the item definition
+#   .skills       a map from skillId to the skill definition
 #
 # The items and the skills are maps, not lists, because a game-mode file names a
-# definition by uniqueId: *itemGold in the old merge is Gold in the game-mode file
+# definition by id: *itemGold in the old merge is Gold in the game-mode file
 # and $defs.items["Gold"] here. The *-base keys are read here and never copied to
 # the output, so every key of a generated file appears exactly once.
 #
@@ -51,8 +51,8 @@ registry_expression='
   . as $doc ireduce ({};
       .ages       += ($doc.ages // [])
     | .categories += ($doc.categories // [])
-    | .items      += (($doc["item-base"]  // []) | map(.item)  | map({"key": .uniqueId, "value": .}) | from_entries)
-    | .skills     += (($doc["skill-base"] // []) | map(.skill) | map({"key": .uniqueId, "value": .}) | from_entries))
+    | .items      += (($doc["item-base"]  // []) | map(.item)  | map({"key": .itemId,  "value": .}) | from_entries)
+    | .skills     += (($doc["skill-base"] // []) | map(.skill) | map({"key": .skillId, "value": .}) | from_entries))
 '
 
 # Merge one game-mode file with the lookup: every skillId and itemId of the file
@@ -89,18 +89,19 @@ check_references() {
   fi
 }
 
-# Two definitions with the same uniqueId: the map keeps the one read last, so the
-# second quietly shadows the first, and the game loses one item, one skill. The
-# ids of every file are counted here, so the shadowing names itself at the build.
+# Two definitions with the same itemId, or two with the same skillId: the map keeps
+# the one read last, so the second quietly shadows the first, and the game loses one
+# item, one skill. The ids of every file are counted here, so the shadowing names
+# itself at the build.
 check_unique_ids() {
   local duplicate
   duplicate=$(
     for file in "${DEFINITIONS[@]}"; do
-      yq '.["item-base"][]?.item.uniqueId, .["skill-base"][]?.skill.uniqueId' "$file"
+      yq '.["item-base"][]?.item.itemId, .["skill-base"][]?.skill.skillId' "$file"
     done | sort | uniq -d
   )
   if [[ -n "$duplicate" ]]; then
-    printf 'build.sh: two definitions share a uniqueId:\n%s\n' "$duplicate" >&2
+    printf 'build.sh: two definitions share an id:\n%s\n' "$duplicate" >&2
     exit 1
   fi
 }

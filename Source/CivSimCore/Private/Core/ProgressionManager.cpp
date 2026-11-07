@@ -98,50 +98,50 @@ bool ProgressionManager::RegisterNode(const SkillNode &Node, std::string &ErrorM
 {
 	ErrorMessage.clear();
 
-	if (Node.uniqueId.empty())
+	if (Node.skillId.empty())
 	{
-		ErrorMessage = "a skill node needs a uniqueId.";
+		ErrorMessage = "a skill node needs a skillId.";
 		return false;
 	}
 
-	if (registry.find(Node.uniqueId) != registry.end())
+	if (registry.find(Node.skillId) != registry.end())
 	{
-		ErrorMessage = "skill '" + Node.uniqueId + "' is registered twice.";
+		ErrorMessage = "skill '" + Node.skillId + "' is registered twice.";
 		return false;
 	}
 
 	if (Node.maxTiers < 1)
 	{
-		ErrorMessage = "skill '" + Node.uniqueId + "' has maxTiers " + std::to_string(Node.maxTiers) +
+		ErrorMessage = "skill '" + Node.skillId + "' has maxTiers " + std::to_string(Node.maxTiers) +
 		               ": at least 1 is required.";
 		return false;
 	}
 
 	if (Node.resourceCostPerTier < 0)
 	{
-		ErrorMessage = "skill '" + Node.uniqueId + "' has a negative resourceCostPerTier (" +
+		ErrorMessage = "skill '" + Node.skillId + "' has a negative resourceCostPerTier (" +
 		               std::to_string(Node.resourceCostPerTier) + ").";
 		return false;
 	}
 
 	for (const auto &prerequisite : Node.requiredSkills)
 	{
-		if (prerequisite.nodeId == Node.uniqueId)
+		if (prerequisite.nodeId == Node.skillId)
 		{
-			ErrorMessage = "skill '" + Node.uniqueId + "' requires itself.";
+			ErrorMessage = "skill '" + Node.skillId + "' requires itself.";
 			return false;
 		}
 
 		if (prerequisite.requiredTier < 1)
 		{
-			ErrorMessage = "skill '" + Node.uniqueId + "' requires tier " +
+			ErrorMessage = "skill '" + Node.skillId + "' requires tier " +
 			               std::to_string(prerequisite.requiredTier) + " of '" + prerequisite.nodeId +
 			               "': a prerequisite needs at least tier 1.";
 			return false;
 		}
 	}
 
-	registry[Node.uniqueId] = Node;
+	registry[Node.skillId] = Node;
 
 	return true;
 }
@@ -313,7 +313,7 @@ std::string ProgressionManager::UpgradeBlockReason(const std::string &NodeId) co
 
 	if (currentTier >= node.maxTiers)
 	{
-		return "already at tier " + std::to_string(node.maxTiers) + " of " + node.uniqueId + ".";
+		return "already at tier " + std::to_string(node.maxTiers) + " of " + node.skillId + ".";
 	}
 
 	if (IsNodeLockedOut(NodeId))
@@ -442,7 +442,7 @@ std::string ProgressionManager::Describe(const std::string &NodeId) const
 	const SkillNode &node = entry->second;
 
 	std::ostringstream line;
-	line << node.uniqueId << " tier " << GetCurrentTier(NodeId) << "/" << node.maxTiers << " cost "
+	line << node.skillId << " tier " << GetCurrentTier(NodeId) << "/" << node.maxTiers << " cost "
 	     << node.resourceCostPerTier << "/tier";
 
 	if (!node.requiredSkills.empty())

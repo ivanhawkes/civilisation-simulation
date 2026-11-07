@@ -8,11 +8,11 @@ namespace
 const char *const agesYaml = R"YAML(
 ages:
   - age:
-      uniqueId: StoneAge
+      ageId: AgeStone
       displayName: Stone Age
       description: Stone age
   - age:
-      uniqueId: CopperAge
+      ageId: AgeCopper
       displayName: Copper Age
       description: Copper Age
 )YAML";
@@ -20,23 +20,23 @@ ages:
 const char *const categoriesYaml = R"YAML(
 categories:
   - category:
-      uniqueId: Metals
+      categoryId: CategoryMetals
       displayName: Metals
       type: Metal
       description: Metal goods
   - category:
-      uniqueId: Unknown
+      categoryId: CategoryUnknown
       displayName: Unknown
 )YAML";
 
 const char *const gameModeYaml = R"YAML(
 items:
   - item:
-      uniqueId: Copper
+      itemId: ItemCopper
       displayName: Copper
       description: Copper ingots
-      categoryId: Metals
-      ageId: CopperAge
+      categoryId: CategoryMetals
+      ageId: AgeCopper
       unitsPerCubicMetre: 1
       basePrice: 5.6312
       unitType: Kilogram
@@ -44,7 +44,7 @@ items:
       packFactor: 1.0
 skills:
   - skill:
-      uniqueId: Mining
+      skillId: SkillMining
       displayName: Mining
       description: Extracts resources
       nodeType: Skill
@@ -56,12 +56,12 @@ skills:
       gridX: 0.0
       gridY: 0.0
   - skill:
-      uniqueId: Smelting
+      skillId: SkillSmelting
       displayName: Smelting
       nodeType: Tech
       maxTiers: 4
       requires:
-        - nodeId: Mining
+        - nodeId: SkillMining
           requiredTier: 2
       resourceCostPerTier: 2
       targetEffectID: SmelterOutput
@@ -82,7 +82,7 @@ TEST_CASE(ages_load_and_replace)
 	CHECK(CivSimCore::LoadConfigAges(file.Path(), ages, errorMessage));
 	CHECK_EQ(errorMessage, std::string());
 	CHECK_EQ(ages.size(), std::size_t(2));
-	CHECK_EQ(ages[0].uniqueId, std::string("StoneAge"));
+	CHECK_EQ(ages[0].ageId, std::string("AgeStone"));
 	CHECK_EQ(ages[1].description, std::string("Copper Age"));
 
 	// The loader replaces the container: loading twice must not double the entries.
@@ -105,8 +105,9 @@ TEST_CASE(categories_load_and_replace)
 	CHECK_EQ(categories[0].type, std::string("Metal"));
 	CHECK_EQ(categories[0].description, std::string("Metal goods"));
 
-	// The type and description fall back to the identity of the category.
-	CHECK_EQ(categories[1].type, std::string("Unknown"));
+	// The type and description fall back to the identity of the category: the type to
+	// its categoryId, the description to its displayName.
+	CHECK_EQ(categories[1].type, std::string("CategoryUnknown"));
 	CHECK_EQ(categories[1].description, std::string("Unknown"));
 
 	CHECK(CivSimCore::LoadConfigCategories(file.Path(), categories, errorMessage));
@@ -124,15 +125,15 @@ TEST_CASE(game_mode_loads_items_and_skills)
 	CHECK_EQ(gameMode.items.size(), std::size_t(1));
 	CHECK_EQ(gameMode.skills.size(), std::size_t(2));
 
-	CHECK_EQ(gameMode.items[0].categoryId, std::string("Metals"));
-	CHECK_EQ(gameMode.items[0].ageId, std::string("CopperAge"));
+	CHECK_EQ(gameMode.items[0].categoryId, std::string("CategoryMetals"));
+	CHECK_EQ(gameMode.items[0].ageId, std::string("AgeCopper"));
 	CHECK_EQ(gameMode.items[0].basePrice, std::string("5.6312"));
 
 	CHECK_EQ(gameMode.skills[0].maxTiers, 5);
 	CHECK_EQ(gameMode.skills[0].nodeType, CivSimCore::NodeType::Skill);
 	CHECK_EQ(gameMode.skills[1].nodeType, CivSimCore::NodeType::Tech);
 	CHECK_EQ(gameMode.skills[1].requiredSkills.size(), std::size_t(1));
-	CHECK_EQ(gameMode.skills[1].requiredSkills[0].nodeId, std::string("Mining"));
+	CHECK_EQ(gameMode.skills[1].requiredSkills[0].nodeId, std::string("SkillMining"));
 	CHECK_EQ(gameMode.skills[1].requiredSkills[0].requiredTier, 2);
 	CHECK_NEAR(gameMode.skills[0].gridX, 0.0f, 0.001f);
 	CHECK_NEAR(gameMode.skills[1].gridX, 1.0f, 0.001f);
@@ -150,24 +151,24 @@ TEST_CASE(yaml_null_is_not_a_value)
 	const char *const yaml = R"YAML(
 skills:
   - skill:
-      uniqueId: Plain
+      skillId: Plain
       nullTarget: null
       targetEffectID: null
       exclusiveGroupId: null
   - skill:
-      uniqueId: Tilde
+      skillId: Tilde
       targetEffectID: ~
       exclusiveGroupId: ~
   - skill:
-      uniqueId: Capital
+      skillId: Capital
       targetEffectID: NULL
       exclusiveGroupId: Null
   - skill:
-      uniqueId: Empty
+      skillId: Empty
       targetEffectID:
       exclusiveGroupId:
   - skill:
-      uniqueId: Quoted
+      skillId: Quoted
       targetEffectID: "null"
       exclusiveGroupId: "null"
 items: []
@@ -185,7 +186,7 @@ items: []
 	{
 		CHECK_EQ(skill.targetEffectID, std::string());
 		CHECK_EQ(skill.exclusiveGroupId, std::string());
-		CHECK_EQ(skill.displayName, skill.uniqueId);
+		CHECK_EQ(skill.displayName, skill.skillId);
 		CHECK_EQ(skill.maxTiers, 1);
 		CHECK_EQ(skill.resourceCostPerTier, 1);
 	}
@@ -196,10 +197,10 @@ TEST_CASE(missing_required_field_reports_the_entry)
 	const char *const yaml = R"YAML(
 ages:
   - age:
-      uniqueId: StoneAge
+      ageId: AgeStone
       displayName: Stone Age
   - age:
-      uniqueId: CopperAge
+      ageId: AgeCopper
 )YAML";
 
 	const civtest::TempFile file(yaml);
@@ -220,7 +221,7 @@ TEST_CASE(mistyped_field_reports_the_value)
 	const char *const yaml = R"YAML(
 skills:
   - skill:
-      uniqueId: Mining
+      skillId: SkillMining
       maxTiers: three
 items: []
 )YAML";
@@ -299,7 +300,7 @@ TEST_CASE(item_links_are_optional_metadata)
 	const char *const withoutLinks = R"YAML(
 items:
   - item:
-      uniqueId: Copper
+      itemId: ItemCopper
       displayName: Copper
       basePrice: 5.63
 skills: []
@@ -322,7 +323,7 @@ TEST_CASE(null_in_a_required_field_is_a_load_error)
 	const char *const yaml = R"YAML(
 items:
   - item:
-      uniqueId: null
+      itemId: null
       displayName: Copper
       basePrice: 5.63
 skills: []
@@ -335,7 +336,7 @@ skills: []
 
 	CHECK(!CivSimCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
 	CHECK_CONTAINS(errorMessage, "items[0]");
-	CHECK_CONTAINS(errorMessage, "uniqueId");
+	CHECK_CONTAINS(errorMessage, "itemId");
 }
 
 TEST_CASE(bad_node_type_is_reported)
@@ -343,7 +344,7 @@ TEST_CASE(bad_node_type_is_reported)
 	const char *const yaml = R"YAML(
 skills:
   - skill:
-      uniqueId: Mining
+      skillId: SkillMining
       nodeType: Magic
 items: []
 )YAML";
@@ -363,7 +364,7 @@ TEST_CASE(requires_must_be_a_sequence)
 	const char *const yaml = R"YAML(
 skills:
   - skill:
-      uniqueId: Mining
+      skillId: SkillMining
       requires: Mining
 items: []
 )YAML";

@@ -36,8 +36,16 @@ constexpr const char *kSystemSuffixes[] = {"Prime",   "Alpha", "Beta", "Gamma", 
 // from one that can. The ids are the loaded categories, so a good in an unknown category
 // is wanted at the ordinary rate.
 constexpr const char *kEssentialCategories[] = {
-    "Water", "Consumables", "Medicine", "Pharmaceuticals", "MedicalEquipment",
-    "Drugs", "Seeds",       "Fuels",    "Information",     "Writing"};
+    "CategoryWater",
+    "CategoryConsumables",
+    "CategoryMedicine",
+    "CategoryPharmaceuticals",
+    "CategoryMedicalEquipment",
+    "CategoryDrugs",
+    "CategorySeeds",
+    "CategoryFuels",
+    "CategoryInformation",
+    "CategoryWriting"};
 
 double Clamp(double Value, double Low, double High)
 {
@@ -80,7 +88,7 @@ bool IsEssentialDemand(const std::string &CategoryId)
 	return false;
 }
 
-// The age each good belongs in, keyed by the age's uniqueId. The merged documents write
+// The age each good belongs in, keyed by the age's ageId. The merged documents write
 // the age link out of the age anchor each item carries, so the link is a plain field by
 // the time the loader is done with it, and it is optional: a good with no age of its own
 // is in range at every age.
@@ -90,7 +98,7 @@ std::map<std::string, std::size_t> BuildAgeRanks(const std::vector<AgeNode> &Age
 
 	for (std::size_t index = 0; index < Ages.size(); ++index)
 	{
-		ranks[Ages[index].uniqueId] = index;
+		ranks[Ages[index].ageId] = index;
 	}
 
 	return ranks;
@@ -232,7 +240,7 @@ bool Simulation::Generate(
 	categoryIds.reserve(categories.size());
 	for (const auto &category : categories)
 	{
-		categoryIds.push_back(category.uniqueId);
+		categoryIds.push_back(category.categoryId);
 	}
 
 	for (unsigned index = 0; index < Options.civilisationCount; ++index)
@@ -259,7 +267,7 @@ bool Simulation::Generate(
 		}
 
 		civ.ageIndex = ageIndex;
-		civ.ageId = ages[ageIndex].uniqueId;
+		civ.ageId = ages[ageIndex].ageId;
 
 		const double era = 1.0 + static_cast<double>(ageIndex);
 
@@ -278,8 +286,8 @@ bool Simulation::Generate(
 		    shuffledCategories.begin() + static_cast<std::ptrdiff_t>(specialtyTotal));
 
 		// A later age makes a wider range of goods: the deck holds the goods this world's
-		// age can make, so a StoneAge world does not print antibiotics, and the goods of an
-		// unknown age are in every deck.
+		// age can make, so a world at AgeStone does not print antibiotics, and the goods of
+		// an unknown age are in every deck.
 		std::vector<std::size_t> goodsDeck;
 		goodsDeck.reserve(items.size());
 		for (std::size_t item = 0; item < items.size(); ++item)
@@ -301,18 +309,18 @@ bool Simulation::Generate(
 			const ItemNode &item = items[goodsDeck[made]];
 			const double units = productivity(engine) * era * civ.population;
 
-			civ.production[item.uniqueId] = units;
-			civ.stockpile[item.uniqueId] = units * 8.0;
+			civ.production[item.itemId] = units;
+			civ.stockpile[item.itemId] = units * 8.0;
 		}
 
 		for (const auto &item : items)
 		{
-			const auto made = civ.production.find(item.uniqueId);
+			const auto made = civ.production.find(item.itemId);
 			if (made != civ.production.end())
 			{
 				// A world consumes part of what it makes, leaving the surplus to trade.
 				std::uniform_real_distribution<double> selfUse(0.2, 0.6);
-				civ.demand[item.uniqueId] = made->second * selfUse(engine);
+				civ.demand[item.itemId] = made->second * selfUse(engine);
 
 				continue;
 			}
@@ -323,10 +331,10 @@ bool Simulation::Generate(
 			const double weight = IsEssentialDemand(item.categoryId) ? kEssentialDemandWeight : 1.0;
 			const double need = civ.population * needDraw(engine) * weight;
 
-			civ.demand[item.uniqueId] = need;
+			civ.demand[item.itemId] = need;
 
 			// A starting inventory, so a world does not open every tick in shortage.
-			civ.stockpile[item.uniqueId] = need * 4.0;
+			civ.stockpile[item.itemId] = need * 4.0;
 		}
 
 		civ.treasury = static_cast<long long>(500.0 * era * civ.population);
@@ -389,7 +397,7 @@ const ItemNode *Simulation::FindItem(const std::string &ItemId) const
 {
 	for (const auto &item : items)
 	{
-		if (item.uniqueId == ItemId)
+		if (item.itemId == ItemId)
 		{
 			return &item;
 		}
@@ -488,7 +496,7 @@ std::vector<TradeRoute> Simulation::PlanTrade(unsigned Limit) const
 
 	for (const auto &item : items)
 	{
-		const std::string &itemId = item.uniqueId;
+		const std::string &itemId = item.itemId;
 
 		const Civilisation *seller = nullptr;
 		const Civilisation *buyer = nullptr;
@@ -653,7 +661,7 @@ double Simulation::GetPriceIndex() const
 			continue;
 		}
 
-		ratioTotal += GetPrice(item.uniqueId) / basePrice;
+		ratioTotal += GetPrice(item.itemId) / basePrice;
 		++counted;
 	}
 

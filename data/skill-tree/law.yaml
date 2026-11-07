@@ -28,7 +28,7 @@
 skill-base:
 
   - skill:
-      uniqueId: LawAdmiraltyWarrant
+      skillId: SkillLawAdmiraltyWarrant
       displayName: Admiralty Warrant
       description: The licence that makes a raider a privateer and the prize a profit
       nodeType: Skill
@@ -41,12 +41,12 @@ skill-base:
       gridY: -2.0
 
   - skill:
-      uniqueId: LawPiratePardon
+      skillId: SkillLawPiratePardon
       displayName: Pirate Pardon
       description: The terms that bring a crew back inside the law and keep it there
       nodeType: Skill
       requires:
-        - nodeId: LawAdmiraltyWarrant
+        - nodeId: SkillLawAdmiraltyWarrant
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 2
@@ -56,12 +56,12 @@ skill-base:
       gridY: -2.0
 
   - skill:
-      uniqueId: LawTribunal
+      skillId: SkillLawTribunal
       displayName: Trade Tribunal
       description: The bench that prices a licence, settles a cargo and names a pirate
       nodeType: Skill
       requires:
-        - nodeId: LawAdmiraltyWarrant
+        - nodeId: SkillLawAdmiraltyWarrant
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 3
@@ -71,7 +71,7 @@ skill-base:
       gridY: -2.0
 
   - skill:
-      uniqueId: LawPirateStanding
+      skillId: SkillLawPirateStanding
       displayName: Standing Among The Crews
       description: The word that buys a passage, a warning and a fence's silence
       nodeType: Skill

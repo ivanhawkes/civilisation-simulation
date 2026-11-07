@@ -26,12 +26,12 @@
 skill-base:
 
   - skill:
-      uniqueId: HabitatDomes
+      skillId: SkillHabitatDomes
       displayName: Habitat Domes
       description: The pressure shells, the spacers and the land they stand on
       nodeType: Skill
       requires:
-        - nodeId: SpaceColonisationAge
+        - nodeId: AgeSpaceColonisation
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 3
@@ -41,12 +41,12 @@ skill-base:
       gridY: 3.0
 
   - skill:
-      uniqueId: HabitatClosedLoop
+      skillId: SkillHabitatClosedLoop
       displayName: Closed Life Support Loop
       description: The air, water and crops that recycle a dome into a place to live
       nodeType: Skill
       requires:
-        - nodeId: HabitatDomes
+        - nodeId: SkillHabitatDomes
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 3
@@ -56,12 +56,12 @@ skill-base:
       gridY: 3.0
 
   - skill:
-      uniqueId: TerraformAtmosphere
+      skillId: SkillTerraformAtmosphere
       displayName: Atmospheric Works
       description: The gas, the pressure and the weather a bare rock has to be given
       nodeType: Skill
       requires:
-        - nodeId: HabitatClosedLoop
+        - nodeId: SkillHabitatClosedLoop
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 4
@@ -71,14 +71,14 @@ skill-base:
       gridY: 3.0
 
   - skill:
-      uniqueId: TerraformBiosphere
+      skillId: SkillTerraformBiosphere
       displayName: Biosphere Seeding
       description: The soil, the seed and the herd that make an atmosphere pay its way
       nodeType: Skill
       requires:
-        - nodeId: TerraformAtmosphere
+        - nodeId: SkillTerraformAtmosphere
           requiredTier: 1
-        - nodeId: Agriculture
+        - nodeId: SkillAgriculture
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 4

@@ -30,13 +30,13 @@ struct Civilisation
 	std::vector<std::string> specialties;
 
 	// Population in world units, not people: demand and production scale with it, and
-	// the era sets the ceiling, so a SublimationAge world dwarfs a StoneAge one.
+	// the era sets the ceiling, so a world at AgeSublimation dwarfs a world at AgeStone.
 	double population{1.0};
 	long long treasury{0}; // credits
 
 	// Item id -> units per tick. Production only lists the goods this economy makes, and
 	// what it can make is bounded by its age: the deck holds the goods whose ageId sits at
-	// this world's age index or earlier, so a StoneAge world has no antibiotics to make.
+	// this world's age index or earlier, so a world at AgeStone has no antibiotics to make.
 	// A good with no ageId is in every deck.
 	std::map<std::string, double> production;
 

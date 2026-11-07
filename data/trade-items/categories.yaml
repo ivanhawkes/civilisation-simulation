@@ -1,224 +1,224 @@
 ---
-# The categories of the trade goods, in alphabetical order by uniqueId.
+# The categories of the trade goods, in alphabetical order by categoryId.
 #
-# The uniqueId of a category is the value the categoryId of an item points at, and the
-# type weights the goods a world wants.
+# The categoryId of a category is the value the categoryId of an item points at, and
+# the type weights the goods a world wants.
 categories:
   # Fallback category
   - category:
-      uniqueId: Unknown
+      categoryId: CategoryUnknown
       displayName: Unknown
       type: Unknown
       description: Unknown, catch all for items that are outside our present taxonomy
 
   # Standard categories
   - category:
-      uniqueId: Alcohol
+      categoryId: CategoryAlcohol
       displayName: Alcohol
       type: Alcohol
       description: Fermented and distilled drinks
   - category:
-      uniqueId: Alloys
+      categoryId: CategoryAlloys
       displayName: Alloys
       type: Alloys
       description: A combination of two or more metals
   - category:
-      uniqueId: AnimalProducts
+      categoryId: CategoryAnimalProducts
       displayName: Animal Products
       type: AnimalProducts
       description: Animal products
   - category:
-      uniqueId: Animals
+      categoryId: CategoryAnimals
       displayName: Animals
       type: Animals
       description: Animals
   - category:
-      uniqueId: Appliances
+      categoryId: CategoryAppliances
       displayName: Appliances
       type: Appliances
       description: Household appliances
   - category:
-      uniqueId: Arms
+      categoryId: CategoryArms
       displayName: Arms
       type: Arms
       description: Heavy weapons and ammunition
   - category:
-      uniqueId: Chemicals
+      categoryId: CategoryChemicals
       displayName: Chemicals
       type: Chemicals
       description: Chemicals
   - category:
-      uniqueId: Collectibles
+      categoryId: CategoryCollectibles
       displayName: Collectibles
       type: Collectibles
       description: Collectibles of various kinds
   - category:
-      uniqueId: Communications
+      categoryId: CategoryCommunications
       displayName: Communications
       type: Communications
       description: Communications equipment
   - category:
-      uniqueId: Computing
+      categoryId: CategoryComputing
       displayName: Computing
       type: Computing
       description: Computer and micro-controllers
   - category:
-      uniqueId: ConstructionMaterials
+      categoryId: CategoryConstructionMaterials
       displayName: ConstructionMaterials
       type: ConstructionMaterials
       description: Construction materials
   - category:
-      uniqueId: Consumables
+      categoryId: CategoryConsumables
       displayName: Consumables
       type: Consumables
       description: Rations, meals, grains, vegetables, vitamins
   - category:
-      uniqueId: Crafts
+      categoryId: CategoryCrafts
       displayName: Crafts
       type: Crafts
       description: Pottery, ceramics, weaving...
   - category:
-      uniqueId: Currency
+      categoryId: CategoryCurrency
       displayName: Currency
       type: Currency
       description: Coins, paper notes
   - category:
-      uniqueId: Drugs
+      categoryId: CategoryDrugs
       displayName: Drugs
       type: Drugs
       description: Non-prescription drugs
   - category:
-      uniqueId: Electronics
+      categoryId: CategoryElectronics
       displayName: Electronics
       type: Electronics
       description: Televisions, phones, tablets, game consoles
   - category:
-      uniqueId: Engineering
+      categoryId: CategoryEngineering
       displayName: Engineering
       type: Engineering
       description: Engineering knowledge and parts
   - category:
-      uniqueId: Entertainment
+      categoryId: CategoryEntertainment
       displayName: Entertainment
       type: Entertainment
       description: Media, toys
   - category:
-      uniqueId: FarmingEquipment
+      categoryId: CategoryFarmingEquipment
       displayName: Farming Equipment
       type: FarmingEquipment
       description: Farming equipment
   - category:
-      uniqueId: Ferments
+      categoryId: CategoryFerments
       displayName: Ferments
       type: Ferments
       description: Ferments
   - category:
-      uniqueId: Fertilisers
+      categoryId: CategoryFertilisers
       displayName: Fertilisers
       type: Fertilisers
       description: Fertilisers
   - category:
-      uniqueId: Fuels
+      categoryId: CategoryFuels
       displayName: Fuels
       type: Fuels
       description: Petrol, diesel, spaceship-fuel
   - category:
-      uniqueId: Humans
+      categoryId: CategoryHumans
       displayName: Humans
       type: Humans
       description: Slaves, mercenaries, specialists
   - category:
-      uniqueId: Information
+      categoryId: CategoryInformation
       displayName: Information
       type: Information
       description: Math, science, maps
   - category:
-      uniqueId: LuxuryGoods
+      categoryId: CategoryLuxuryGoods
       displayName: Luxury Goods
       type: LuxuryGoods
       description: Expensive goods with no purpose beyond appearances and prestige
   - category:
-      uniqueId: Machinery
+      categoryId: CategoryMachinery
       displayName: Machinery
       type: Machinery
       description: Machinery
   - category:
-      uniqueId: MedicalEquipment
+      categoryId: CategoryMedicalEquipment
       displayName: Medical Equipment
       type: MedicalEquipment
       description: Medical equipment
   - category:
-      uniqueId: Medicine
+      categoryId: CategoryMedicine
       displayName: Medicine
       type: Medicine
       description: Medicine
   - category:
-      uniqueId: Metals
+      categoryId: CategoryMetals
       displayName: Metals
       type: Metals
       description: Metals
   - category:
-      uniqueId: Minerals
+      categoryId: CategoryMinerals
       displayName: Minerals
       type: Minerals
       description: Minerals
   - category:
-      uniqueId: MiningEquipment
+      categoryId: CategoryMiningEquipment
       displayName: Mining Equipment
       type: MiningEquipment
       description: Mining equipment
   - category:
-      uniqueId: Optics
+      categoryId: CategoryOptics
       displayName: Optics
       type: Optics
       description: Optical lenses and equipment that uses them
   - category:
-      uniqueId: Pharmaceuticals
+      categoryId: CategoryPharmaceuticals
       displayName: Pharmaceuticals
       type: Pharmaceuticals
       description: Pharmaceuticals
   - category:
-      uniqueId: Polymers
+      categoryId: CategoryPolymers
       displayName: Polymers
       type: Polymers
       description: Polymers
   - category:
-      uniqueId: ScientificEquipment
+      categoryId: CategoryScientificEquipment
       displayName: Scientific Equipment
       type: ScientificEquipment
       description: Scientific equipment
   - category:
-      uniqueId: Seeds
+      categoryId: CategorySeeds
       displayName: Seeds
       type: Seeds
       description: Seeds
   - category:
-      uniqueId: Slaves
+      categoryId: CategorySlaves
       displayName: Slaves
       type: Slaves
       description: Indentured workforce members
   - category:
-      uniqueId: SmallArms
+      categoryId: CategorySmallArms
       displayName: Small Arms
       type: SmallArms
       description: Weapons and ammunition intended for personal use
   - category:
-      uniqueId: Textiles
+      categoryId: CategoryTextiles
       displayName: Textiles
       type: Textiles
       description: Wool, cotton, flax and other woven materials
   - category:
-      uniqueId: Tools
+      categoryId: CategoryTools
       displayName: Tools
       type: Tools
       description: Tools
   - category:
-      uniqueId: Water
+      categoryId: CategoryWater
       displayName: Water
       type: Water
       description: Water is life
   - category:
-      uniqueId: Writing
+      categoryId: CategoryWriting
       displayName: Writing
       type: Writing
       description: Paper, ink, books, scrolls

@@ -99,7 +99,7 @@ bool MarshallAges(
 		}
 
 		AgeNode ageConfig;
-		if (!ReadString(age, "uniqueId", ageConfig.uniqueId, context, ErrorMessage) ||
+		if (!ReadString(age, "ageId", ageConfig.ageId, context, ErrorMessage) ||
 		    !ReadString(age, "displayName", ageConfig.displayName, context, ErrorMessage))
 		{
 			ErrorMessage = FilePath + ": " + ErrorMessage;
@@ -140,7 +140,7 @@ bool MarshallCategories(
 		}
 
 		CategoryNode categoryConfig;
-		if (!ReadString(category, "uniqueId", categoryConfig.uniqueId, context, ErrorMessage) ||
+		if (!ReadString(category, "categoryId", categoryConfig.categoryId, context, ErrorMessage) ||
 		    !ReadString(category, "displayName", categoryConfig.displayName, context, ErrorMessage))
 		{
 			ErrorMessage = FilePath + ": " + ErrorMessage;
@@ -151,7 +151,7 @@ bool MarshallCategories(
 		ReadOptionalString(category, "type", categoryConfig.type, context);
 		if (categoryConfig.type.empty())
 		{
-			categoryConfig.type = categoryConfig.uniqueId;
+			categoryConfig.type = categoryConfig.categoryId;
 		}
 
 		ReadOptionalString(category, "description", categoryConfig.description, context);
@@ -192,7 +192,7 @@ bool MarshallItems(
 		}
 
 		ItemNode itemConfig;
-		if (!ReadString(item, "uniqueId", itemConfig.uniqueId, context, ErrorMessage) ||
+		if (!ReadString(item, "itemId", itemConfig.itemId, context, ErrorMessage) ||
 		    !ReadString(item, "displayName", itemConfig.displayName, context, ErrorMessage) ||
 		    !ReadString(item, "basePrice", itemConfig.basePrice, context, ErrorMessage))
 		{
@@ -240,7 +240,7 @@ bool MarshallSkills(
 		}
 
 		SkillNode skillConfig;
-		if (!ReadString(skill, "uniqueId", skillConfig.uniqueId, context, ErrorMessage))
+		if (!ReadString(skill, "skillId", skillConfig.skillId, context, ErrorMessage))
 		{
 			ErrorMessage = FilePath + ": " + ErrorMessage;
 			return false;
@@ -249,7 +249,7 @@ bool MarshallSkills(
 		ReadOptionalString(skill, "displayName", skillConfig.displayName, context);
 		if (skillConfig.displayName.empty())
 		{
-			skillConfig.displayName = skillConfig.uniqueId;
+			skillConfig.displayName = skillConfig.skillId;
 		}
 
 		ReadOptionalString(skill, "description", skillConfig.description, context);

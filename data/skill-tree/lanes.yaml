@@ -21,7 +21,7 @@
 skill-base:
 
   - skill:
-      uniqueId: LaneConvoy
+      skillId: SkillLaneConvoy
       displayName: Convoy System
       description: The sailing schedule and the assembly that gathers a lane's tonnage
       nodeType: Skill
@@ -34,12 +34,12 @@ skill-base:
       gridY: 2.0
 
   - skill:
-      uniqueId: LaneEscortWing
+      skillId: SkillLaneEscortWing
       displayName: Escort Wing
       description: The hulls that fly with the convoy and answer when the mast calls
       nodeType: Skill
       requires:
-        - nodeId: LaneConvoy
+        - nodeId: SkillLaneConvoy
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 2
@@ -49,12 +49,12 @@ skill-base:
       gridY: 2.0
 
   - skill:
-      uniqueId: LaneRouteWard
+      skillId: SkillLaneRouteWard
       displayName: Route Ward
       description: The stations that hold the jump points a lane depends on
       nodeType: Skill
       requires:
-        - nodeId: LaneConvoy
+        - nodeId: SkillLaneConvoy
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 2
@@ -64,12 +64,12 @@ skill-base:
       gridY: 2.0
 
   - skill:
-      uniqueId: LaneWardenPatrol
+      skillId: SkillLaneWardenPatrol
       displayName: Warden Patrol
       description: The standing patrol that clears a lane and keeps it clear
       nodeType: Skill
       requires:
-        - nodeId: LaneEscortWing
+        - nodeId: SkillLaneEscortWing
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 3

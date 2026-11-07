@@ -1,7 +1,7 @@
 ---
 skill-base:
   - skill:
-      uniqueId: Mining
+      skillId: SkillMining
       displayName: Mining
       description: Extracts resources from the environment
       nodeType: Skill
@@ -14,7 +14,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: Smelting
+      skillId: SkillSmelting
       displayName: Smelting
       description: Processes ores into usable metals
       nodeType: Skill
@@ -27,7 +27,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: Lumber
+      skillId: SkillLumber
       displayName: Lumber
       description: Gathers wood from the environment
       nodeType: Skill
@@ -40,7 +40,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: Herbalism
+      skillId: SkillHerbalism
       displayName: Herbalism
       description: Gathers herbs from the environment
       nodeType: Skill
@@ -53,7 +53,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: Agriculture
+      skillId: SkillAgriculture
       displayName: Agriculture
       description: Cultivates crops from the environment
       nodeType: Skill
@@ -66,7 +66,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: AnimalHusbandry
+      skillId: SkillAnimalHusbandry
       displayName: Animal Husbandry
       description: Raises animals for food and animal products
       nodeType: Skill
@@ -79,7 +79,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: AnimalProcessing
+      skillId: SkillAnimalProcessing
       displayName: Animal Processing
       description: Processes animals into meat, hides, and furs
       nodeType: Skill
@@ -92,7 +92,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: FoodProcessing
+      skillId: SkillFoodProcessing
       displayName: Food Processing
       description: Mills, bakes, brews, and ferments food
       nodeType: Skill
@@ -105,7 +105,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: KilnMaterials
+      skillId: SkillKilnMaterials
       displayName: Kiln and Materials Production
       description: Fires clay and minerals into ceramics, glass, lime, and cement
       nodeType: Skill
@@ -118,7 +118,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: ChemicalManufacturing
+      skillId: SkillChemicalManufacturing
       displayName: Chemical Manufacturing
       description: Processes raw materials into industrial and agricultural chemicals
       nodeType: Skill
@@ -131,7 +131,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: Metalworking
+      skillId: SkillMetalworking
       displayName: Metalworking and Fabrication
       description: Alloys, casts, forges, and fabricates metal goods
       nodeType: Skill
@@ -144,7 +144,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: Publishing
+      skillId: SkillPublishing
       displayName: Papermaking and Publishing
       description: Produces writing materials, ink, books, and scrolls
       nodeType: Skill
@@ -157,7 +157,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: Pharmaceuticals
+      skillId: SkillPharmaceuticals
       displayName: Pharmaceutical Production
       description: Produces medicines through chemical and biological processes
       nodeType: Skill
@@ -170,7 +170,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: Research
+      skillId: SkillResearch
       displayName: Research and Education
       description: Develops and teaches scientific and technical knowledge
       nodeType: Skill
@@ -183,7 +183,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: Textiles
+      skillId: SkillTextiles
       displayName: Textile Production
       description: Spins and weaves fibers into textiles
       nodeType: Skill
@@ -196,7 +196,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: Polymers
+      skillId: SkillPolymers
       displayName: Polymer Production
       description: Converts chemical feedstocks into polymer materials
       nodeType: Skill
@@ -209,7 +209,7 @@ skill-base:
       gridY: 0.0
 
   - skill:
-      uniqueId: FuelRefining
+      skillId: SkillFuelRefining
       displayName: Fuel Refining
       description: Refines energy resources into usable fuels
       nodeType: Skill

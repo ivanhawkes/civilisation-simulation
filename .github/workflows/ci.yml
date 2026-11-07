@@ -22,11 +22,12 @@ jobs:
           sudo apt-get install --no-install-recommends -y clang cmake ninja-build
 
       # The data merge is mikefarah/yq v4 syntax and is tested against the version the
-      # development shell pins, v4.54.1. The source files refer to each other by
-      # uniqueId, so no anchor has to survive the trip from one file to the next and any
-      # v4 builds the data; v4.54.1 is the version known to do the job. apt has no yq at
-      # all, so the release binary is pinned by version: floating on 'latest' would break
-      # the build on an upstream patch, which is exactly what happened on the first CI run.
+      # development shell pins, v4.54.1. The source files refer to each other by id -
+      # itemId, skillId, categoryId, ageId - so no anchor has to survive the trip from
+      # one file to the next and any v4 builds the data; v4.54.1 is the version known
+      # to do the job. apt has no yq at all, so the release binary is pinned by version:
+      # floating on 'latest' would break the build on an upstream patch, which is
+      # exactly what happened on the first CI run.
       - name: Install mikefarah/yq v4.54.1
         run: |
           set -euo pipefail

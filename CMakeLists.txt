@@ -77,15 +77,16 @@ if(YQ_EXECUTABLE)
     endif()
 
     # Every source file under data/ is a document yq loads on its own, and the files
-    # refer to each other by uniqueId, so no anchor has to survive the trip from one file
-    # to the next: any yq v4 builds the data. The development shell pins v4.54.1, and that
-    # is the version this merge is tested with, which is what the warning is about.
+    # refer to each other by id - itemId, skillId, categoryId, ageId - so no anchor has
+    # to survive the trip from one file to the next: any yq v4 builds the data. The
+    # development shell pins v4.54.1, and that is the version this merge is tested with,
+    # which is what the warning is about.
     set(CIVSIM_YQ_TESTED_VERSION "4.54.1")
     if(NOT YQ_VERSION_STRING MATCHES "${CIVSIM_YQ_TESTED_VERSION}")
         message(WARNING
             "The data merge is tested with mikefarah/yq v${CIVSIM_YQ_TESTED_VERSION}, the "
             "version the development shell pins; found '${YQ_VERSION_STRING}'. The merge is "
-            "plain v4 syntax and the source files link by uniqueId, so a v4 of any version "
+            "plain v4 syntax and the source files link by id, so a v4 of any version "
             "should build it. Use the devenv shell for the tested version, or configure "
             "with -DBUILD_TESTING=OFF.")
     endif()

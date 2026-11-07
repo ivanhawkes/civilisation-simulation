@@ -21,9 +21,9 @@ item-base:
 
   # Seeds
   - item:
-      uniqueId: WheatSeeds
-      categoryId: Seeds
-      ageId: CopperAge
+      itemId: ItemWheatSeeds
+      categoryId: CategorySeeds
+      ageId: AgeCopper
       displayName: Wheat seeds
       description: Wheat seeds
       unitsPerCubicMetre: 1
@@ -33,9 +33,9 @@ item-base:
       packFactor: 0.61
 
   - item:
-      uniqueId: BarleySeeds
-      categoryId: Seeds
-      ageId: CopperAge
+      itemId: ItemBarleySeeds
+      categoryId: CategorySeeds
+      ageId: AgeCopper
       displayName: Barley seeds
       description: Barley seeds
       unitsPerCubicMetre: 1
@@ -45,9 +45,9 @@ item-base:
       packFactor: 0.48
 
   - item:
-      uniqueId: OatSeeds
-      categoryId: Seeds
-      ageId: CopperAge
+      itemId: ItemOatSeeds
+      categoryId: CategorySeeds
+      ageId: AgeCopper
       displayName: Oat seeds
       description: Oat seeds
       unitsPerCubicMetre: 1
@@ -57,9 +57,9 @@ item-base:
       packFactor: 0.41
 
   - item:
-      uniqueId: CornSeeds
-      categoryId: Seeds
-      ageId: CopperAge
+      itemId: ItemCornSeeds
+      categoryId: CategorySeeds
+      ageId: AgeCopper
       displayName: Corn seeds
       description: Corn seeds
       unitsPerCubicMetre: 1
@@ -69,9 +69,9 @@ item-base:
       packFactor: 0.58
 
   - item:
-      uniqueId: RiceSeeds
-      categoryId: Seeds
-      ageId: CopperAge
+      itemId: ItemRiceSeeds
+      categoryId: CategorySeeds
+      ageId: AgeCopper
       displayName: Rice seeds
       description: Rice seeds
       unitsPerCubicMetre: 1
@@ -81,9 +81,9 @@ item-base:
       packFactor: 0.61
 
   - item:
-      uniqueId: SorghumSeeds
-      categoryId: Seeds
-      ageId: CopperAge
+      itemId: ItemSorghumSeeds
+      categoryId: CategorySeeds
+      ageId: AgeCopper
       displayName: Sorghum seeds
       description: Sorghum seeds
       unitsPerCubicMetre: 1
@@ -93,9 +93,9 @@ item-base:
       packFactor: 0.51
 
   - item:
-      uniqueId: PoppySeeds
-      categoryId: Seeds
-      ageId: CopperAge
+      itemId: ItemPoppySeeds
+      categoryId: CategorySeeds
+      ageId: AgeCopper
       displayName: Poppy seeds
       description: Poppy seeds
       unitsPerCubicMetre: 1
@@ -105,9 +105,9 @@ item-base:
       packFactor: 0.48
 
   - item:
-      uniqueId: CocoaSeeds
-      categoryId: Seeds
-      ageId: CopperAge
+      itemId: ItemCocoaSeeds
+      categoryId: CategorySeeds
+      ageId: AgeCopper
       displayName: Cocoa seeds
       description: Cocoa seeds
       unitsPerCubicMetre: 1
@@ -117,9 +117,9 @@ item-base:
       packFactor: 0.46
 
   - item:
-      uniqueId: CocaSeeds
-      categoryId: Seeds
-      ageId: CopperAge
+      itemId: ItemCocaSeeds
+      categoryId: CategorySeeds
+      ageId: AgeCopper
       displayName: Coca seeds
       description: Coca seeds
       unitsPerCubicMetre: 1
@@ -129,9 +129,9 @@ item-base:
       packFactor: 0.44
 
   - item:
-      uniqueId: CanolaSeeds
-      categoryId: Seeds
-      ageId: Post-industrialAge
+      itemId: ItemCanolaSeeds
+      categoryId: CategorySeeds
+      ageId: AgePost-industrial
       displayName: Canola seeds
       description: Canola seeds
       unitsPerCubicMetre: 1

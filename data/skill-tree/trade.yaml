@@ -23,7 +23,7 @@
 skill-base:
 
   - skill:
-      uniqueId: TradeDockingLicence
+      skillId: SkillTradeDockingLicence
       displayName: Docking Licence
       description: The permit, the berth and the clearance that put a ship on a deck
       nodeType: Skill
@@ -36,14 +36,14 @@ skill-base:
       gridY: -2.0
 
   - skill:
-      uniqueId: TradeInsurance
+      skillId: SkillTradeInsurance
       displayName: Cargo Insurance
       description: The premium that pays for a hull, a cargo and a lane gone wrong
       nodeType: Skill
       requires:
-        - nodeId: TradeDockingLicence
+        - nodeId: SkillTradeDockingLicence
           requiredTier: 1
-        - nodeId: LawTribunal
+        - nodeId: SkillLawTribunal
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 2
@@ -53,12 +53,12 @@ skill-base:
       gridY: -2.0
 
   - skill:
-      uniqueId: TradeFencingNetwork
+      skillId: SkillTradeFencingNetwork
       displayName: Fencing Network
       description: The outlets that take marked cargo, pay for it and ask nothing
       nodeType: Skill
       requires:
-        - nodeId: PirateSafeHarbours
+        - nodeId: SkillPirateSafeHarbours
           requiredTier: 1
       maxTiers: 3
       resourceCostPerTier: 2

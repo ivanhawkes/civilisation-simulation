@@ -1,144 +1,145 @@
 ---
 # Simple version of the game: the whole skill tree and the small subset of the
-# items that makes a quick match. Both are named by uniqueId, and build.sh resolves
-# the names into the definitions of the skill-tree/ and trade-items/ files.
+# items that makes a quick match. Both are named by itemId and skillId, and
+# build.sh resolves the names into the definitions of the skill-tree/ and
+# trade-items/ files.
 skills:
-  - skillId: Mining
-  - skillId: Smelting
-  - skillId: Lumber
-  - skillId: Herbalism
-  - skillId: Agriculture
-  - skillId: AnimalHusbandry
-  - skillId: AnimalProcessing
-  - skillId: FoodProcessing
-  - skillId: KilnMaterials
-  - skillId: ChemicalManufacturing
-  - skillId: Metalworking
-  - skillId: Publishing
-  - skillId: Pharmaceuticals
-  - skillId: Research
-  - skillId: Textiles
-  - skillId: Polymers
-  - skillId: FuelRefining
+  - skillId: SkillMining
+  - skillId: SkillSmelting
+  - skillId: SkillLumber
+  - skillId: SkillHerbalism
+  - skillId: SkillAgriculture
+  - skillId: SkillAnimalHusbandry
+  - skillId: SkillAnimalProcessing
+  - skillId: SkillFoodProcessing
+  - skillId: SkillKilnMaterials
+  - skillId: SkillChemicalManufacturing
+  - skillId: SkillMetalworking
+  - skillId: SkillPublishing
+  - skillId: SkillPharmaceuticals
+  - skillId: SkillResearch
+  - skillId: SkillTextiles
+  - skillId: SkillPolymers
+  - skillId: SkillFuelRefining
 
   # The skill list of the small game is the whole tree: the items are what makes it
   # small, and a short tree would leave the age gates and the ship systems out of the
   # quick matches they are meant to test.
   #
   # The age gates: one per age, in age order.
-  - skillId: StoneAge
-  - skillId: CopperAge
-  - skillId: BronzeAge
-  - skillId: IronAge
-  - skillId: ClassicalAge
-  - skillId: MedievalAge
-  - skillId: Pre-industrialAge
-  - skillId: IndustrialAge
-  - skillId: Post-industrialAge
-  - skillId: InformationAge
-  - skillId: AIAge
-  - skillId: SpaceAge
-  - skillId: SpaceColonisationAge
-  - skillId: SublimationAge
+  - skillId: AgeStone
+  - skillId: AgeCopper
+  - skillId: AgeBronze
+  - skillId: AgeIron
+  - skillId: AgeClassical
+  - skillId: AgeMedieval
+  - skillId: AgePre-industrial
+  - skillId: AgeIndustrial
+  - skillId: AgePost-industrial
+  - skillId: AgeInformation
+  - skillId: AgeAI
+  - skillId: AgeSpace
+  - skillId: AgeSpaceColonisation
+  - skillId: AgeSublimation
 
   # The systems of the long-haul trader: screens, guns, lasers, computers, the drive
   # that makes the running and the mast that sees what is out there.
-  - skillId: ShipShieldsFront
-  - skillId: ShipShieldsSide
-  - skillId: ShipShieldsRear
-  - skillId: ShipGunsFront
-  - skillId: ShipGunsRear
-  - skillId: ShipLasersFront
-  - skillId: ShipLasersRear
-  - skillId: ShipNavigationComputer
-  - skillId: ShipTraderAI
-  - skillId: ShipEngineThrust
-  - skillId: ShipManoeuvringJets
-  - skillId: ShipAttitudeControl
-  - skillId: ShipSensorLongRange
-  - skillId: ShipSensorFireControl
-  - skillId: ShipSensorCommercial
+  - skillId: SkillShipShieldsFront
+  - skillId: SkillShipShieldsSide
+  - skillId: SkillShipShieldsRear
+  - skillId: SkillShipGunsFront
+  - skillId: SkillShipGunsRear
+  - skillId: SkillShipLasersFront
+  - skillId: SkillShipLasersRear
+  - skillId: SkillShipNavigationComputer
+  - skillId: SkillShipTraderAI
+  - skillId: SkillShipEngineThrust
+  - skillId: SkillShipManoeuvringJets
+  - skillId: SkillShipAttitudeControl
+  - skillId: SkillShipSensorLongRange
+  - skillId: SkillShipSensorFireControl
+  - skillId: SkillShipSensorCommercial
 
   # The rest of the ship: the haul, running quiet and the crew.
-  - skillId: ShipCargoHolds
-  - skillId: ShipFuelBunkers
-  - skillId: ShipSalvageRig
-  - skillId: ShipLifeSupport
-  - skillId: ShipStealthCoating
-  - skillId: ShipEmissionsControl
-  - skillId: ShipCountermeasures
-  - skillId: ShipCrewTraining
-  - skillId: ShipDamageControl
-  - skillId: ShipSparesLockers
+  - skillId: SkillShipCargoHolds
+  - skillId: SkillShipFuelBunkers
+  - skillId: SkillShipSalvageRig
+  - skillId: SkillShipLifeSupport
+  - skillId: SkillShipStealthCoating
+  - skillId: SkillShipEmissionsControl
+  - skillId: SkillShipCountermeasures
+  - skillId: SkillShipCrewTraining
+  - skillId: SkillShipDamageControl
+  - skillId: SkillShipSparesLockers
 
   # The yards: the docks, the lines and the hull production.
-  - skillId: YardDrydock
-  - skillId: YardOutfitting
-  - skillId: YardModularHulls
-  - skillId: YardRefitDocks
+  - skillId: SkillYardDrydock
+  - skillId: SkillYardOutfitting
+  - skillId: SkillYardModularHulls
+  - skillId: SkillYardRefitDocks
 
   # The lanes: convoy, escort, ward and patrol.
-  - skillId: LaneConvoy
-  - skillId: LaneEscortWing
-  - skillId: LaneRouteWard
-  - skillId: LaneWardenPatrol
+  - skillId: SkillLaneConvoy
+  - skillId: SkillLaneEscortWing
+  - skillId: SkillLaneRouteWard
+  - skillId: SkillLaneWardenPatrol
 
   # Survey and claims: the deep look, the strike and the works.
-  - skillId: SurveyDeepRange
-  - skillId: ClaimMining
-  - skillId: ClaimRefinery
-  - skillId: ClaimExclusive
+  - skillId: SkillSurveyDeepRange
+  - skillId: SkillClaimMining
+  - skillId: SkillClaimRefinery
+  - skillId: SkillClaimExclusive
 
   # Habitats and terraforming: the dome, the loop, the weather and the soil.
-  - skillId: HabitatDomes
-  - skillId: HabitatClosedLoop
-  - skillId: TerraformAtmosphere
-  - skillId: TerraformBiosphere
+  - skillId: SkillHabitatDomes
+  - skillId: SkillHabitatClosedLoop
+  - skillId: SkillTerraformAtmosphere
+  - skillId: SkillTerraformBiosphere
 
   # The pirate tree: hulls, boarding, ransom and harbours.
-  - skillId: PirateRaiderHulls
-  - skillId: PirateBoardingParties
-  - skillId: PirateRansomExchange
-  - skillId: PirateSafeHarbours
+  - skillId: SkillPirateRaiderHulls
+  - skillId: SkillPirateBoardingParties
+  - skillId: SkillPirateRansomExchange
+  - skillId: SkillPirateSafeHarbours
 
   # Law: the warrant, the pardon, the bench and the standing.
-  - skillId: LawAdmiraltyWarrant
-  - skillId: LawPiratePardon
-  - skillId: LawTribunal
-  - skillId: LawPirateStanding
+  - skillId: SkillLawAdmiraltyWarrant
+  - skillId: SkillLawPiratePardon
+  - skillId: SkillLawTribunal
+  - skillId: SkillLawPirateStanding
 
   # Trade services: the licence, the premium and the fence.
-  - skillId: TradeDockingLicence
-  - skillId: TradeInsurance
-  - skillId: TradeFencingNetwork
+  - skillId: SkillTradeDockingLicence
+  - skillId: SkillTradeInsurance
+  - skillId: SkillTradeFencingNetwork
 
   # The demand side: public medicine and the education system.
-  - skillId: ServicePublicMedicine
-  - skillId: ServiceEducation
+  - skillId: SkillServicePublicMedicine
+  - skillId: SkillServiceEducation
 
 items:
 
   # Metals
-  - itemId: Gold
-  - itemId: Silver
-  - itemId: Copper
+  - itemId: ItemGold
+  - itemId: ItemSilver
+  - itemId: ItemCopper
 
   # Minerals
-  - itemId: Salt
-  - itemId: Lime
-  - itemId: Potash
+  - itemId: ItemSalt
+  - itemId: ItemLime
+  - itemId: ItemPotash
   
   # Chemicals
-  - itemId: Nitrogen
-  - itemId: Phosphorus
-  - itemId: Potassium
+  - itemId: ItemNitrogen
+  - itemId: ItemPhosphorus
+  - itemId: ItemPotassium
 
   # Comforts
-  - itemId: Furs
-  - itemId: Glassware
-  - itemId: Soap
+  - itemId: ItemFurs
+  - itemId: ItemGlassware
+  - itemId: ItemSoap
   
   # Medicine
-  - itemId: Antibiotics
-  - itemId: Anesthetics
-  - itemId: Analgesics
+  - itemId: ItemAntibiotics
+  - itemId: ItemAnesthetics
+  - itemId: ItemAnalgesics

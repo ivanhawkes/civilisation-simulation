@@ -24,9 +24,9 @@ item-base:
 
   # Minerals
   - item:
-      uniqueId: Salt
-      categoryId: Minerals
-      ageId: IronAge
+      itemId: ItemSalt
+      categoryId: CategoryMinerals
+      ageId: AgeIron
       displayName: Salt
       description: Sodium chloride (halite)
       unitsPerCubicMetre: 1
@@ -36,9 +36,9 @@ item-base:
       packFactor: 0.55
 
   - item:
-      uniqueId: Lime
-      categoryId: Minerals
-      ageId: IronAge
+      itemId: ItemLime
+      categoryId: CategoryMinerals
+      ageId: AgeIron
       displayName: Lime
       description: Baked and crushed limestone
       unitsPerCubicMetre: 1
@@ -48,9 +48,9 @@ item-base:
       packFactor: 0.31
 
   - item:
-      uniqueId: Graphite
-      categoryId: Minerals
-      ageId: IndustrialAge
+      itemId: ItemGraphite
+      categoryId: CategoryMinerals
+      ageId: AgeIndustrial
       displayName: Graphite
       description: Graphite, machined and flexible foil
       unitsPerCubicMetre: 1000
@@ -60,9 +60,9 @@ item-base:
       packFactor: 0.9
 
   - item:
-      uniqueId: Potash
-      categoryId: Minerals
-      ageId: IronAge
+      itemId: ItemPotash
+      categoryId: CategoryMinerals
+      ageId: AgeIron
       displayName: Potash
       description: Muriate of potash, granular potassium chloride
       unitsPerCubicMetre: 1
@@ -72,9 +72,9 @@ item-base:
       packFactor: 0.58
 
   - item:
-      uniqueId: Natron
-      categoryId: Minerals
-      ageId: IronAge
+      itemId: ItemNatron
+      categoryId: CategoryMinerals
+      ageId: AgeIron
       displayName: Natron
       description: Natron, dense soda ash
       unitsPerCubicMetre: 1
