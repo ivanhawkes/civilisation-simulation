@@ -5,7 +5,12 @@
 # boolean" and cannot read this file at all. The development shell and CI both use
 # LLVM 21.1.8, so the gate checks the rules with the same version that formats.
 #
-#   find Source Tests -name '*.h' -o -name '*.cpp' | xargs clang-format -i
+#   find Source Tests \( -name '*.h' -o -name '*.hpp' -o -name '*.cpp' \) -print0 \
+#     | xargs -0 clang-format -i
+#
+# Keep the parentheses: find's -print binds to the last -name alone, so a pipeline
+# ending '-name "*.h" -o -name "*.cpp" -print' lists the .cpp files, the gate sees no
+# headers, and header drift passes every check.
 BasedOnStyle: Microsoft
 AlignAfterOpenBracket: AlwaysBreak
 AllowShortBlocksOnASingleLine: Always

@@ -54,8 +54,7 @@ struct Registrar
 	}
 };
 
-template <typename T, typename = void>
-struct IsStreamable : std::false_type
+template <typename T, typename = void> struct IsStreamable : std::false_type
 {
 };
 
@@ -66,8 +65,7 @@ struct IsStreamable<
 {
 };
 
-template <typename T>
-std::string ToString(const T &value)
+template <typename T> std::string ToString(const T &value)
 {
 	if constexpr (IsStreamable<T>::value)
 	{
@@ -146,63 +144,63 @@ class TempFile
 } // namespace civtest
 
 
-#define TEST_CASE(NAME)                                                                              \
-	static void NAME();                                                                              \
-	static ::civtest::Registrar registrar_##NAME(#NAME, NAME);                                       \
+#define TEST_CASE(NAME)                                                                                \
+	static void NAME();                                                                                \
+	static ::civtest::Registrar registrar_##NAME(#NAME, NAME);                                         \
 	static void NAME()
 
-#define CHECK(CONDITION)                                                                             \
-	do                                                                                               \
-	{                                                                                                \
-		++::civtest::CheckCount();                                                                   \
-		if (!(CONDITION))                                                                            \
-		{                                                                                            \
-			::civtest::Fail(__FILE__, __LINE__, #CONDITION);                                         \
-		}                                                                                            \
+#define CHECK(CONDITION)                                                                               \
+	do                                                                                                 \
+	{                                                                                                  \
+		++::civtest::CheckCount();                                                                     \
+		if (!(CONDITION))                                                                              \
+		{                                                                                              \
+			::civtest::Fail(__FILE__, __LINE__, #CONDITION);                                           \
+		}                                                                                              \
 	} while (false)
 
-#define CHECK_EQ(ACTUAL, EXPECTED)                                                                   \
-	do                                                                                               \
-	{                                                                                                \
-		++::civtest::CheckCount();                                                                   \
-		const auto civtest_actual = (ACTUAL);                                                        \
-		const auto civtest_expected = (EXPECTED);                                                    \
-		if (!(civtest_actual == civtest_expected))                                                   \
-		{                                                                                            \
-			::civtest::Fail(                                                                         \
-			    __FILE__, __LINE__,                                                                  \
-			    std::string(#ACTUAL) + " == " + #EXPECTED + " (" +                                  \
-			        ::civtest::ToString(civtest_actual) + " vs " +                                   \
-			        ::civtest::ToString(civtest_expected) + ")");                                    \
-		}                                                                                            \
+#define CHECK_EQ(ACTUAL, EXPECTED)                                                                     \
+	do                                                                                                 \
+	{                                                                                                  \
+		++::civtest::CheckCount();                                                                     \
+		const auto civtest_actual = (ACTUAL);                                                          \
+		const auto civtest_expected = (EXPECTED);                                                      \
+		if (!(civtest_actual == civtest_expected))                                                     \
+		{                                                                                              \
+			::civtest::Fail(                                                                           \
+			    __FILE__, __LINE__,                                                                    \
+			    std::string(#ACTUAL) + " == " + #EXPECTED + " (" +                                     \
+			        ::civtest::ToString(civtest_actual) + " vs " +                                     \
+			        ::civtest::ToString(civtest_expected) + ")");                                      \
+		}                                                                                              \
 	} while (false)
 
-#define CHECK_NEAR(ACTUAL, EXPECTED, TOLERANCE)                                                      \
-	do                                                                                               \
-	{                                                                                                \
-		++::civtest::CheckCount();                                                                   \
-		const double civtest_actual = (ACTUAL);                                                      \
-		const double civtest_expected = (EXPECTED);                                                  \
-		if (std::fabs(civtest_actual - civtest_expected) > (TOLERANCE))                              \
-		{                                                                                            \
-			::civtest::Fail(                                                                         \
-			    __FILE__, __LINE__,                                                                  \
-			    std::string(#ACTUAL) + " ~= " + #EXPECTED + " (" +                                  \
-			        ::civtest::ToString(civtest_actual) + " vs " +                                   \
-			        ::civtest::ToString(civtest_expected) + ")");                                    \
-		}                                                                                            \
+#define CHECK_NEAR(ACTUAL, EXPECTED, TOLERANCE)                                                        \
+	do                                                                                                 \
+	{                                                                                                  \
+		++::civtest::CheckCount();                                                                     \
+		const double civtest_actual = (ACTUAL);                                                        \
+		const double civtest_expected = (EXPECTED);                                                    \
+		if (std::fabs(civtest_actual - civtest_expected) > (TOLERANCE))                                \
+		{                                                                                              \
+			::civtest::Fail(                                                                           \
+			    __FILE__, __LINE__,                                                                    \
+			    std::string(#ACTUAL) + " ~= " + #EXPECTED + " (" +                                     \
+			        ::civtest::ToString(civtest_actual) + " vs " +                                     \
+			        ::civtest::ToString(civtest_expected) + ")");                                      \
+		}                                                                                              \
 	} while (false)
 
-#define CHECK_CONTAINS(HAYSTACK, NEEDLE)                                                             \
-	do                                                                                               \
-	{                                                                                                \
-		++::civtest::CheckCount();                                                                   \
-		const std::string civtest_haystack(HAYSTACK);                                                \
-		const std::string civtest_needle(NEEDLE);                                                    \
-		if (civtest_haystack.find(civtest_needle) == std::string::npos)                              \
-		{                                                                                            \
-			::civtest::Fail(                                                                         \
-			    __FILE__, __LINE__,                                                                  \
-			    "expected to find '" + civtest_needle + "' in: " + civtest_haystack);                \
-		}                                                                                            \
+#define CHECK_CONTAINS(HAYSTACK, NEEDLE)                                                               \
+	do                                                                                                 \
+	{                                                                                                  \
+		++::civtest::CheckCount();                                                                     \
+		const std::string civtest_haystack(HAYSTACK);                                                  \
+		const std::string civtest_needle(NEEDLE);                                                      \
+		if (civtest_haystack.find(civtest_needle) == std::string::npos)                                \
+		{                                                                                              \
+			::civtest::Fail(                                                                           \
+			    __FILE__, __LINE__,                                                                    \
+			    "expected to find '" + civtest_needle + "' in: " + civtest_haystack);                  \
+		}                                                                                              \
 	} while (false)

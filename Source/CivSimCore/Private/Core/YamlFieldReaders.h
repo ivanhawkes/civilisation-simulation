@@ -60,8 +60,7 @@ inline bool ReadString(
 
 	if (!HasValue(field))
 	{
-		ErrorMessage =
-		    Contexts + ": missing field '" + std::string(Key) + "' (expected a string).";
+		ErrorMessage = Contexts + ": missing field '" + std::string(Key) + "' (expected a string).";
 		return false;
 	}
 
@@ -102,9 +101,9 @@ inline bool ReadInt(
 
 	if (!HasValue(field))
 	{
-		ErrorMessage = Contexts + ": field '" + std::string(Key) + "' must be an integer" +
-		               (field.IsDefined() ? ", not '" + field.as<std::string>() + "'"
-		                                  : " (it is missing)");
+		ErrorMessage =
+		    Contexts + ": field '" + std::string(Key) + "' must be an integer" +
+		    (field.IsDefined() ? ", not '" + field.as<std::string>() + "'" : " (it is missing)");
 		return false;
 	}
 
@@ -146,8 +145,7 @@ inline bool ReadFloat(
 	if (!HasValue(field))
 	{
 		ErrorMessage = Contexts + ": field '" + std::string(Key) + "' must be a number, not '" +
-		               (field.IsDefined() ? field.as<std::string>() : std::string("<missing>")) +
-		               "'";
+		               (field.IsDefined() ? field.as<std::string>() : std::string("<missing>")) + "'";
 		return false;
 	}
 
@@ -190,8 +188,8 @@ inline bool ReadInt(
 	{
 		if (Required)
 		{
-			ErrorMessage = Contexts + ": missing field '" + std::string(Key) +
-			                   "' (expected an integer)";
+			ErrorMessage =
+			    Contexts + ": missing field '" + std::string(Key) + "' (expected an integer)";
 			return false;
 		}
 
@@ -223,8 +221,7 @@ inline bool ReadFloat(
 	{
 		if (Required)
 		{
-			ErrorMessage = Contexts + ": missing field '" + std::string(Key) +
-			                   "' (expected a number)";
+			ErrorMessage = Contexts + ": missing field '" + std::string(Key) + "' (expected a number)";
 			return false;
 		}
 
@@ -244,10 +241,9 @@ inline YAML::Node ReadSequence(const YAML::Node &Root, const char *Key, std::str
 
 	if (!found.IsSequence())
 	{
-		ErrorMessage = Root.IsMap()
-		                   ? std::string("'") + Key + "' must be a YAML sequence."
-		                   : std::string("'") + Key +
-		                         "' must be a YAML sequence: the document is not a mapping.";
+		ErrorMessage = Root.IsMap() ? std::string("'") + Key + "' must be a YAML sequence."
+		                            : std::string("'") + Key +
+		                                  "' must be a YAML sequence: the document is not a mapping.";
 	}
 
 	return found;
@@ -269,7 +265,6 @@ inline std::string Context(const std::string &Field, std::size_t Index, const st
 inline std::string Context(
     const std::string &Field, std::size_t Index, const std::string &Child, std::size_t ChildIndex)
 {
-	return Field + "[" + std::to_string(Index) + "]." + Child + "[" + std::to_string(ChildIndex) +
-	       "]";
+	return Field + "[" + std::to_string(Index) + "]." + Child + "[" + std::to_string(ChildIndex) + "]";
 }
 } // namespace CivSimCore::YamlRead

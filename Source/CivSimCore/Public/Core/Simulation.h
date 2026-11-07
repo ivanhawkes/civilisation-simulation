@@ -22,7 +22,7 @@ struct Civilisation
 	std::string systemName; // "Abigail Prime"
 	std::string pool;       // the pool the name came from: latin, greek, ...
 
-	std::string ageId;   // the loaded AgeNode this world sits in
+	std::string ageId; // the loaded AgeNode this world sits in
 	std::size_t ageIndex{0};
 
 	// Category labels the economy is known for. The merged configuration carries no
@@ -32,7 +32,7 @@ struct Civilisation
 	// Population in world units, not people: demand and production scale with it, and
 	// the era sets the ceiling, so a SublimationAge world dwarfs a StoneAge one.
 	double population{1.0};
-	long long treasury{0};  // credits
+	long long treasury{0}; // credits
 
 	// Item id -> units per tick. Production only lists the goods this economy makes.
 	std::map<std::string, double> production;
@@ -92,8 +92,7 @@ class Simulation
 	// loaded categories.
 	bool Generate(
 	    const Ages &Ages, const Categories &Categories, const Items &Items,
-	    const UniverseNamePools &Names, const GenerateOptions &Options,
-	    std::string &ErrorMessage);
+	    const UniverseNamePools &Names, const GenerateOptions &Options, std::string &ErrorMessage);
 
 	bool IsGenerated() const;
 	long long GetTick() const;

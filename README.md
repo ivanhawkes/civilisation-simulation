@@ -114,11 +114,18 @@ manual data step. The five suites then run: the four unit suites on embedded YAM
 `DataTests` against the generated documents.
 
 Formatting is part of the build: `.clang-format` covers `Source` and `Tests`, and CI
-checks it with `clang-format --dry-run -Werror`. Format your work with:
+checks it with `clang-format --dry-run -Werror` over every `.h`, `.hpp` and `.cpp` in
+the two trees. Format your work with:
 
 ```bash
-find Source Tests -name '*.h' -o -name '*.cpp' | xargs clang-format -i
+find Source Tests \( -name '*.h' -o -name '*.hpp' -o -name '*.cpp' \) -print0 | xargs -0 clang-format -i
 ```
+
+The parentheses carry the weight: `find`'s `-print` binds to the last `-name`, so a
+pipeline that ends `-name '*.h' -o -name '*.cpp' -print` lists the `.cpp` files only,
+the gate runs on a file list that never contains a header, and header drift passes. It
+is the command the CI step and the `wt` pre-merge hook run, so the gate and the habit
+stay the same command.
 
 ## 3. Run the terminal front-end
 
