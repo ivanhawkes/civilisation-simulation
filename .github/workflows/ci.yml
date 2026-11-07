@@ -21,15 +21,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y clang cmake ninja-build
 
-      # The data build is mikefarah/yq v4 syntax. apt has no such package, so the
-      # release binary is used, and the version is printed to make a swap obvious.
-      - name: Install mikefarah/yq v4
+      # The data merge is mikefarah/yq v4 syntax and is tested against the version the
+      # development shell pins, v4.54.1. yq v4.54.2 tightened anchor scoping to the
+      # YAML spec, and the merge relies on anchors that span the concatenated files,
+      # so 4.54.2 cannot build the data. apt has no yq at all, so the release binary
+      # is pinned by version: floating on 'latest' would break the build on an
+      # upstream patch, which is exactly what happened on the first CI run.
+      - name: Install mikefarah/yq v4.54.1
         run: |
           set -euo pipefail
+          yq_version=v4.54.1
           sudo curl -fsSL -o /usr/local/bin/yq \
-            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            "https://github.com/mikefarah/yq/releases/download/${yq_version}/yq_linux_amd64"
           sudo chmod +x /usr/local/bin/yq
           yq --version
+          yq --version | grep -q "${yq_version}"
 
       - name: Configure
         run: cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug
@@ -78,7 +84,13 @@ jobs:
       - name: The failure names yq and the remedy
         run: |
           set -euo pipefail
-          cmake -S . -B build-no-yq -G Ninja -DCMAKE_CXX_COMPILER=clang++ \
-            -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON 2>&1 | tee configure.log
+          # The configure must fail. Under `set -e` a plain failing command in a step
+          # ends the step, so the failure has to be asserted inside an `if`, and the
+          # log captured for the greps that follow.
+          if cmake -S . -B build-no-yq -G Ninja -DCMAKE_CXX_COMPILER=clang++ \
+               -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON 2>&1 | tee configure.log; then
+            echo "configure succeeded, so a machine without yq still loses the test suite"
+            exit 1
+          fi
           grep -qi 'yq' configure.log
           grep -qi 'test' configure.log

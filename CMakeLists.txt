@@ -76,6 +76,21 @@ if(YQ_EXECUTABLE)
             "The YAML merge may fail.")
     endif()
 
+    # The merge concatenates files that share anchors: an item file uses
+    # *categoryChemicals and *ironAge, which are defined in the category and age files.
+    # yq v4.54.1 resolves those across the concatenated stream, yq v4.54.2 scopes an
+    # anchor to its own document, as the YAML spec says, and the merge fails. The
+    # development shell pins v4.54.1, so that is the version this build is tested with.
+    set(CIVSIM_YQ_TESTED_VERSION "4.54.1")
+    if(NOT YQ_VERSION_STRING MATCHES "${CIVSIM_YQ_TESTED_VERSION}")
+        message(WARNING
+            "The data merge is tested with mikefarah/yq v${CIVSIM_YQ_TESTED_VERSION}, the "
+            "version the development shell pins; found '${YQ_VERSION_STRING}'. yq v4.54.2 "
+            "scopes anchors to one document, so data/build.sh cannot resolve the anchors the "
+            "item files share and the data build fails. Use the devenv shell, install "
+            "v${CIVSIM_YQ_TESTED_VERSION}, or configure with -DBUILD_TESTING=OFF.")
+    endif()
+
     # Only the source YAML, never the generated documents in data/core-config.
     file(GLOB_RECURSE CIVSIM_DATA_INPUTS CONFIGURE_DEPENDS
         "${CIVSIM_DATA_SOURCE_DIR}/*.yaml"

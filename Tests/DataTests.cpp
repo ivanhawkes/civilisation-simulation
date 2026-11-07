@@ -71,7 +71,11 @@ TEST_CASE(ages_load_from_the_generated_document)
 {
 	const CivSimCore::Ages ages = LoadAges();
 
-	CHECK(ages.size() > std::size_t(0));
+	// A merge that quietly truncates is the failure mode of the pipeline: the external
+	// tool is yq, and an upstream change to how it resolves anchors can drop whole
+	// sections. A truncated game must not be allowed to pass as a small one, so the
+	// scale of the shipped data is asserted here.
+	CHECK(ages.size() >= 12);
 
 	std::vector<std::string> ids;
 	for (const auto &age : ages)
@@ -88,7 +92,7 @@ TEST_CASE(categories_load_from_the_generated_document)
 {
 	const CivSimCore::Categories categories = LoadCategories();
 
-	CHECK(categories.size() > std::size_t(0));
+	CHECK(categories.size() >= 40);
 
 	std::vector<std::string> ids;
 	for (const auto &category : categories)
@@ -107,7 +111,7 @@ TEST_CASE(every_item_in_the_full_game_mode_has_a_price)
 {
 	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
 
-	CHECK(full.items.size() > std::size_t(0));
+	CHECK(full.items.size() >= 80);
 
 	CHECK(!HasDuplicates(Ids(full.items)));
 
@@ -133,7 +137,7 @@ TEST_CASE(nulls_in_the_skill_data_never_arrive_as_the_word_null)
 	// skill locks out all the others.
 	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
 
-	CHECK(full.skills.size() > std::size_t(0));
+	CHECK(full.skills.size() >= 17);
 
 	for (const auto &skill : full.skills)
 	{
@@ -171,9 +175,9 @@ TEST_CASE(the_simple_game_mode_is_a_smaller_subset_of_the_full_one)
 	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
 	const CivSimCore::GameModeNode simple = LoadGameMode(simplePath);
 
-	CHECK(simple.items.size() > std::size_t(0));
+	CHECK(simple.items.size() >= 12);
 	CHECK(simple.items.size() < full.items.size());
-	CHECK(simple.skills.size() > std::size_t(0));
+	CHECK(simple.skills.size() >= 17);
 
 	const std::vector<std::string> fullIds = Ids(full.items);
 	for (const std::string &id : Ids(simple.items))

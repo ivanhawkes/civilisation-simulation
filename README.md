@@ -52,9 +52,12 @@ process.
 - CMake 3.24+ and Ninja, or any CMake generator you prefer.
 - A C++20 compiler. The development shell pins LLVM 21 (`devenv.nix`).
 - mikefarah/yq v4: `data/build.sh` merges the source YAML with it, and the test suite
-  reads the generated documents. CMake stops with a message when `yq` is missing and
-  the tests are enabled, rather than configuring a suite that silently runs nothing.
-  Build the core without the tests with `-DBUILD_TESTING=OFF`.
+  reads the generated documents. The merge is tested with **v4.54.1**, the version the
+  development shell pins: v4.54.2 scopes YAML anchors to a single document, which the
+  shared anchors between the item files do not survive, and the data build fails. CMake
+  warns when the `yq` on `PATH` is not the tested version. A missing `yq` with the tests
+  enabled is a fatal configure error, rather than a suite that silently runs nothing:
+  build the core without the tests with `-DBUILD_TESTING=OFF`.
 - Git and network access at configure time: CMake fetches yaml-cpp 0.9.0 and FTXUI
   7.0.3.
 
@@ -236,6 +239,15 @@ item file. `build.sh` explodes the links and drops them, so every key in a gener
 file appears exactly once, and each item carries the fields inherited from its category
 and age.
 
+`build.sh` concatenates the files into one stream and `yq ea` walks it document by
+document, so an item file's `*categoryChemicals` and `*ironAge` resolve against the
+anchors defined in the category and age files that precede them. That is yq behaviour
+across documents, and it is version dependent: v4.54.1 resolves them, v4.54.2 enforces
+the spec's per-document anchor scope and the merge fails. The development shell and CI
+both pin v4.54.1, CMake warns on any other version, and `DataTests` asserts the scale
+of the merged documents - ages, categories, items, skills - so a merge that quietly
+truncates the game fails the suite instead of shipping a short one.
+
 Because the merge flattens the anchors, an item's `categoryId` and `ageId` are written
 out as ordinary fields, and the core reads them as optional metadata.
 
@@ -250,9 +262,10 @@ does not read it.
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` configures, builds, runs `ctest` and checks formatting. A
-second job configures with the tests enabled and `yq` absent, and fails if that
-configure succeeds: a suite that quietly disappears is the bug that job guards.
+`.github/workflows/ci.yml` configures, builds, runs `ctest` and checks formatting, on
+the pinned yq v4.54.1. A second job configures with the tests enabled and `yq` absent,
+and fails if that configure succeeds: a suite that quietly disappears is the bug that
+job guards.
 
 `.config/wt.toml` mirrors the same gates locally. `pre-merge` builds, runs the tests and
 checks formatting, so a merge needs all three.

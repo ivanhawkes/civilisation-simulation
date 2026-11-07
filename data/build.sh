@@ -42,23 +42,33 @@ TECH_TREE=(
   skill-tree/skills.yaml
 )
 
+# Every document is built in a temporary directory and moved into place at the end.
+# The merge depends on anchors that span the concatenated files, and a yq that scopes
+# anchors to one document - v4.54.2 does exactly that - fails part-way through. A
+# direct redirect would leave an empty full.yaml behind, newer than its inputs, for
+# the next build to read as a complete game.
+tmp_dir="$(mktemp -d)"
+trap 'rm -rf "$tmp_dir"' EXIT
+
 # Merge the whole tech tree, including every item in the game.
-merge_documents "${TECH_TREE[@]}" game-mode/full.yaml > core-config/full.yaml
+merge_documents "${TECH_TREE[@]}" game-mode/full.yaml > "$tmp_dir/full.yaml"
 
 # Merge the subset of items used by the simple version of the game, for quick
 # matches and testing.
-merge_documents "${TECH_TREE[@]}" game-mode/simple.yaml > core-config/simple.yaml
+merge_documents "${TECH_TREE[@]}" game-mode/simple.yaml > "$tmp_dir/simple.yaml"
 
 # Process the ages into a form useful for the game, exploding all the anchors
 # and dropping the base list that only exists to define them.
 yq -n \
   --yaml-fix-merge-anchor-to-spec=true \
   'load("base/ages.yaml") | explode(.) | del(.ages-base)' \
-  > core-config/ages.yaml
+  > "$tmp_dir/ages.yaml"
 
 # Process the categories into a form useful for the game, exploding all the
 # anchors and dropping the base list that only exists to define them.
 yq -n \
   --yaml-fix-merge-anchor-to-spec=true \
   'load("trade-items/categories.yaml") | explode(.) | del(.categories-base)' \
-  > core-config/categories.yaml
+  > "$tmp_dir/categories.yaml"
+
+mv "$tmp_dir/full.yaml" "$tmp_dir/simple.yaml" "$tmp_dir/ages.yaml" "$tmp_dir/categories.yaml" core-config/
