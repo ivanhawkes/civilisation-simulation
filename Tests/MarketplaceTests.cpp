@@ -1051,8 +1051,8 @@ TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 	// commission takes the risk of the place off the fee as well.
 	CHECK(effects.Apply(world, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4, errorMessage));
 
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 20.0);
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -60.0);
+	CHECK_NEAR(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 20.0, 1e-9);
+	CHECK_NEAR(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -60.0, 1e-9);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-02"), 40);
@@ -1063,8 +1063,8 @@ TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 	CHECK(effects.Apply(world, "Civ-01", "SkillTradeTribunal", "TradeTribunal", EffectOrigin::Skill, 2, errorMessage));
 	CHECK(effects.Apply(world, "Civ-01", "SkillPiracySafeHarbours", "SafeHarbours", EffectOrigin::Skill, 1, errorMessage));
 
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketDepth), 105.0);
-	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60 - 18 - 14);
+	CHECK_NEAR(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketDepth), 105.0, 1e-9);
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60 - 2 * 9 - 14);
 	CHECK_EQ(service.DepthUnits(world, "Civ-01"), 205.0);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
 	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 120);
@@ -1079,17 +1079,30 @@ TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 	CHECK_EQ(service.InsuranceBps(world, "Civ-02"), 120);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-02"), 40);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-02"), 0);
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketInsurance), -200.0);
+	CHECK_NEAR(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketInsurance), -200.0, 1e-9);
+
+	// The policy is a market effect like any other, and its term lands on the same stat
+	// the licence, the bench and the harbours land on: 10 basis points off the risk of
+	// the place for every tier of it. The premium is the line that clamps at nothing and
+	// the risk of the place is not: a venue that charges nothing for a policy that
+	// covers the whole premium of the venue is still the safer venue to trade at, and
+	// the fee of the venue prices the risk of the place with the policy in it.
+	CHECK_NEAR(
+	    effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium),
+	    -60.0 - 2 * 9.0 - 14.0 - 5 * 10.0,
+	    1e-9);
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60 - 2 * 9 - 14 - 5 * 10);
 
 	// The fence network of the piracy tree: a market that takes stolen cargo is a
 	// market whose risk is higher, and the risk is the fee, which is the way a venue
-	// that trades in stolen goods charges for it. The share of the cargo the fences
-	// take is a fraction of the cargo, and the fraction is not a basis point of the
-	// fee: it is the risk of the lane, and the risk is what the venue prices.
+	// that trades in stolen goods charges for it. Three tiers of the network are 3 * 8
+	// basis points on the risk of the place, and the 0.15 a tier of fence share is the
+	// fraction of a cargo a fence takes off book: the share is no basis point of any
+	// charge of the venue, and no charge of the venue moves with it.
 	CHECK(effects.Apply(world, "Civ-01", "SkillPiracyFencingNetwork", "FencingNetwork", EffectOrigin::Skill, 3, errorMessage));
 
-	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -92 + 24);
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketFenceShare), 0.45);
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60 - 2 * 9 - 14 - 5 * 10 + 3 * 8);
+	CHECK_NEAR(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketFenceShare), 3 * 0.15, 1e-9);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
 
 	// The risk of the venue is the risk of the place and the risk of the lane the
@@ -1098,8 +1111,12 @@ TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 	// reads it.
 	CHECK(effects.Apply(world, "Civ-01", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 2, errorMessage));
 
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"), EffectStat::RouteRiskPremium), -24.0);
-	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -68 - 24);
+	CHECK_NEAR(
+	    effects.ReadStat(
+	        world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"), EffectStat::RouteRiskPremium),
+	    -2 * 12.0,
+	    1e-9);
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60 - 2 * 9 - 14 - 5 * 10 + 3 * 8 - 2 * 12);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-02"), 0);
 
 	// A venue whose charges the tree has driven below nothing charges nothing: the
@@ -1119,10 +1136,14 @@ TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 	CHECK_CONTAINS(errorMessage, "ShipEffectEngine");
 	CHECK(effects.Apply(world, "Civ-01", "SkillShipShipyardsDrydock", "Drydock", EffectOrigin::Skill, 1, errorMessage));
 
-	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -92);
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60 - 2 * 9 - 14 - 5 * 10 + 3 * 8 - 2 * 12);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"), EffectStat::YardDockThroughput), 1.0);
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Ship, "Civ-01", EffectStat::ShieldFront), 0.0);
+	CHECK_NEAR(
+	    effects.ReadStat(
+	        world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"), EffectStat::YardDockThroughput),
+	    1.0,
+	    1e-9);
+	CHECK_NEAR(effects.ReadStat(world, EffectDomain::Ship, "Civ-01", EffectStat::ShieldFront), 0.0, 1e-9);
 
 	// A venue that never opened has no charges at all: the venue of a world that did
 	// not open is no venue, and the charges of a body with no venue are the base

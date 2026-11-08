@@ -37,11 +37,25 @@
     ripgrep
     jq
     fd
+
+    # Python tooling (version-agnostic CLIs; the interpreter comes from languages.python)
+    uv
+    ruff
+    black
+    mypy
+    python312Packages.pytest
+    python312Packages.ipython
   ];
 
   delta.enable = true;
 
   languages.cplusplus.enable = true;
+
+  languages.python = {
+    enable = true;
+    package = pkgs.python312;
+    venv.enable = true;
+  };
 
   enterShell = ''
     if [ -d .git ]; then

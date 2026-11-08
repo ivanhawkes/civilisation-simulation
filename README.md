@@ -537,18 +537,26 @@ At this point in time it would be utterly foolish to create software without sup
 
 Crash checkpoints `39a5a15` and `c52da5f` ("Crashed while adding new ECS parts",
 deliberately broken builds) added EnTT, the ECS layer, the effects engines and the
-marketplace with their tests. The work is being finished in the working tree on
-`feature-scaffold`; nothing is committed yet.
+marketplace with their tests. `35e3812` repaired the build: the tree is clean, the build
+is green, and 7 of the 8 suites pass. The work is finished on `feature-scaffold` in
+commits on top of the two checkpoints, which are left as they are.
 
 ### State at the time of writing
 
 | Test | Status |
 | --- | --- |
 | ConfigTests, UniverseTests, ProgressionTests, SimulationTests, EcsTests, EffectTests, DataTests | passing |
-| MarketplaceTests | 2 cases failing, then a segfault in a later case; `ctest` reports 7/8 |
+| MarketplaceTests | 2 cases failing (`an_order_that_outlives_its_life_leaves_the_book`, `the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue`), then a segfault in `a_fill_trades_in_whole_units_of_the_price_and_the_fee`; `ctest` reports 7/8. `a_market_effect_moves_the_charge_of_the_venue_it_lands_on` passes |
 
-Working tree (all uncommitted): `Source/CivSimCore/Private/{Ecs/EcsWorld,Effects/CivilisationEffects,Effects/ShipEffectEngine,Market/Marketplace}.cpp`,
+The ECS, effects and marketplace code is **committed** on `feature-scaffold`: the build
+is green at `35e3812`, which repaired the broken build of the checkpoints `39a5a15` and
+`c52da5f`. The working tree is clean. Files of the feature:
+`Source/CivSimCore/Private/{Ecs/EcsWorld,Effects/CivilisationEffects,Effects/ShipEffectEngine,Market/Marketplace}.cpp`,
 the matching `Public/` headers, `Tests/EffectTests.cpp`, `Tests/MarketplaceTests.cpp`.
+
+The line numbers the checklist quotes are as of `35e3812`. The venue-charge fix added 21
+lines to `Tests/MarketplaceTests.cpp`, so the cases now start at 1160, 1260, 1344, 1483
+and 1655.
 
 Commands used throughout:
 
@@ -589,34 +597,41 @@ are the reason the tests read the way they do now):
   `MarketDepth` effect; 0 means no cap.
 - Fees: base listing fee plus venue risk; fee per side, rounded up to whole credits.
   Test worlds with no effects have risk premium 0, so 40 bps on gross 100 is 1 credit.
+- Venue charges are three sums and two clamps, all of them read off the market store of
+  the venue and the lane store of its owner: `RiskPremiumBps` = the summed
+  `MarketRiskPremium` of the venue + the `RouteRiskPremium` of `LaneStoreId(owner)`;
+  `ListingFeeBps` = base + risk - `MarketClearance`/2, clamped at 0;
+  `InsuranceBps` = base + `MarketInsurance`, clamped at 0. `MarketFenceShare` is a
+  fraction of a cargo and prices no charge of the venue at all; the premium line clamps
+  at nothing and the risk line does not.
 
 ### Remaining work
 
-- [ ] `a_market_effect_moves_the_charge_of_the_venue_it_lands_on` (starts
-  `Tests/MarketplaceTests.cpp:1006`). Four checks fail:
-  - [ ] Line 1092 `ReadStat(..., MarketFenceShare) == 0.45` prints "0.45 vs 0.45": a
-    float/double exactness problem. Confirm `MarketFenceShare` accumulates as a `double`
-    (0.15 per tier, not `0.15f`), and switch the test to `CHECK_NEAR(..., 1e-9)` for
-    fractional reads. Check `EffectTypes`/`CivilisationEffects` for any `float` in the
-    accumulation path.
-  - [ ] Lines 1091, 1102, 1122 `RiskPremiumBps`: expected `-92+24 = -68`, got `-118`;
-    then `-68-24 = -92`, got `-142`; then `-92`, got `-142`. The venue is reading 50 bps
-    too much once `FencingNetwork` is applied, and the convoy term is not separating as
-    the test expects. Look at `MarketplaceService::RiskPremiumBps` in
-    `Source/CivSimCore/Private/Market/Marketplace.cpp`: it sums `MarketEffects` market
-    risk and `RouteEffects` route risk via
-    `CivilisationEffectEngine::LaneStoreId(civilisationId)`. Find where the extra 50
-    comes from (fence share priced as bps at 100 per share, most likely) and decide the
-    rule: the test says `MarketFenceShare` is a *fraction of cargo* (0.45), *not* a basis
-    point of the fee, so it must not enter `RiskPremiumBps` at all. Keep the convoy term
-    at -24 and the market term at -60-18-14.
-  - [ ] `InsuranceBps` clamp (line 1070, 1075-1078): the test expects 120 with
-    SafeHarbours applied, 0 after CargoInsurance tier 5 (-200), and 120/40/0 for the
-    un-effect-ed `Civ-02`. Verify these already pass; they were not in the FAIL list, so
-    they are believed good, but re-check them after the fence rule changes.
-  - [ ] Line 1122's neighbours: `SkillShipShieldsFront` must fail with a message
-    containing `ShipEffectEngine`, and `SkillShipShipyardsDrydock` must land on the yard
-    store (`YardDockThroughput == 1.0`). Confirm after the risk change.
+- [x] `a_market_effect_moves_the_charge_of_the_venue_it_lands_on`
+  (`Tests/MarketplaceTests.cpp:1006`) passes. The diagnosis in this list was wrong, and
+  the test moved, not the code:
+  - `MarketFenceShare` never enters `RiskPremiumBps`: `MarketplaceService` prices no
+    bps for the share, and never did. The 50 bps the case was missing is
+    `CargoInsurance`, which carries `MarketInsurance -40` **and** `MarketRiskPremium
+    -10` a tier: the case had bought 5 tiers, so -50 sat in the risk of the place, and
+    the fence expectations (`-92+24`, `-68-24`, `-92`) were written before the policy
+    block and never carried that -50 forward. The insurance read, the premium clamp and
+    the ship/yard refusals were all passing and still do.
+  - The rule the case now asserts: **the risk of the place is a plain sum of the signed
+    market terms** - licence, bench, harbours, policy, fence - **plus the risk of the
+    lane of the owner**. The premium line clamps at nothing and the risk line does not:
+    a policy that covers the whole premium leaves the venue charging nothing for
+    insurance and still the safer venue to trade at, so the fee keeps the policy's risk
+    credit. It is the same sum `EffectTests` asserts (`3*-5 + 2*-10 + 4*-15`), the same
+    rule `the_marketplace_reads_the_tree_of_...` reads, and it is why no term is
+    special-cased in the code.
+  - The case reads the effects in the order they are applied, so the fence (+3 * 8) and
+    the convoy (-2 * 12) separate on their own lines, and the fence share is asserted
+    as a fraction of the cargo (`3 * 0.15`), not as a charge.
+  - Every `ReadStat` read in the case is now `CHECK_NEAR(..., 1e-9)`, as in
+    `EffectTests`: `3 * 0.15` is not exactly 0.45 in a `double`, and the accumulation
+    path is `double` end to end (`EffectModifier::perTier`, the stat map, the store), so
+    there is no `float` to find.
 - [ ] `an_order_that_outlives_its_life_leaves_the_book` (starts line 1139). Two checks
   fail:
   - [ ] Line 1160 `first->expiresTick == 34`, got `30`, for an order placed at tick 10:
