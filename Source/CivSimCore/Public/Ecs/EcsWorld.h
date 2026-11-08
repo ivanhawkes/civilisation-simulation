@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 
@@ -85,11 +86,16 @@ class EcsWorld
 	// pointer says "this entity has no such component", which is the ordinary answer
 	// in an ECS, and a library that writes nothing to the console reports it that way.
 
-	// Adds a component built from Args. Null when the entity is unknown, and when it
+	// Adds a component built from Values. Null when the entity is unknown, and when it
 	// already carries the component: a component is a fact about an entity, and the
 	// second answer says the fact was already there.
-	template <typename Type, typename... Args> Type *Add(const std::string &Id, Args &&...Args);
-	template <typename Type, typename... Args> Type *Add(Entity Target, Args &&...Args);
+	//
+	// The pack of arguments is named Values, not Args: a function parameter pack is
+	// declared by the name written after the type, and a parameter pack that spells
+	// Args shadows the template pack of the same name, which leaves `std::forward<Args>`
+	// naming a value and no longer a type.
+	template <typename Type, typename... Args> Type *Add(const std::string &Id, Args &&...Values);
+	template <typename Type, typename... Args> Type *Add(Entity Target, Args &&...Values);
 
 	// Replaces a component, adding it when the entity does not carry it. Null when
 	// the entity is unknown.
@@ -126,9 +132,14 @@ class EcsWorld
 	}
 
 	// The number of entities carrying Type: the size of a store, as EnTT counts it.
+	// A store the world has never seen counts 0: on a const registry EnTT hands back a
+	// pointer to the store, null when there is none, and it does not create one for the
+	// act of asking.
 	template <typename Type> std::size_t ComponentCount() const
 	{
-		return static_cast<std::size_t>(registry.storage<Type>().size());
+		const auto *store = registry.storage<Type>();
+
+		return store ? static_cast<std::size_t>(store->size()) : 0;
 	}
 
   private:
@@ -138,13 +149,13 @@ class EcsWorld
 };
 
 
-template <typename Type, typename... Args> Type *EcsWorld::Add(const std::string &Id, Args &&...Args)
+template <typename Type, typename... Args> Type *EcsWorld::Add(const std::string &Id, Args &&...Values)
 {
-	return Add<Type>(Find(Id), std::forward<Args>(Args)...);
+	return Add<Type>(Find(Id), std::forward<Args>(Values)...);
 }
 
 
-template <typename Type, typename... Args> Type *EcsWorld::Add(Entity Target, Args &&...Args)
+template <typename Type, typename... Args> Type *EcsWorld::Add(Entity Target, Args &&...Values)
 {
 	if (!IsValid(Target))
 	{
@@ -156,7 +167,7 @@ template <typename Type, typename... Args> Type *EcsWorld::Add(Entity Target, Ar
 		return nullptr;
 	}
 
-	return &registry.emplace<Type>(Target, std::forward<Args>(Args)...);
+	return &registry.emplace<Type>(Target, std::forward<Args>(Values)...);
 }
 
 

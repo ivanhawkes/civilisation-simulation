@@ -1,12 +1,16 @@
 #include "Ecs/Components.h"
 #include "Ecs/EcsWorld.h"
 #include "TestFramework.h"
+#include <algorithm>
+#include <cstddef>
 #include <string>
 #include <vector>
 
 
 namespace
 {
+using namespace CivSimCore;
+
 // A component with a value, so a check can say "this entity carries 12 of it".
 struct Cargo
 {
@@ -23,18 +27,6 @@ struct Station
 {
 	std::string name;
 };
-
-std::string MakeWorld(CivSimCore::EcsWorld &world, const std::string &id)
-{
-	std::string errorMessage;
-
-	if (!world.Create(id, errorMessage))
-	{
-		return errorMessage;
-	}
-
-	return {};
-}
 } // namespace
 
 
@@ -202,9 +194,12 @@ TEST_CASE(a_view_finds_every_entity_that_carries_the_component)
 	CHECK_EQ(hulls[0], std::string("Ship-01"));
 	CHECK_EQ(hulls[1], std::string("Ship-02"));
 
-	CHECK(world.HasComponent<ShipInfo, EntityId>("Ship-01"));
-	CHECK(!world.HasComponent<ShipInfo, BodyInfo>("Ship-01"));
-	CHECK(world.HasComponent<BodyInfo, EntityId>("Civ-01"));
+	// HasComponent takes more than one component, and the comma that separates them is
+	// inside the angle brackets the preprocessor does not see: the condition goes in
+	// parentheses of its own so the macro gets one argument.
+	CHECK((world.HasComponent<ShipInfo, EntityId>("Ship-01")));
+	CHECK(!(world.HasComponent<ShipInfo, BodyInfo>("Ship-01")));
+	CHECK((world.HasComponent<BodyInfo, EntityId>("Civ-01")));
 }
 
 
@@ -283,7 +278,7 @@ TEST_CASE(the_component_helpers_work_on_an_entity_a_view_handed_over)
 		screen->megawatts = 240.0;
 
 		CHECK_EQ(world.Get<Screen>(world.NameOf(entity))->megawatts, 240.0);
-		CHECK(world.HasComponent<Screen, Station, EntityId>(entity));
+		CHECK((world.HasComponent<Screen, Station, EntityId>(entity)));
 		CHECK(!world.Remove<Screen>(CivSimCore::EcsWorld::Null));
 	}
 

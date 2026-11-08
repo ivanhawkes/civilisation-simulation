@@ -1,10 +1,14 @@
 #include "Core/ProgressionManager.h"
+#include "Core/Simulation.h"
 #include "Core/SimulationConfig.h"
+#include "Core/Universe.h"
 #include "Ecs/Components.h"
 #include "Ecs/EcsWorld.h"
 #include "Effects/CivilisationEffects.h"
 #include "Market/Marketplace.h"
 #include "TestFramework.h"
+#include <algorithm>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -75,28 +79,55 @@ double Units(const EcsWorld &world, const std::string &civilisationId, const std
 
 	return entry != stock->units.end() ? entry->second : 0.0;
 }
-
-VenueBasis Planet(const std::string &civilisationId = "Civ-01")
+// The stockpile of a generated world, read the way the market's own stockpile is read:
+// a good the world has none of is a good of nought units.
+double StockOf(const Civilisation &world, const std::string &itemId)
 {
-	VenueBasis basis;
+	const auto entry = world.stockpile.find(itemId);
 
-	basis.bodyId = civilisationId;
-	basis.venueKind = BodyKind::Planet;
-	basis.civilisationId = civilisationId;
-	basis.ageId = "Age02";
-
-	return basis;
+	return entry != world.stockpile.end() ? entry->second : 0.0;
 }
+
+// A node of the tree the marketplace reads: the shipped shape, the set it sits in, the
+// tiers it opens, the resource each tier costs, and the effect its tiers write.
+SkillNode Node(const std::string &skillId, unsigned maxTiers, unsigned costPerTier, const std::string &targetEffectId)
+{
+	SkillNode node;
+
+	node.skillId = skillId;
+	node.displayName = skillId;
+	node.nodeType = NodeType::Skill;
+	node.maxTiers = maxTiers;
+	node.resourceCostPerTier = costPerTier;
+	node.targetEffectID = targetEffectId;
+
+	return node;
+}
+
+// A tree and the points that buy it. The marketplace reads a ProgressionManager, so a
+// test that walks a tree builds one, and the points of the pool pay for the nodes the
+// test names.
+ProgressionManager Tree(const std::vector<SkillNode> &nodes, int points)
+{
+	ProgressionManager progression;
+	std::string errorMessage;
+
+	CHECK(progression.Build(nodes, errorMessage));
+	progression.SetResources(points);
+
+	return progression;
+}
+
 } // namespace
 
-
-TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one, "MarketplaceService::Open")
+TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one)
 {
 	MarketplaceService service;
 	EcsWorld world;
 	std::string errorMessage;
+	EcsWorld::Entity created = EcsWorld::Null;
 
-	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 1000, {{"iron_ore", 100.0}}));
+	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 1000, {{"iron_ore", 100.0}}).empty());
 	CHECK(service.VenueBlockReason(world, "Civ-01").empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 	CHECK(service.HasMarket(world, "Civ-01"));
@@ -114,7 +145,7 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one, "M
 	CHECK(venue->atPlanet);
 	CHECK(!venue->atSatellite);
 	CHECK_EQ(venue->baseListingFeeBps, 40);
-	CHECK_EQ(venue->orderLifeTicks, 24);
+	CHECK_EQ(venue->orderLifeTicks, 20);
 	CHECK_EQ(venue->venueTake, 0LL);
 
 	// A station above a planet is a place the ships of that planet put in and pull out
@@ -136,7 +167,7 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one, "M
 	const Orbit *orbit = world.Get<Orbit>("Beacon-Station");
 
 	CHECK(orbit != nullptr);
-	CHECK_EQ(orbit->primaryBodyId, std::string("Civ-01"));
+	CHECK_EQ(orbit->primaryId, std::string("Civ-01"));
 	CHECK_EQ(orbit->radiusKm, 420000.0);
 
 	// A star has no market: no people, and the gravity well of a star is a well no
@@ -145,9 +176,9 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one, "M
 	CHECK_CONTAINS(errorMessage, "civilisation");
 
 	{
-		std::string created;
+		EcsWorld::Entity created = EcsWorld::Null;
 
-		CHECK(world.Create("Star-01", created));
+		CHECK(world.Create("Star-01", created, errorMessage));
 		world.Add<BodyInfo>(
 		    "Star-01", BodyInfo{"Star-01", BodyKind::Star, "Abigail", {}, "Abigail Prime System", "Civ-01", "Age05"});
 
@@ -162,9 +193,9 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one, "M
 	// market at the bottom of its.
 	CHECK(MarketplaceService::AddPlanet(world, "Civ-02", "Beacon Reach", "Beacon Reach System", "Civ-02", "Age02", errorMessage));
 	{
-		std::string created;
+		EcsWorld::Entity created = EcsWorld::Null;
 
-		CHECK(world.Create("Moon-01", created));
+		CHECK(world.Create("Moon-01", created, errorMessage));
 		world.Add<BodyInfo>(
 		    "Moon-01", BodyInfo{"Moon-01", BodyKind::Satellite, "Moon-01", "Star-01", "Abigail Prime System", "Civ-01", {}});
 
@@ -184,11 +215,11 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one, "M
 	// A station above nothing: the ships that put in and pull out of it come up from
 	// nowhere, and a venue that cannot say whose trade it is takes no order.
 	{
-		std::string created;
+		EcsWorld::Entity created = EcsWorld::Null;
 
-		CHECK(world.Create("Station-01", created));
+		CHECK(world.Create("Station-01", created, errorMessage));
 		world.Add<BodyInfo>(
-		    "Station-01", BodyKind{"Station-01", BodyKind::Satellite, "Station-01", {}, "Abigail Prime System", "Civ-01", {}});
+		    "Station-01", BodyInfo{"Station-01", BodyKind::Satellite, "Station-01", {}, "Abigail Prime System", "Civ-01", {}});
 
 		CHECK(!service.Open(world, "Station-01", errorMessage));
 		CHECK_CONTAINS(errorMessage, "orbits no planet");
@@ -197,13 +228,13 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one, "M
 
 	// A body that belongs to no one: the fee, the risk and the take of a venue all
 	// belong to a world, and so does the take.
-	CHECK(world.Create("Body-01", errorMessage));
+	CHECK(world.Create("Body-01", created, errorMessage));
 	world.Add<BodyInfo>("Body-01", BodyInfo{"Body-01", BodyKind::Planet, "Body-01", {}, "Nowhere", "", {}});
 	CHECK(!service.Open(world, "Body-01", errorMessage));
 	CHECK_CONTAINS(errorMessage, "no civilisation");
 
 	// Not a body at all: an order, a ship, a lane store.
-	CHECK(world.Create("Order-9", errorMessage));
+	CHECK(world.Create("Order-9", created, errorMessage));
 	CHECK(!service.Open(world, "Order-9", errorMessage));
 	CHECK_CONTAINS(errorMessage, "BodyInfo");
 	CHECK(!service.Open(world, "Nowhere-Prime", errorMessage));
@@ -231,15 +262,15 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one, "M
 }
 
 
-TEST_CASE(a_resting_order_holds_the_goods_and_the_credits_it_promises, "MarketplaceService::PostOrder")
+TEST_CASE(a_resting_order_holds_the_goods_and_the_credits_it_promises)
 {
 	MarketplaceService service;
 	EcsWorld world;
 	std::string errorMessage;
 	std::string orderId;
 
-	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 1000, {{"iron_ore", 100.0}}));
-	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 1000, {{"grain", 100.0}}));
+	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 1000, {{"iron_ore", 100.0}}).empty());
+	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 1000, {{"grain", 100.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
 	// The seller's side: the goods leave the seller's stockpile when the order posts,
@@ -345,15 +376,15 @@ TEST_CASE(a_resting_order_holds_the_goods_and_the_credits_it_promises, "Marketpl
 }
 
 
-TEST_CASE(a_post_that_crosses_the_book_trades_at_the_price_that_was_resting, "MarketplaceService::PostOrder")
+TEST_CASE(a_post_that_crosses_the_book_trades_at_the_price_that_was_resting)
 {
 	MarketplaceService service;
 	EcsWorld world;
 	std::string errorMessage;
 	std::string orderId;
 
-	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 1000, {{"iron_ore", 100.0}}));
-	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 100.0}}));
+	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 1000, {{"iron_ore", 100.0}}).empty());
+	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 100.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
 	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 40.0, 12.0, 1), orderId, errorMessage));
@@ -467,16 +498,16 @@ TEST_CASE(a_post_that_crosses_the_book_trades_at_the_price_that_was_resting, "Ma
 }
 
 
-TEST_CASE(an_order_that_walks_the_book_pays_the_best_price_first, "MarketplaceService::ExecuteOrder")
+TEST_CASE(an_order_that_walks_the_book_pays_the_best_price_first)
 {
 	MarketplaceService service;
 	EcsWorld world;
 	std::string errorMessage;
 	std::string orderId;
 
-	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 1000, {}));
-	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 30.0}}));
-	CHECK(AddWorld(service, world, "Civ-03", "Cinder Port", 1000, {{"iron_ore", 30.0}}));
+	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 1000, {}).empty());
+	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 30.0}}).empty());
+	CHECK(AddWorld(service, world, "Civ-03", "Cinder Port", 1000, {{"iron_ore", 30.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
 	// The book, resting first: three asks at 10, 11 and 12, and two bids at 9.
@@ -608,15 +639,15 @@ TEST_CASE(an_order_that_walks_the_book_pays_the_best_price_first, "MarketplaceSe
 }
 
 
-TEST_CASE(the_book_is_the_book_the_quoters_read, "MarketplaceService::RefreshQuotes")
+TEST_CASE(the_book_is_the_book_the_quoters_read)
 {
 	MarketplaceService service;
 	EcsWorld world;
 	std::string errorMessage;
 	std::string orderId;
 
-	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 10000, {{"iron_ore", 100.0}, {"grain", 100.0}}));
-	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 10000, {{"iron_ore", 100.0}, {"grain", 100.0}}));
+	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 10000, {{"iron_ore", 100.0}, {"grain", 100.0}}).empty());
+	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 10000, {{"iron_ore", 100.0}, {"grain", 100.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
 	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 12.0, 1), orderId, errorMessage));
@@ -677,6 +708,11 @@ TEST_CASE(the_book_is_the_book_the_quoters_read, "MarketplaceService::RefreshQuo
 	CHECK(service.RefreshQuotes(world, "Civ-01", errorMessage));
 
 	const MarketQuote *water = service.QuoteFor(world, "Civ-01", "water");
+
+	// The out-parameters of the price reads, for the calls that answer with the price
+	// through an argument: one pair, reused by every read, as the test reads them.
+	double bestAsk = 0.0;
+	double bestBid = 0.0;
 
 	CHECK(water != nullptr);
 	CHECK_EQ(water->bestAsk, 30.0);
@@ -749,7 +785,11 @@ TEST_CASE(the_book_is_the_book_the_quoters_read, "MarketplaceService::RefreshQuo
 }
 
 
-TEST_CASE(the_deck_of_a_venue_holds_just_so_many_units_of_one_good, "MarketplaceService::DepthUnits")
+
+
+
+
+TEST_CASE(the_deck_of_a_venue_holds_just_so_many_units_of_one_good)
 {
 	MarketplaceOptions options;
 	options.depthUnits = 30.0;
@@ -760,8 +800,8 @@ TEST_CASE(the_deck_of_a_venue_holds_just_so_many_units_of_one_good, "Marketplace
 	std::string errorMessage;
 	std::string orderId;
 
-	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 100000, {{"iron_ore", 1000.0}}));
-	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 100000, {{"iron_ore", 1000.0}}));
+	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 100000, {{"iron_ore", 1000.0}}).empty());
+	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 100000, {{"iron_ore", 1000.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
 	// A venue with a deck of 30 units of a good: the units one side of one good's book
@@ -770,8 +810,8 @@ TEST_CASE(the_deck_of_a_venue_holds_just_so_many_units_of_one_good, "Marketplace
 	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 20.0, 12.0, 1), orderId, errorMessage));
 	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 15.0, 12.0, 2), orderId, errorMessage));
 
-	CHECK_CONTAINS(errorMessage, "20");
-	CHECK_CONTAINS(errorMessage, "30");
+	CHECK_CONTAINS(errorMessage, "20.00");
+	CHECK_CONTAINS(errorMessage, "30.00");
 	CHECK_CONTAINS(errorMessage, "Sell");
 	CHECK_CONTAINS(errorMessage, "iron_ore");
 
@@ -785,21 +825,23 @@ TEST_CASE(the_deck_of_a_venue_holds_just_so_many_units_of_one_good, "Marketplace
 
 	// The safe harbours of the law tree: a berth that clears, and a lane that is
 	// worth less, is a venue with a deeper book, because the depth a venue has is the
-	// depth the harbours and the tribunal buy.
+	// depth the harbours and the tribunal buy. The reading is the market store the
+	// effect landed on, and the deck of the venue is the deck of the options plus it.
 	CHECK(effects.Apply(world, "Civ-01", "SkillPiracySafeHarbours", "SafeHarbours", EffectOrigin::Skill, 1, errorMessage));
-	CHECK_EQ(engineReads(effects, world, "Civ-01"), 40.0);
+	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketDepth), 25.0);
 
-	CHECK_EQ(service.DepthUnits(world, "Civ-01"), 70.0);
+	CHECK_EQ(service.DepthUnits(world, "Civ-01"), 55.0);
 	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 15.0, 12.0, 5), orderId, errorMessage));
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 4u);
 	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 20.0, 12.0, 6), orderId, errorMessage));
-	CHECK_CONTAINS(errorMessage, "35");
-	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -8);
-	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 32);
-	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 8);
+	CHECK_CONTAINS(errorMessage, "55.00");
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -14);
+	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 26);
+	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 120);
 
 	// A venue that has set no depth is a venue that quoters arrive at, not a venue
-	// that turns them away.
+	// that turns them away: the deck of the options is the deck, and the market
+	// effects only raise it, so a venue with no deck set holds what its traders bring.
 	service.SetOptions(MarketplaceOptions{});
 
 	CHECK_EQ(service.DepthUnits(world, "Civ-01"), 0.0);
@@ -810,116 +852,148 @@ TEST_CASE(the_deck_of_a_venue_holds_just_so_many_units_of_one_good, "Marketplace
 	CHECK_EQ(service.InsuranceBps(world, "Civ-99"), 0);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-99"), 0);
 }
-
-
-TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on, "MarketplaceService::ListingFeeBps")
+TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 {
+	MarketplaceOptions options;
+	options.depthUnits = 100.0;
+
+	MarketplaceService service(options);
 	CivilisationEffectEngine effects;
-	MarketplaceService service;
 	EcsWorld world;
 	std::string errorMessage;
 
-	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 100000, {{"iron_ore", 1000.0}}));
-	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 100000, {{"iron_ore", 1000.0}}));
+	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 100000, {{"iron_ore", 1000.0}}).empty());
+	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 100000, {{"iron_ore", 1000.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 	CHECK(service.Open(world, "Civ-02", errorMessage));
-	CHECK(service.Open(world, "Beacon-Station", errorMessage). == false);
 
 	// The venue's own charges, and the risk of the place and the lane: a plain venue
-	// charges its base 40 basis points a side, and takes no insurance.
+	// charges its base 40 basis points a side, insures the cargo at 120 basis points
+	// of the gross, and keeps a deck of 100 units.
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 40);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), 0);
-	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 8);
+	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 120);
+	CHECK_EQ(service.DepthUnits(world, "Civ-01"), 100.0);
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-02"), 0);
+	CHECK_EQ(service.InsuranceBps(world, "Civ-02"), 120);
+
+	// A station with no planet beneath it is no venue at all: the station trade is the
+	// trade of the ships that come up a planet's well, and a station above nothing has
+	// no well to come up. The message names the station.
+	CHECK(!service.Open(world, "Beacon-Station", errorMessage));
+	CHECK_CONTAINS(errorMessage, "Beacon-Station");
+	CHECK_EQ(service.MarketIds(world, "Civ-01").size(), 1u);
+
+	// A venue that has opened has a record of itself and no rows in it: a market that
+	// has never traded has a quote table with nothing quoted, which is what the UI
+	// prints as nothing traded here yet.
+	CHECK(service.QuoteFor(world, "Civ-01", "iron_ore") == nullptr);
+	CHECK_EQ(service.Quotes(world, "Civ-01").size(), 0u);
+	CHECK_EQ(service.Fills(world, "Civ-01").size(), 0u);
+	double mid = 0.0;
+
+	CHECK(!service.MidPrice(world, "Civ-01", "iron_ore", mid));
+	CHECK_EQ(mid, 0.0);
 
 	// The licence and the warrant: the deck clears, and the berth is cheaper, one
-	// basis point for every two berths a day the licence clears.
+	// basis point off the fee for every two berths a day the licence clears, and the
+	// commission takes the risk of the place off the fee as well.
 	CHECK(effects.Apply(world, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4, errorMessage));
 
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 80.0);
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), 24.0);
-	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), 24);
-	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 40 + 24 - 40);
+	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 20.0);
+	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -60.0);
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60);
+	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-02"), 40);
 
-	// The tribunal: the trade that is settled is a trade worth less, and a venue with
-	// a court of record is a venue with a deeper book, because a ship that knows the
-	// contract will be kept puts in.
+	// The tribunal and the harbours: the trade that is settled is a trade worth less,
+	// and a venue with a court of record and decks a ship can land cargo on is a venue
+	// with a deeper book, because a ship that knows the contract will be kept puts in.
 	CHECK(effects.Apply(world, "Civ-01", "SkillTradeTribunal", "TradeTribunal", EffectOrigin::Skill, 2, errorMessage));
 	CHECK(effects.Apply(world, "Civ-01", "SkillPiracySafeHarbours", "SafeHarbours", EffectOrigin::Skill, 1, errorMessage));
 
-	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), 24 + 16 - 8);
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketDepth), 60.0);
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketBypass), 30.0);
-	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 40 + 32 - 40);
-	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 8);
+	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketDepth), 105.0);
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60 - 18 - 14);
+	CHECK_EQ(service.DepthUnits(world, "Civ-01"), 205.0);
+	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
+	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 120);
 
 	// The hull insurance of the trade tree: a policy written against the hull, in
 	// basis points of the hull's value, and a venue that writes the policy is a venue
-	// that charges for it.
+	// that charges for it. The policy is worth more than the base premium of the
+	// venue, and a premium the policy has driven below nothing is a premium of nothing.
 	CHECK(effects.Apply(world, "Civ-01", "SkillTradeCargoInsurance", "CargoInsurance", EffectOrigin::Skill, 5, errorMessage));
 
-	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 8 + 20);
-	CHECK_EQ(service.InsuranceBps(world, "Civ-02"), 8);
+	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 0);
+	CHECK_EQ(service.InsuranceBps(world, "Civ-02"), 120);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-02"), 40);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-02"), 0);
+	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketInsurance), -200.0);
 
 	// The fence network of the piracy tree: a market that takes stolen cargo is a
 	// market whose risk is higher, and the risk is the fee, which is the way a venue
-	// that trades in stolen goods charges for it.
+	// that trades in stolen goods charges for it. The share of the cargo the fences
+	// take is a fraction of the cargo, and the fraction is not a basis point of the
+	// fee: it is the risk of the lane, and the risk is what the venue prices.
 	CHECK(effects.Apply(world, "Civ-01", "SkillPiracyFencingNetwork", "FencingNetwork", EffectOrigin::Skill, 3, errorMessage));
 
-	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), 32 + 18);
-	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 40 + 50 - 40);
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -92 + 24);
+	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketFenceShare), 0.45);
+	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
+
+	// The risk of the venue is the risk of the place and the risk of the lane the
+	// goods came down: the convoy of the trade tree is a lane effect, it lands on the
+	// one lane store the civilisation owns, and the venue at either end of the lane
+	// reads it.
+	CHECK(effects.Apply(world, "Civ-01", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 2, errorMessage));
+
+	CHECK_EQ(effects.ReadStat(world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"), EffectStat::RouteRiskPremium), -24.0);
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -68 - 24);
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-02"), 0);
 
 	// A venue whose charges the tree has driven below nothing charges nothing: the
-	// licence clears so many berths a day that the berth is free, and a venue does not
-	// pay a trader to take an order.
-	CHECK(effects.Apply(world, "Civ-01", "SkillLawDockingLicence", "DockingLicence", EffectOrigin::Skill, 5, errorMessage));
-	CHECK(effects.Apply(world, "Civ-01", "SkillPiracyPiratePardon", "PiratePardon", EffectOrigin::Skill, 3, errorMessage));
+	// fee of the venue is clamped at nothing, and a venue that charges nothing takes
+	// nothing from the fill, which is the same ledger read from the other side.
+	std::string warrant;
 
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 160.0);
+	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 10.0, 10.0, 1), warrant, errorMessage));
+	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 0);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
-	CHECK_GE(service.ListingFeeBps(world, "Civ-01"), 0);
 
-	// A station of the same civilisation reads the same charges, because the licence,
-	// the tribunal and the pardon are laws of the world and not rules of one place.
-	CHECK(MarketplaceService::AddSatellite(world, "Beacon-Station", "Civ-01", "Beacon Station", 1.0, 1.0, errorMessage));
-	CHECK(service.Open(world, "Beacon-Station", errorMessage));
-
-	CHECK_EQ(service.ListingFeeBps(world, "Beacon-Station"), 0);
-	CHECK_EQ(service.InsuranceBps(world, "Beacon-Station"), 28);
-	CHECK_EQ(service.RiskPremiumBps(world, "Beacon-Station"), 50);
-	CHECK_EQ(service.MarketIds(world, "Civ-01").size(), 2u);
-	CHECK_EQ(service.MarketIds(world, "Civ-02").size(), 1u);
-
-	// The lanes of the civilisation, read through the venue: a convoy is a lane worth
-	// less, and the risk of the place is the risk of the place and the risk of the
-	// lane the goods came down.
-	CHECK(effects.Apply(world, "Civ-01", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 3, errorMessage));
-	CHECK(effects.Apply(world, "Civ-02", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 1, errorMessage));
-
-	CHECK_EQ(service.RiskPremiumBps(world, "Beacon-Station"), 50 - 36);
-	CHECK_EQ(service.RiskPremiumBps(world, "Civ-02"), -12);
-	CHECK_EQ(service.ListingFeeBps(world, "Civ-02"), 28);
-	CHECK_EQ(service.InsuranceBps(world, "Civ-02"), 8);
-
-	// A ship effect is not a venue's: the market engine reads the stores the civilisation
-	// effect engine wrote, and a hull is not a store of a venue.
-	CHECK(!effects.Apply(world, "Civ-01", "SkillPiracyRaiderHulls", "RaiderHulls", EffectOrigin::Skill, 2, errorMessage));
+	// The market effects of a tree that names no market are not the marketplace's: the
+	// shield is the ship engine's, and the yard is a store of the civilisation, so the
+	// fee of the venue is the fee of the venue and the tree of the ship is the tree of
+	// the ship.
+	CHECK(!effects.Apply(world, "Civ-01", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, errorMessage));
 	CHECK_CONTAINS(errorMessage, "ShipEffectEngine");
-	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), 32);
+	CHECK(effects.Apply(world, "Civ-01", "SkillShipShipyardsDrydock", "Drydock", EffectOrigin::Skill, 1, errorMessage));
+
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -92);
+	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
+	CHECK_EQ(effects.ReadStat(world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"), EffectStat::YardDockThroughput), 1.0);
+	CHECK_EQ(effects.ReadStat(world, EffectDomain::Ship, "Civ-01", EffectStat::ShieldFront), 0.0);
+
+	// A venue that never opened has no charges at all: the venue of a world that did
+	// not open is no venue, and the charges of a body with no venue are the base
+	// charges of the service, because the venue is where the charges live.
+	CHECK(!service.Open(world, "Civ-99", errorMessage));
+	CHECK_CONTAINS(errorMessage, "Civ-99");
+	CHECK_EQ(service.ListingFeeBps(world, "Civ-99"), 40);
+	CHECK_EQ(service.InsuranceBps(world, "Civ-99"), 0);
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-99"), 0);
+	CHECK_EQ(service.DepthUnits(world, "Civ-99"), 0.0);
+	CHECK_EQ(service.Fills(world, "Civ-99").size(), 0u);
 }
 
-
-TEST_CASE(an_order_that_outlives_its_life_leaves_the_book, "MarketplaceService::AdvanceTick")
+TEST_CASE(an_order_that_outlives_its_life_leaves_the_book)
 {
 	MarketplaceService service;
 	EcsWorld world;
 	std::string errorMessage;
 	std::string orderId;
 
-	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 1000, {{"iron_ore", 100.0}}));
-	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 100.0}}));
+	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 1000, {{"iron_ore", 100.0}}).empty());
+	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 100.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
 	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 20.0, 10.0, 10), orderId, errorMessage));
@@ -1018,17 +1092,17 @@ TEST_CASE(the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue
 	EcsWorld world;
 	std::string errorMessage;
 
-	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 1000, {{"iron_ore", 100.0}}));
-	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 100.0}}));
+	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 1000, {{"iron_ore", 100.0}}).empty());
+	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 100.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
 	const std::vector<SkillNode> nodes = {
-	    Node("Age02", "Age02", "AgeGate", 1, 1, "", 0),
-	    Node("SkillLawDockingLicence", "Age02", "Law", 4, 1, "DockingLicence", 1),
-	    Node("SkillTradeCargoInsurance", "Age02", "Trade", 4, 2, "CargoInsurance", 1),
-	    Node("SkillPiracyConvoy", "Age03", "ShipHull", 3, 2, "Convoy", 1),
-	    Node("SkillShipShipyardsDrydock", "Age04", "ShipYard", 3, 4, "Drydock", 1),
-	    Node("SkillShipShieldsFront", "Age02", "ShipSystem", 5, 2, "ShieldFront", 1),
+	    Node("Age02", 1, 1, ""),
+	    Node("SkillLawDockingLicence", 4, 1, "DockingLicence"),
+	    Node("SkillTradeCargoInsurance", 4, 2, "CargoInsurance"),
+	    Node("SkillPiracyConvoy", 3, 2, "Convoy"),
+	    Node("SkillShipShipyardsDrydock", 3, 4, "Drydock"),
+	    Node("SkillShipShieldsFront", 5, 2, "ShieldFront"),
 	};
 
 	ProgressionManager progression = Tree(nodes, 30);
@@ -1049,16 +1123,20 @@ TEST_CASE(the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue
 
 	CHECK_EQ(applied, 4u);
 	CHECK_EQ(skipped, 2u);
-	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -12);
-	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 40 - 12 - 10);
-	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 12);
+
+	// The charges of the venue: the risk of the place is the licence and the policy, the
+	// risk of the lane is the convoy, and the fee is the base fee, that risk, and the
+	// clearance the licence buys at half a basis point for every berth a day it clears.
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -5 - 10 - 12);
+	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 40 - 27 - 10);
+	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 120 - 40);
 	CHECK_EQ(service.DepthUnits(world, "Civ-01"), 0.0);
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Yard, "Yard-Civ-01", EffectStat::DrydockThroughput), 10.0);
+	CHECK_EQ(effects.ReadStat(world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"), EffectStat::YardDockThroughput), 1.0);
 	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-02", EffectStat::MarketInsurance), 0.0);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-02"), 40);
-	CHECK_EQ(service.InsuranceBps(world, "Civ-02"), 8);
+	CHECK_EQ(service.InsuranceBps(world, "Civ-02"), 120);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-02"), 0);
-	CHECK(service.QuoteFor(world, "Civ-01", "iron_ore") != nullptr);
+	CHECK(service.QuoteFor(world, "Civ-01", "iron_ore") == nullptr);
 	CHECK_EQ(service.Fills(world, "Civ-01").size(), 0u);
 
 	CHECK(!service.ApplyProgression(world, progression, effects, "Civ-99", applied, skipped, errorMessage));
@@ -1085,13 +1163,13 @@ TEST_CASE(the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue
 	CHECK_EQ(Credits(world, "Civ-02"), 1000 - 100 - 1);
 	CHECK_EQ(service.Fills(world, "Civ-01").size(), 1u);
 
-	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 12);
+	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 80);
 	CHECK(service.MarketAt(world, "Civ-01")->venueTake > 0);
 	CHECK(effects.DescribeCivilisation(world, "Civ-01").find("CargoInsurance") != std::string::npos);
 }
 
 
-TEST_CASE(a_fill_trades_in_whole_units_of_the_price_and_the_fee, "MarketplaceService::FeeFor")
+TEST_CASE(a_fill_trades_in_whole_units_of_the_price_and_the_fee)
 {
 	MarketplaceOptions options;
 	options.requireFunds = false;
@@ -1100,9 +1178,10 @@ TEST_CASE(a_fill_trades_in_whole_units_of_the_price_and_the_fee, "MarketplaceSer
 	EcsWorld world;
 	std::string errorMessage;
 	std::string orderId;
+	double bestAsk = 0.0;
 
-	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 60, {{"iron_ore", 100.0}}));
-	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 100.0}}));
+	CHECK(AddWorld(service, world, "Civ-01", "Abigail Prime", 60, {{"iron_ore", 100.0}}).empty());
+	CHECK(AddWorld(service, world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 100.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
 	// The rounding rule, in the arithmetic the ledger needs: the venue's 40 basis
@@ -1133,7 +1212,7 @@ TEST_CASE(a_fill_trades_in_whole_units_of_the_price_and_the_fee, "MarketplaceSer
 	CHECK_EQ(MarketplaceService::AffordableQuantity(10.0, 40, -1), 0.0);
 	CHECK_NEAR(MarketplaceService::AffordableQuantity(0.25, 40, 1000000), 3984000.0, 1e-6);
 
-	for (const long long budget : {1, 7, 33, 60, 100, 999, 100000, 1000000000LL})
+	for (const long long budget : {1LL, 7LL, 33LL, 60LL, 100LL, 999LL, 100000LL, 1000000000LL})
 	{
 		for (const int fee : {0, 1, 40, 250, 1500, 10000})
 		{
@@ -1190,7 +1269,7 @@ TEST_CASE(a_fill_trades_in_whole_units_of_the_price_and_the_fee, "MarketplaceSer
 	promises.requireFunds = false;
 	service.SetOptions(promises);
 
-	CHECK(AddWorld(service, world, "Civ-03", "Cinder Port", 1000, {{"grain", 4.0}}));
+	CHECK(AddWorld(service, world, "Civ-03", "Cinder Port", 1000, {{"grain", 4.0}}).empty());
 	CHECK(service.Open(world, "Civ-03", errorMessage));
 
 	std::string promise;
@@ -1229,40 +1308,70 @@ TEST_CASE(a_fill_trades_in_whole_units_of_the_price_and_the_fee, "MarketplaceSer
 }
 
 
-TEST_CASE(a_marketplace_loads_the_world_the_generator_built, "MarketplaceService::LoadSimulation")
+TEST_CASE(a_marketplace_loads_the_world_the_generator_built)
 {
-	const uint64_t seed = 1301;
+	// The world the generator builds: three civilisations, two ages, two categories,
+	// four goods of the first age's deck, and a pool of names with room for the three.
+	// The same seed and the same inputs are the same three worlds, which is what a
+	// load of a loaded world has to agree with.
+	Ages ages;
+	Categories categories;
+	Items items;
+	UniverseNamePools pools;
 
-	SimulationConfig config;
+	for (unsigned index = 0; index < 2; ++index)
+	{
+		AgeNode age;
 
-	config.Systems = PlanetarySystemConfig{1, 3, 0, 0};
-	config.Economy.worldStartingTreasury = 5000;
-	config.Economy.resourcesFactor = 1.0;
-	config.Economy.populationCapacityPerResourceUnit = 2000000.0;
-	config.Economy.populationBaseConsumptionPerCapita = 0.01;
-	config.Economy.productionBaseRate = 0.15;
-	config.Economy.demandSatietyBand = 0.25;
-	config.Economy.civilisationNames = {"Abigail Prime", "Beacon Reach", "Cinder Port"};
-	config.Economy.civilisationSpecies = {"Human", "Human", "Human"};
-	config.Economy.civilisationGovernmentTypes = {"Republic", "Federation", "Empire"};
-	config.Economy.resources = {"iron_ore", "nickel_ore", "water", "grain"};
-	config.Civilisations = CivilisationConfig{3, {}, {}, {}, {}, {}, {}, {}};
+		age.ageId = "Age" + std::to_string(index);
+		age.displayName = age.ageId;
+		ages.push_back(age);
+	}
 
-	Simulation sim(config);
+	for (unsigned index = 0; index < 2; ++index)
+	{
+		CategoryNode category;
 
-	CHECK(sim.GenerateWorld(seed));
+		category.categoryId = "Category" + std::to_string(index);
+		category.displayName = category.categoryId;
+		categories.push_back(category);
+	}
 
-	const std::vector<Civilisation> &worlds = sim.GetCivilisations();
+	for (const char *good : {"iron_ore", "nickel_ore", "water", "grain"})
+	{
+		ItemNode item;
+
+		item.itemId = good;
+		item.displayName = good;
+		item.categoryId = "Category0";
+		items.push_back(item);
+	}
+
+	pools.AddPool("latin", {"Abigail Prime", "Beacon Reach", "Cinder Port", "Dark Water", "Ember Reach", "Falcon Port"});
+
+	GenerateOptions options;
+
+	options.civilisationCount = 3;
+	options.seed = 1301;
+	options.minSpecialties = 1;
+	options.maxSpecialties = 1;
+
+	Simulation sim;
+	std::string errorMessage;
+
+	CHECK(sim.Generate(ages, categories, items, pools, options, errorMessage));
+
+	const std::vector<Civilisation> worlds = sim.GetCivilisations();
 
 	CHECK_EQ(worlds.size(), 3u);
 
+	MarketplaceService service;
 	EcsWorld store;
 	std::size_t venues = 0;
-	std::string errorMessage;
 
 	CHECK(MarketplaceService::LoadSimulation(store, sim, MarketplaceOptions{}, venues, errorMessage));
 	CHECK_EQ(venues, worlds.size());
-	CHECK_EQ(MarketplaceService::MarketCount(store), worlds.size());
+	CHECK_EQ(service.MarketCount(store), worlds.size());
 
 	std::vector<std::string> markets;
 
@@ -1271,9 +1380,9 @@ TEST_CASE(a_marketplace_loads_the_world_the_generator_built, "MarketplaceService
 		markets.push_back(world.id);
 
 		CHECK(store.Has(world.id));
-		CHECK(MarketplaceService::HasMarket(store, world.id));
+		CHECK(service.HasMarket(store, world.id));
 
-		const MarketplaceInfo *venue = MarketplaceService::MarketAt(store, world.id);
+		const MarketplaceInfo *venue = service.MarketAt(store, world.id);
 
 		CHECK(venue != nullptr);
 		CHECK_EQ(venue->civilisationId, world.id);
@@ -1286,16 +1395,16 @@ TEST_CASE(a_marketplace_loads_the_world_the_generator_built, "MarketplaceService
 		// ore takes a tonne out of the stockpile the tick model reads back.
 		CHECK_EQ(Credits(store, world.id), world.treasury);
 		CHECK_NEAR(Units(store, world.id, "iron_ore"), StockOf(world, "iron_ore"), 1e-12);
-		CHECK_EQ(store.Get<Population>(world.id)->current, world.population);
-		CHECK_EQ(store.Get<Production>(world.id)->output.size(), world.production.size());
-		CHECK_EQ(store.Get<Demand>(world.id)->want.size(), world.demand.size());
+		CHECK_EQ(store.Get<Population>(world.id)->worldUnits, world.population);
+		CHECK_EQ(store.Get<Production>(world.id)->perTick.size(), world.production.size());
+		CHECK_EQ(store.Get<Demand>(world.id)->perTick.size(), world.demand.size());
 	}
 
 	std::sort(markets.begin(), markets.end());
 
-	CHECK_EQ(MarketplaceService::MarketIds(store, {}), markets);
-	CHECK_EQ(MarketplaceService::MarketIds(store, worlds[0].id).size(), 1u);
-	CHECK_EQ(MarketplaceService::MarketIds(store, "Civ-99").size(), 0u);
+	CHECK_EQ(service.MarketIds(store, {}), markets);
+	CHECK_EQ(service.MarketIds(store, worlds[0].id).size(), 1u);
+	CHECK_EQ(service.MarketIds(store, "Civ-99").size(), 0u);
 
 	// The market of a loaded world is a venue the loaded world trades at, and the
 	// goods of a loaded world are the goods its manifest gives it.
@@ -1324,9 +1433,9 @@ TEST_CASE(a_marketplace_loads_the_world_the_generator_built, "MarketplaceService
 
 	std::string orderId;
 
-	CHECK(MarketplaceService::PostOrder(store, Order(venueId, seller, good, OrderSide::Sell, 10.0, 25.0, 1), orderId, errorMessage));
+	CHECK(service.PostOrder(store, Order(venueId, seller, good, OrderSide::Sell, 10.0, 25.0, 1), orderId, errorMessage));
 
-	const std::vector<TradeFill> fills = MarketplaceService::ExecuteOrder(
+	const std::vector<TradeFill> fills = service.ExecuteOrder(
 	    store, Order(venueId, buyer, good, OrderSide::Buy, 10.0, 0.0, 2), errorMessage);
 
 	CHECK_EQ(fills.size(), 1u);
@@ -1341,19 +1450,19 @@ TEST_CASE(a_marketplace_loads_the_world_the_generator_built, "MarketplaceService
 	CHECK_EQ(Credits(store, buyer), buyerBefore - 250 - 1);
 	CHECK_NEAR(Units(store, seller, good), sellerGoods - 10.0, 1e-9);
 	CHECK_NEAR(Units(store, buyer, good), buyerGoods + 10.0, 1e-9);
-	CHECK_EQ(MarketplaceService::MarketAt(store, venueId)->venueTake, 2);
-	CHECK_EQ(MarketplaceService::Fills(store, venueId).size(), 1u);
-	CHECK_EQ(MarketplaceService::OpenOrderCount(store, venueId), 0u);
-	CHECK_EQ(MarketplaceService::ReferencePrice(store, venueId, good), 25.0);
-	CHECK_EQ(MarketplaceService::AdvanceTick(store, 1, errorMessage), worlds.size());
-	CHECK(MarketplaceService::DescribeMarket(store, venueId).find(good) != std::string::npos);
+	CHECK_EQ(service.MarketAt(store, venueId)->venueTake, 2);
+	CHECK_EQ(service.Fills(store, venueId).size(), 1u);
+	CHECK_EQ(service.OpenOrderCount(store, venueId), 0u);
+	CHECK_EQ(service.ReferencePrice(store, venueId, good), 25.0);
+	CHECK_EQ(service.AdvanceTick(store, 1, errorMessage), worlds.size());
+	CHECK_CONTAINS(service.DescribeMarket(store, venueId), good);
 
 	// A loaded world has a station above it: a station is a place the ships of that
 	// world put in and pull out of, and a loaded world is a planet the generator put
 	// in a system.
 	CHECK(MarketplaceService::AddSatellite(store, "Station-" + venueId, venueId, "High Station", 60000.0, 2.5, errorMessage));
-	CHECK(MarketplaceService::Open(store, "Station-" + venueId, errorMessage));
-	CHECK_EQ(MarketplaceService::MarketIds(store, worlds[0].id).size(), 2u);
+	CHECK(service.Open(store, "Station-" + venueId, errorMessage));
+	CHECK_EQ(service.MarketIds(store, worlds[0].id).size(), 2u);
 
 	// The world that is already full is not the world this loads into: the ids of a
 	// second load collide with the first, and the rule that keeps a fill log honest is
@@ -1362,7 +1471,7 @@ TEST_CASE(a_marketplace_loads_the_world_the_generator_built, "MarketplaceService
 	CHECK_CONTAINS(errorMessage, "entities");
 	CHECK_EQ(venues, 0u);
 
-	Simulation fresh(config);
+	Simulation fresh;
 	EcsWorld empty;
 
 	CHECK(!MarketplaceService::LoadSimulation(empty, fresh, MarketplaceOptions{}, venues, errorMessage));

@@ -91,6 +91,16 @@ struct CivilisationEffectEngine
 	std::string DescribeCivilisation(const EcsWorld &World, const std::string &CivilisationId) const;
 
   private:
+	// The stats a store carries, keyed by the store's own id. The component is a cache
+	// of the sources, written by WriteStore, so reading a store is reading its cache.
+	template <typename Component>
+	static std::map<EffectStat, double> StoreStats(const EcsWorld &World, const std::string &StoreId)
+	{
+		const Component *effects = World.Get<Component>(StoreId);
+
+		return effects != nullptr ? effects->values : std::map<EffectStat, double>{};
+	}
+
 	// The stores of a domain for a civilisation, with the message every entry point
 	// needs when the civilisation owns none of them: an effect cannot land on a venue
 	// that was never opened.

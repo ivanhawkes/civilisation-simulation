@@ -87,6 +87,21 @@ inline void Fail(const char *file, int line, const std::string &message)
 	std::cout << "    FAIL " << file << ":" << line << ": " << message << "\n";
 }
 
+// One ordered comparison, reported the way CHECK_EQ reports a value: the caller reads
+// both operands once, and the message carries both. The four order checks are the
+// checks where the order is the point - the order id that counts up, the book that
+// sorts price then time, the budget a fill may not spend past.
+template <typename T, typename U> void Compare(
+    const char *file, int line, const std::string &expression, const T &actual, const U &limit, bool ok)
+{
+	++CheckCount();
+
+	if (!ok)
+	{
+		Fail(file, line, expression + " (" + ToString(actual) + " vs " + ToString(limit) + ")");
+	}
+}
+
 // Runs every registered case and reports. Returns the process exit code.
 inline int Run(const char *suiteName)
 {
@@ -174,6 +189,23 @@ class TempFile
 			        ::civtest::ToString(civtest_expected) + ")");                                      \
 		}                                                                                              \
 	} while (false)
+
+// An ordered comparison: each operand is read once into a local, as CHECK_EQ reads
+// them, so a call inside a check runs once and both values reach the message.
+#define CHECK_ORDER(ACTUAL, LIMIT, OP, NAME)                                                           \
+	do                                                                                                 \
+	{                                                                                                  \
+		const auto civtest_actual = (ACTUAL);                                                          \
+		const auto civtest_limit = (LIMIT);                                                            \
+		::civtest::Compare(                                                                            \
+		    __FILE__, __LINE__, std::string(#ACTUAL) + " " NAME " " + #LIMIT, civtest_actual,          \
+		    civtest_limit, civtest_actual OP civtest_limit);                                           \
+	} while (false)
+
+#define CHECK_LT(ACTUAL, LIMIT) CHECK_ORDER(ACTUAL, LIMIT, <, "<")
+#define CHECK_LE(ACTUAL, LIMIT) CHECK_ORDER(ACTUAL, LIMIT, <=, "<=")
+#define CHECK_GT(ACTUAL, LIMIT) CHECK_ORDER(ACTUAL, LIMIT, >, ">")
+#define CHECK_GE(ACTUAL, LIMIT) CHECK_ORDER(ACTUAL, LIMIT, >=, ">=")
 
 #define CHECK_NEAR(ACTUAL, EXPECTED, TOLERANCE)                                                        \
 	do                                                                                                 \

@@ -612,7 +612,10 @@ bool MarketplaceService::CreateOrder(
 	info.filled = 0.0;
 	info.limitPrice = Order.limitPrice;
 	info.placedTick = Order.tick;
-	info.expiresTick = Order.tick + (venue->orderLifeTicks > 0 ? venue->orderLifeTicks : 0);
+	// The order life of the venue is the life of the order posted at that venue: 0 is
+	// forever, and an order that never expires is an order whose expiresTick is nothing,
+	// which is the number AdvanceTick reads and does not expire.
+	info.expiresTick = venue->orderLifeTicks > 0 ? Order.tick + venue->orderLifeTicks : 0;
 
 	// The reservation, the reason a fill never fails for want of the thing the fill
 	// trades: the goods leave the seller's stockpile when the order posts and sit in the
