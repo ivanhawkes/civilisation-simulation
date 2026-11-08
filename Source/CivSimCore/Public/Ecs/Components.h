@@ -210,8 +210,11 @@ struct MarketplaceInfo
 	int baseListingFeeBps{40};
 
 	// How long the book keeps a resting order before it leaves: the berth a berthed
-	// order occupies is the scarce thing at a dock.
-	int orderLifeTicks{20};
+	// order occupies is the scarce thing at a dock, and 24 ticks is the berths a day
+	// needs. The life the venue was opened with, and the record of it the venue keeps:
+	// an order is priced by the life the service posting it carries, which is the life
+	// the venue is expected to be keeping when the order lands. 0 records no order life.
+	int orderLifeTicks{24};
 
 	long long openedTick{0};
 

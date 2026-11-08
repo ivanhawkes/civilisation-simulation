@@ -689,10 +689,15 @@ bool MarketplaceService::CreateOrder(
 	info.filled = 0.0;
 	info.limitPrice = Order.limitPrice;
 	info.placedTick = Order.tick;
-	// The order life of the venue is the life of the order posted at that venue: 0 is
-	// forever, and an order that never expires is an order whose expiresTick is nothing,
-	// which is the number AdvanceTick reads and does not expire.
-	info.expiresTick = venue->orderLifeTicks > 0 ? Order.tick + venue->orderLifeTicks : 0;
+	// The life of an order is the life the service posting it gives an order at the tick
+	// it lands: the venue's own record keeps the life of the venue as it opened, and the
+	// service that writes the order is the service whose charges the order is priced by,
+	// the same service whose fee the reservation is built on. The life is added plain, and
+	// a life of nothing leaves expiresTick at the tick the order was posted: an order that
+	// rests without a life is an order that rests until it trades, is cancelled, or the
+	// venue closes, which is the reading AdvanceTick keeps and the reason the expiry of an
+	// order is read against the tick it was posted at and not against nothing.
+	info.expiresTick = Order.tick + options.orderLifeTicks;
 
 	// The reservation, the reason a fill never fails for want of the thing the fill
 	// trades: the goods leave the seller's stockpile when the order posts and sit in the
@@ -1318,7 +1323,12 @@ unsigned MarketplaceService::AdvanceTick(EcsWorld &World, long long Tick, std::s
 				continue;
 			}
 
-			if (info->status == OrderStatus::Active && info->expiresTick > 0 && info->expiresTick <= Tick)
+			// An order leaves the book when the tick reaches the expiry its life gave it.
+			// An expiry that does not run past the tick the order was posted at is an order
+			// posted at a venue with no order life, and the sweep passes it: a venue that
+			// sets no order life is a venue that keeps its book, and the order that rests
+			// without a life rests until it trades, is cancelled, or the venue closes.
+			if (info->status == OrderStatus::Active && info->expiresTick > info->placedTick && info->expiresTick <= Tick)
 			{
 				const std::string name = World.NameOf(entity);
 

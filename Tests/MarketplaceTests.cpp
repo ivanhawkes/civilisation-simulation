@@ -145,7 +145,7 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one)
 	CHECK(venue->atPlanet);
 	CHECK(!venue->atSatellite);
 	CHECK_EQ(venue->baseListingFeeBps, 40);
-	CHECK_EQ(venue->orderLifeTicks, 20);
+	CHECK_EQ(venue->orderLifeTicks, 24);
 	CHECK_EQ(venue->venueTake, 0LL);
 
 	// A station above a planet is a place the ships of that planet put in and pull out
@@ -1160,6 +1160,7 @@ TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 TEST_CASE(an_order_that_outlives_its_life_leaves_the_book)
 {
 	MarketplaceService service;
+	CivilisationEffectEngine effects;
 	EcsWorld world;
 	std::string errorMessage;
 	std::string orderId;
@@ -1176,17 +1177,25 @@ TEST_CASE(an_order_that_outlives_its_life_leaves_the_book)
 	CHECK(first != nullptr);
 	CHECK_EQ(first->placedTick, 10);
 
-	// The venue's order life, read from the venue's own record of itself: 24 ticks,
-	// the berths a day needs, and the order that posted at tick 10 leaves at tick 34.
+	// The order life of the venue is 24 ticks, the berths a day needs, and the order
+	// that posted at tick 10 leaves the book at tick 34.
 	CHECK_EQ(first->expiresTick, 34);
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 2u);
-	CHECK_EQ(Credits(world, "Civ-02"), 798);
+
+	// The reservation of a resting buy order is the goods at the limit price and the fee
+	// of the buyer's own side of the trade, not the fee of both sides: the trader that
+	// posted is the maker of the fill it may one day be in, and the taker's fee is the
+	// price of a trade the book has not seen yet. 20 units at 10.0 is 200 credits, 40 bps
+	// of 200 is 0.8 of a credit, and the venue is owed the whole credit it rounds up to,
+	// because the fraction is not paid out of its own pocket. The pocket of the order is
+	// 201, and the treasury of Civ-02 is 1000 less that.
+	CHECK_EQ(Credits(world, "Civ-02"), 1000 - 200 - 1);
 
 	// A tick before the order leaves: the venue's quotes are refreshed, and the order
 	// is where it was.
 	CHECK_EQ(service.AdvanceTick(world, 33, errorMessage), 1u);
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 2u);
-	CHECK_EQ(Credits(world, "Civ-02"), 798);
+	CHECK_EQ(Credits(world, "Civ-02"), 1000 - 200 - 1);
 	CHECK_EQ(service.QuoteFor(world, "Civ-01", "iron_ore")->bestBid, 10.0);
 	CHECK_EQ(service.QuoteFor(world, "Civ-01", "iron_ore")->bestAsk, 30.0);
 
@@ -1204,8 +1213,11 @@ TEST_CASE(an_order_that_outlives_its_life_leaves_the_book)
 	CHECK_EQ(service.Fills(world, "Civ-01").size(), 0u);
 
 	// An order of a venue that sets no order life never leaves: an order that rests
-	// without a life is an order that rests until it trades or is cancelled, and a
-	// venue with no order life is a venue that keeps its book.
+	// without a life is an order that rests until it trades, is cancelled, or the venue
+	// closes, and a venue with no order life is a venue that keeps its book. The life is
+	// added plain, so the order posted at tick 40 under a service that sets no life
+	// carries an expiresTick of 40: the expiry of an order with no life is the tick it
+	// was posted at, and that is what the sweep reads as "never".
 	MarketplaceOptions noLife;
 	noLife.orderLifeTicks = 0;
 	service.SetOptions(noLife);
@@ -1215,8 +1227,15 @@ TEST_CASE(an_order_that_outlives_its_life_leaves_the_book)
 	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 5.0, 10.0, 40), immortal, errorMessage));
 	CHECK_EQ(world.Get<MarketOrderInfo>(immortal)->expiresTick, 40);
 	CHECK_EQ(service.AdvanceTick(world, 1000, errorMessage), 1u);
-	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 2u);
-	CHECK_EQ(Credits(world, "Civ-02"), 948);
+
+	// The sell of Civ-01 that posted at tick 12 under the venue's 24-tick life left the
+	// book at tick 36 and is long gone by tick 1000. The order that posted at tick 40
+	// under a service that sets no life is the one order the book keeps.
+	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 1u);
+
+	// 5 units at 10.0 is 50 credits, 40 bps of 50 is 0.2 of one, and the venue is owed
+	// the whole credit it rounds up to: the pocket of the order that never leaves is 51.
+	CHECK_EQ(Credits(world, "Civ-02"), 1000 - 51);
 	CHECK_EQ(service.AdvanceTick(world, 1000, errorMessage), 1u);
 
 	service.SetOptions(MarketplaceOptions{});
@@ -1228,16 +1247,38 @@ TEST_CASE(an_order_that_outlives_its_life_leaves_the_book)
 	CHECK_EQ(service.AdvanceTick(world, 100, errorMessage), 2u);
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 1u);
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-02"), 0u);
-	CHECK_EQ(Credits(world, "Civ-01"), 918 + 30 - 1);
-	CHECK_EQ(Credits(world, "Civ-02"), 1000);
+	CHECK_EQ(Credits(world, "Civ-01"), 1000);
+
+	// The 51 the order that never left holds is still in its pocket at tick 100: the
+	// sweep of a venue with a life sweeps the orders that have one, and the immortal
+	// rests on.
+	CHECK_EQ(Credits(world, "Civ-02"), 1000 - 51);
+
+	// The market effects of the civilisation that owns a venue are the civilisation's,
+	// not the venue's: the four tiers of the warrant are 20 berths a day of clearance and
+	// 60 bps off the risk of the place, and the fee of the venue is 40 base, less the risk
+	// and less a basis point for every two berths the warrant clears, which is below
+	// nothing and so nothing. The venue is open, and the effect lands on it.
+	CHECK(effects.Apply(world, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4, errorMessage));
+	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
+	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60);
 
 	// The close of a venue in the middle of a session: every order of the book goes
 	// back to the trader that posted it, because a venue that closes in the middle of
 	// a session does not keep the goods or the credits of the orders it was holding.
+	// The order that has traded is not in the book to be given back: the 10 units of the
+	// ask that the crossing buy took at 40.0 left the seller's order in the fill, and the
+	// close returns the 20 that rested on it, not the 30 the trader posted.
 	std::string heldSell;
 	std::string heldBuy;
 
 	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 30.0, 40.0, 60), heldSell, errorMessage));
+
+	// The buy posted at 60.0 crosses the ask resting at 40.0: the resting trader is the
+	// maker and sets the price, and the crossing order takes the 10 units it wants of the
+	// 30 the ask offers. The fill is the venue's 40.0, a gross of 400 credits, and the fee
+	// of a venue the warrant has made free is nothing on each side: the buyer pays the
+	// 400 of its fill out of the 600 its order holds, and the seller is paid its gross.
 	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 10.0, 60.0, 61), heldBuy, errorMessage));
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 2u);
 	CHECK_EQ(Units(world, "Civ-01", "iron_ore"), 70.0);
@@ -1245,13 +1286,28 @@ TEST_CASE(an_order_that_outlives_its_life_leaves_the_book)
 	CHECK(service.Close(world, "Civ-01", errorMessage));
 
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 0u);
-	CHECK_EQ(Units(world, "Civ-01", "iron_ore"), 100.0);
-	CHECK_EQ(Credits(world, "Civ-02"), 99960);
+
+	// The 100 units Civ-01 came to the venue with, less the 10 the fill sold at 40.0.
+	CHECK_EQ(Units(world, "Civ-01", "iron_ore"), 90.0);
+
+	// Civ-02 at 600: the 1000 it came with, less the 51 the immortal buy holds, less the
+	// 600 the crossing buy reserved at a venue that charges nothing, and back the 200 the
+	// completed order gave up out of its pocket and the 51 the close refunded.
+	CHECK_EQ(Credits(world, "Civ-02"), 600);
 	CHECK(!world.Has("Order-1"));
 	CHECK(world.Has("Civ-01"));
+
+	// The venue closes, and the market effects of its civilisation stay where the tree
+	// put them: the tiers were paid for, and the component of the market store is not the
+	// venue's to take away with it. What goes with the venue is the record of the venue:
+	// the quotes, the volume and the fill log.
 	CHECK(world.Get<MarketEffects>("Civ-01") != nullptr);
 	CHECK(world.Get<MarketRecord>("Civ-01") == nullptr);
 	CHECK(service.Open(world, "Civ-01", errorMessage));
+
+	// The venue reopens with the base the service carries, and reads the clearance and
+	// the risk the world bought: a venue that reopens charges the world's tree, not the
+	// 40 bps of a venue that has bought nothing.
 	CHECK_EQ(service.MarketAt(world, "Civ-01")->baseListingFeeBps, 40);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
 }

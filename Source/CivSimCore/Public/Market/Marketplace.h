@@ -34,8 +34,12 @@ struct MarketplaceOptions
 	int insuranceBps{120};
 
 	// How long the book keeps a resting order before it leaves: the goods and the
-	// credits it had held go back to the trader that posted it.
-	int orderLifeTicks{20};
+	// credits it had held go back to the trader that posted it. 24 ticks, the berths a
+	// day needs: the queue a berth clears in a day of trading is the queue the book is
+	// sized to, and a book that keeps an order past its day quotes cargo no trader is
+	// offering. 0 sets no order life at all: the book keeps every order until it trades,
+	// is cancelled, or the venue closes.
+	int orderLifeTicks{24};
 
 	// A sell order has to be covered by the seller's stockpile and a buy order by the
 	// buyer's treasury. The reservation is what makes a fill never fail for want of
@@ -241,6 +245,12 @@ class MarketplaceService
 	// One tick at every venue: the orders that have outlived their order life leave the
 	// book, their goods and their credits go back to the trader that posted them, and
 	// each venue's quote table is rebuilt. Returns the venues ticked.
+	//
+	// A tick is a sweep of the expiries and a rebuild of the quotes, and it is nothing
+	// else: a tick trades nothing. The book is kept crossed down by the posts that cross
+	// it, so the orders that leave on a tick leave a book that needs no trading to be a
+	// book. An order posted at a venue that sets no order life is not swept: it rests
+	// until it trades, is cancelled, or the venue closes.
 	unsigned AdvanceTick(EcsWorld &World, long long Tick, std::string &ErrorMessage);
 
 	// The fills of a venue, oldest first, the last marketFillLogSize of them.
