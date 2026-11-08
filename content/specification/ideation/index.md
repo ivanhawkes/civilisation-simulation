@@ -173,3 +173,22 @@ The core of the game is the silk road trade and early shipping trade with China,
 
 - arm the rebellion, arm the empire, arm them both?
 - transport insurgents
+
+## Influences
+
+### Cinema
+
+- The Expanse, the politics and hard science reality of life as a multi-planet species
+- Andor, politics and struggle of the peasants against the unstoppable power of the ultra-wealthy and the power (political, administrative, financial, news topics, etc) they wield
+- Silent Running - the slow death of the last of the natural resources and how almost no-one even cares, an allogory for a lot of what is wrong in this world
+
+### Games
+
+- Elite (1984) - the blueprint
+- Sim City (1989) - when I first realised that games do not need a win condition and resource management can be very engaging
+- Wing Commander (1990) - space combat in small chunks with an over-arching story
+- World of Warcraft - incremental gains through tech trees, XP, skills, gearing, and knowledge of game mechanics - all with a wonderful community to play and chat with
+
+## Random Thoughts
+
+- should I try and resurrect 'Jettison' and use it for some testing purposes? That would be easier than UE 5.8 since i could easily build and run it locally on Linux and have very fast turn-around times e.g. tech trees might be quick and easy to display using IMGUI, and a basic star system is very easy to render
