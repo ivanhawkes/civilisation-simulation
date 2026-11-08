@@ -97,6 +97,26 @@ The core of the game is the silk road trade and early shipping trade with China,
 - the poorest countries have GDP / capita of 230 - 1100, 53 million to 1.8 billion
 - that's a factor of 250 PPP and 561,000 total GDP
 - we may need a tiered approached for the calculations that take GDP and turn it into points to spend on upgrades. This is because the range of GDP is vast over the course of a world economy and having points scaling from one to several trillion isn't a great design.
+- each planet can have multiple working economies which are represented as 'block economies' e.g. US, Europe, Asia,
+  Pacific, Russia.
+- each economy will operate it's own space station satellite in orbit above it's major land mass
+- this provides arbitrage markets which you can trade between on a planetary scale
+- corruption is a major influence on GDP and PPP
+- investment in health and education pay off in later turns
+- education drives research
+- each planet has from three to seven trade blocks
+
+### Primary Stats
+
+- corruption index
+- GDP 
+- PPP
+- Natural Resources (renewable and finite) with production capacity and renewal rates
+- citizen satisfaction with life level
+- health index
+- education index
+- enegry production
+- pollution
 
 ## Planetary / Economic Turns
 
@@ -144,10 +164,38 @@ The core of the game is the silk road trade and early shipping trade with China,
 - update their position
 - if in dock allow trade and re-supply
 
+## Game Mechanics
+
+- user can control the wall clock multiplier e.g. x24 makes 1 day pass for every day of wall clock time
+- pause and resume the simulation to give time to think over tech upgrades
+
 ## Economy
 
 - use a log (10) function to calculate the fractions of points earned towards a skill point. This will scale all the points allocations down to more sensible values e.g. 1000 credits is 3 points, 10,000,000 is 7 points.
 - planet economies tick over in terms of days (need to scale appropriate to journey lengths and wall clock) with one year being 360 of them so they can be reasoned in terms similar to our planet
+
+## Exploitation
+
+- strong economies can force unfair trade and resource exploitation onto weaker economies
+- millitary strength is assessed by factoring economic strength and tech tree development
+
+## World Generation
+
+- divide the world up into a 12x6 grid i.e. segments, and then zones within those segments with z1 and z6
+ being ice caps (perhaps) and hotter temps around z3 and z4
+- not every zone is important enough or viable for exploitation and habitation
+- assign climate
+- assign resources e.g. gold, coal, oil, copper
+- habitability
+- now lay out economic blocks in the viable segments - note: uninhabitle might still be exploitable e.g.
+  parts of the desert with oil reserves.
+- satellite in geo-synchronous orbit above each major block
+- world should only span a few ages at most e.g. industrial through to space age, groups outside the main ranges
+  for a planet should have minimal effects on the economy
+
+## Essential Skills
+
+- figure out what happens when world lack essential production like medicine, education, communication
 
 ## Questions
 
@@ -181,6 +229,7 @@ The core of the game is the silk road trade and early shipping trade with China,
 - The Expanse, the politics and hard science reality of life as a multi-planet species
 - Andor, politics and struggle of the peasants against the unstoppable power of the ultra-wealthy and the power (political, administrative, financial, news topics, etc) they wield
 - Silent Running - the slow death of the last of the natural resources and how almost no-one even cares, an allogory for a lot of what is wrong in this world
+- Dune - how a regime can control a single resource and use that to maintain a stranglehold on an entire civilisation
 
 ### Games
 
