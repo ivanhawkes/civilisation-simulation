@@ -533,7 +533,7 @@ I have 45 years of development experience from micro-controllers through to secu
 
 At this point in time it would be utterly foolish to create software without support from AI models. In the hands of a skilled and experienced developer it is an incredible force multiplier.
 
-## Marketplace recovery work in progress
+## Marketplace recovery, complete
 
 Crash checkpoints `39a5a15` and `c52da5f` ("Crashed while adding new ECS parts",
 deliberately broken builds) added EnTT, the ECS layer, the effects engines and the
@@ -541,14 +541,21 @@ marketplace with their tests. `35e3812` repaired the build: the build was green,
 8 suites passed. The recovery lands as commits on top of the two checkpoints, which are
 left as they are; the checkpoint commits are never amended.
 
-### State at the time of writing
+**The recovery is finished.** `f24e0c3`, `e109de5`, `3855390` and `9c6a50d` close the eight
+cases of the marketplace suite and the segfault with them, and `59ad6da` brings the format
+gate up over the whole tree: the build, `ctest` at 8 of 8 targets and
+`clang-format --dry-run -Werror` all pass at HEAD, and every item of the work list below is
+closed. The list stays as the record of how each case was found, because the diagnosis in it
+is often not the cause, and the causes are what the next one costs.
+
+### State at HEAD (`59ad6da`)
 
 | Test | Status |
 | --- | --- |
 | ConfigTests, UniverseTests, ProgressionTests, SimulationTests, EcsTests, EffectTests, DataTests | passing, as they have been since `35e3812`: 14 cases 97 checks, 8 and 26, 14 and 104, 12 and 728, 9 and 83, 8 and 933, and the data suite on the merged documents |
 | MarketplaceTests | **green**: 12 cases, `1515 checks, 0 failures`, `exit=0`. No segfault and no failing check: the suite's last two failures, both of them in `the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue`, went in the venue-tree fix, committed at `9c6a50d` |
 | `ctest` | **8 of 8 targets**, `100% tests passed` |
-| `clang-format --dry-run -Werror` | **exit 0**: the 2266 drift lines the checkpoints and the recovery carried are formatted in the working tree, awaiting a commit of its own; the build and all 8 suites are green with the reformat in, on the same check counts |
+| `clang-format --dry-run -Werror` | **exit 0 at `59ad6da`** ("The whole tree meets the format gate"), the commit of its own that formats the 2266 drift lines the checkpoints and the recovery carried and moves no token; the build and all 8 suites are green on it, on the same check counts |
 
 The ECS, effects and marketplace code is committed on the branch at `35e3812`, which
 repaired the broken build of the checkpoints `39a5a15` and `c52da5f`. The recovery lands
@@ -671,7 +678,10 @@ are the reason the tests read the way they do now):
   the `SourcesOn` that writes the store's cache, so the read-out and the cache are the same
   fact read the same way, and a panel that shows the tree twice shows the same lines.
 
-### Remaining work
+### Work list, closed
+
+Every item is done. The items are the record of the recovery, in the order the crashes left
+them, with the measurement each one cost.
 
 - [x] `a_market_effect_moves_the_charge_of_the_venue_it_lands_on`
   (`Tests/MarketplaceTests.cpp:1006`) passes. The diagnosis in this list was wrong, and
@@ -954,16 +964,39 @@ are the reason the tests read the way they do now):
   19 removed across `Source/CivSimCore/Private/Effects/CivilisationEffects.cpp`,
   `Source/CivSimCore/Public/Effects/CivilisationEffects.h` and `Tests/MarketplaceTests.cpp`,
   the whole suite green on them. The format above is the commit that follows.
-- [ ] Optional cleanups noted in passing, not required for green:
-  - [ ] `python3` arrived at `f24e0c3` (3.12.15 in the devenv), so the absences in the notes
-    below are history. `perl -0pi -e 's{...}{...}' file` stays the tool for exact multi-line
-    replacement of tab-indented C++ string literals (`cat -A` shows the tabs); the `edit` tool
-    matches fine when the tabs are copied exactly, and `edits` must be a real JSON array of
-    objects.
-  - [ ] `find build -name 'effect-catalogue.gen.h'` found nothing; confirm the generated
-    effect-catalogue header path in `CMakeLists.txt` is what the tests include.
-  - [ ] Delete scratch probes when done: `/tmp/walk-probe.cpp`, `/tmp/walk-probe2.cpp`,
-    `/tmp/probe.cpp`, `/tmp/dbg/`, `/tmp/scratch/`. They are outside the repo.
-  - [ ] `Tests/MarketplaceTests.cpp`'s `AddWorld` helper is now
-    `AddWorld(world, civ, planet, credits, cargo)` (24 call sites); the old
-    `service` parameter is gone - keep that shape.
+- [x] Optional cleanups noted in passing, not required for green, and all four are done:
+  - [x] `python3` arrived at `f24e0c3` (3.12.15 in the devenv), so the absences in the notes
+    above are history - the shell carries it, and CI installs the same family through pip to
+    carry the formatter wheel. `perl -0pi -e 's{...}{...}' file` stays the tool for exact
+    multi-line replacement of tab-indented C++ string literals (`cat -A` shows the tabs); the
+    `edit` tool matches fine when the tabs are copied exactly, and `edits` must be a real
+    JSON array of objects.
+  - [x] There is **no generated effect-catalogue header, and no test includes one**: the
+    search found nothing because there is nothing to find. `Effects/EffectCatalogue.cpp` is
+    576 lines of hand-written `MakeEffect` calls, and `CMakeLists.txt` generates exactly one
+    artifact - the `CivSimData` custom command, which writes the merged YAML documents of
+    `data/core-config` and nothing else. `civsim_add_test(SUITE SOURCES Tests/X.cpp)` gives
+    a suite two include directories and no generated one: `Tests/`, and `Public/` through
+    the `CivSimCore` link, which declares it `PUBLIC`. `DataTests` reaches the generated
+    documents as `${CIVSIM_DATA_OUTPUT_DIR}/ages.yaml` in its `ARGS`, with
+    `add_dependencies(DataTests CivSimData)` behind it, and `find build -name '*.gen.h'`
+    answers nothing. The catalogue's numbers live in code by design, and its header says
+    why: the skill tree names the effects by id and says nothing about what a tier is worth,
+    so the values sit next to the stat table that names the units they count in.
+  - [x] The scratch probes are gone, and the binaries built from them with them:
+    `/tmp/walk-probe{.cpp,2.cpp}`, `/tmp/probe{.cpp,}`, `/tmp/dbg{.cpp,}` and `dbg2` through
+    `dbg5`, `/tmp/scratch/`, and the captures the crashes left - `case_walk.txt`,
+    `fmt-mkt.cpp`, `mkt.cpp`, `mkt-out.txt`, `tui.txt`, `tui-out.txt` - and the two
+    `civsim-test-*.yaml` a crashed run orphaned: `TestFramework.h`'s `TempFile` writes its
+    document on construction and removes it in the destructor, so a leftover is a run that
+    died mid-suite, and any suite writes them again. The probe recipe in the commands block
+    above stays: it is how a case gets read in a file of its own, and the file it names is
+    written when it is needed.
+  - [x] `AddWorld` keeps the shape. The helper is
+    `AddWorld(EcsWorld &world, const std::string &civilisationId, const std::string
+    &planetName, long long credits, const std::map<std::string, double> &cargo)` at
+    `Tests/MarketplaceTests.cpp:21`: 1 definition and 24 call sites, no `service` parameter
+    in the signature and none passed at a call. It answers the message
+    `MarketplaceService::AddPlanet` fills, so the suite's `CHECK(AddWorld(...).empty())` is
+    the case's way of naming a world, paying for it and refusing a broken one in one line -
+    which is why no case needs the service to make a world.
