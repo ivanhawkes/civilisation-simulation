@@ -101,9 +101,11 @@ struct CivilisationEffectEngine
 	double ReadStat(const EcsWorld &World, EffectDomain Domain, const std::string &StoreId, EffectStat Stat) const;
 
 	// The effects a civilisation has bought, as lines for the UI: one per store it
-	// owns. A civilisation that owns no venue, no world and has never bought a lane, a
-	// survey or a yard has no store to read and no line, and the answer is the empty
-	// string: a read-out of a civilisation the world has never heard of prints nothing.
+	// owns, each line naming the effects that store flies, the tiers the tree bought of
+	// them, and the stats they sum to. A civilisation that owns no venue, no world and
+	// has never bought a lane, a survey or a yard has no store to read and no line, and
+	// the answer is the empty string: a read-out of a civilisation the world has never
+	// heard of prints nothing.
 	std::string DescribeCivilisation(const EcsWorld &World, const std::string &CivilisationId) const;
 
   private:
@@ -130,6 +132,14 @@ struct CivilisationEffectEngine
 
 	// The store's stats, written from its sources.
 	bool WriteStore(EcsWorld &World, EffectDomain Domain, const std::string &StoreId, std::string &ErrorMessage) const;
+
+	// One store's read-out: the effects it flies, by the name the catalogue gives them
+	// and the tier the tree bought, and the stats they sum to. A store that flies no
+	// effect prints the message the caller brings, because "no market effects bought" and
+	// "no route effects bought" are answers a UI shows as they are.
+	std::string DescribeStore(
+	    const EcsWorld &World, EffectDomain Domain, const std::string &StoreId, const std::map<EffectStat, double> &Stats,
+	    const char *NoEffectsMessage) const;
 
 	EffectCatalogue catalogue;
 };

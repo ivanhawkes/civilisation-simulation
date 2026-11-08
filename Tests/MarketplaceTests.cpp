@@ -1337,6 +1337,15 @@ TEST_CASE(the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue
 	CHECK(AddWorld(world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 100.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
+	// Civ-02 is the control the case reads its charges against: a venue of its own, and
+	// a civilisation that buys no tier of anything. It is opened before the tree is
+	// applied, because a Market effect lands on the venues of the civilisation that owns
+	// them, so the tree of Civ-01 cannot reach a venue of Civ-02, and the control keeps
+	// the base charges to the end. Insurance is a charge of an open venue: the base of a
+	// venue's insurance is read with the venue record, and a world with no venue has no
+	// charge of a venue to read, which is the reading of "Civ-99" below.
+	CHECK(service.Open(world, "Civ-02", errorMessage));
+
 	const std::vector<SkillNode> nodes = {
 	    Node("Age02", 1, 1, ""),
 	    Node("SkillLawDockingLicence", 4, 1, "DockingLicence"),
@@ -1406,7 +1415,36 @@ TEST_CASE(the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue
 
 	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 80);
 	CHECK(service.MarketAt(world, "Civ-01")->venueTake > 0);
-	CHECK(effects.DescribeCivilisation(world, "Civ-01").find("CargoInsurance") != std::string::npos);
+
+	// The read-out of the venue's owner: every store of the civilisation, with the
+	// effects it flies, the tier the tree bought of each, and the stats they sum to. The
+	// insurance is on the line of the venue that charges it, the convoy on the lane the
+	// goods come down, and the drydock in the yard store that builds the hulls: the
+	// read-out prints the words the catalogue spells, and no enum and no effect id.
+	const std::string described = effects.DescribeCivilisation(world, "Civ-01");
+
+	CHECK_CONTAINS(described, "Cargo Insurance x1");
+	CHECK_CONTAINS(described, "Docking Licence x1");
+	CHECK_CONTAINS(described, "Convoy x1");
+	CHECK_CONTAINS(described, "Drydock x1");
+	CHECK_CONTAINS(described, std::string(StatName(EffectStat::MarketInsurance)));
+	CHECK_CONTAINS(described, std::string(StatName(EffectStat::RouteRiskPremium)));
+	CHECK_CONTAINS(described, "Market Civ-01");
+	CHECK_CONTAINS(described, "Lanes " + CivilisationEffectEngine::LaneStoreId("Civ-01"));
+	CHECK_CONTAINS(described, "Yards " + CivilisationEffectEngine::YardStoreId("Civ-01"));
+	CHECK(described.find("CargoInsurance") == std::string::npos);
+	CHECK(described.find("EffectStat") == std::string::npos);
+	CHECK(described.find("EffectDomain") == std::string::npos);
+
+	// The read-out of the control: a venue that bought nothing flies no effect, so the
+	// line of the venue says so, and a civilisation the world has never heard of prints
+	// nothing at all.
+	const std::string control = effects.DescribeCivilisation(world, "Civ-02");
+
+	CHECK_CONTAINS(control, "Market Civ-02");
+	CHECK_CONTAINS(control, "no market effects bought");
+	CHECK(control.find("Cargo Insurance") == std::string::npos);
+	CHECK(effects.DescribeCivilisation(world, "Civ-99").empty());
 }
 
 

@@ -545,22 +545,33 @@ left as they are; the checkpoint commits are never amended.
 
 | Test | Status |
 | --- | --- |
-| ConfigTests, UniverseTests, ProgressionTests, SimulationTests, EcsTests, EffectTests, DataTests | passing (the seven suites that are not `MarketplaceTests`, all their cases) |
-| MarketplaceTests | 11 of 12 cases pass: `1499 checks, 2 failures`, and **the suite no longer segfaults** (`exit=1`). `the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue` fails 2 checks; `ctest` reports 7/8 |
+| ConfigTests, UniverseTests, ProgressionTests, SimulationTests, EcsTests, EffectTests, DataTests | passing, as they have been since `35e3812`: 14 cases 97 checks, 8 and 26, 14 and 104, 12 and 728, 9 and 83, 8 and 933, and the data suite on the merged documents |
+| MarketplaceTests | **green**: 12 cases, `1515 checks, 0 failures`, `exit=0`. No segfault and no failing check: the suite's last two failures, both of them in `the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue`, go in the venue-tree fix, in the working tree |
+| `ctest` | **8 of 8 targets**, `100% tests passed` |
 
 The ECS, effects and marketplace code is committed on the branch at `35e3812`, which
-repaired the broken build of the checkpoints `39a5a15` and `c52da5f`. The venue-charge case
-went in with `f24e0c3` ("Adding python3 to the environment", which added python 3.12.15 to
-the devenv and 51 lines to `Tests/MarketplaceTests.cpp`). The order-life case, and
-`Marketplace.h`, `Marketplace.cpp` and `Components.h` with it, is repaired in the working
-tree, uncommitted. Files of the
+repaired the broken build of the checkpoints `39a5a15` and `c52da5f`. The recovery lands
+on top of it as commits, and the checkpoints are left as they are: `f24e0c3` ("Adding
+python3 to the environment", python 3.12.15 in the devenv, 51 lines of
+`Tests/MarketplaceTests.cpp`) carries the venue-charge case, `e109de5` the order-life case
+with `Marketplace.h`, `Marketplace.cpp` and `Components.h`, and `3855390` the fill case
+that ends the segfault. The venue-tree case - the last two checks of the suite - is
+repaired in the working tree, uncommitted:
+`Source/CivSimCore/Private/Effects/CivilisationEffects.cpp`,
+`Source/CivSimCore/Public/Effects/CivilisationEffects.h` and `Tests/MarketplaceTests.cpp`.
+Files of the
 feature: `Source/CivSimCore/Private/{Ecs/EcsWorld,Effects/CivilisationEffects,Effects/ShipEffectEngine,Market/Marketplace}.cpp`,
 the matching `Public/` headers, `Tests/EffectTests.cpp`, `Tests/MarketplaceTests.cpp`.
 
-The line numbers the checklist quotes are as of `35e3812`. The venue-charge fix added 21
-lines to `Tests/MarketplaceTests.cpp`, the order-life case is 33 lines longer, the fill
-fix 34 more (the `SetCredits` helper and the ledger comments the moved lines need). The
-cases now start at 1173, 1329, 1413, 1573 and 1745, and the file is 1867 lines.
+The line numbers the checklist quotes are as of `35e3812`, and the numbers a checked item
+quotes - `1006`, `1160`, `1413`, `1476`, `1573`, `1745` - are the line of the check that
+fired on the day it was measured, so they are the history of the case and not the address
+of it today. The cases now start at 1173, 1329, 1451, 1611 and 1783, and
+`Tests/MarketplaceTests.cpp` is 1905 lines: 21 lines from the venue-charge fix, 33 from the
+order-life case, 34 from the fill fix (the `SetCredits` helper and the ledger comments the
+moved lines need) and 38 from the venue-tree case (the control venue and the read-out
+asserts). The venue-tree fix adds 54 lines to `CivilisationEffects.cpp` and 10 to its
+header, the store read-out.
 
 Commands used throughout:
 
@@ -639,6 +650,24 @@ are the reason the tests read the way they do now):
   and `MarketplaceInfo`, and the venue that reopens reads the tree of its world.
 - `Close` returns what the book **holds**: the units a fill traded away are in the fill
   log and are not in an order to be given back.
+- A venue's base charges are read **with the venue**: `RiskPremiumBps`, `InsuranceBps` and
+  `DepthUnits` answer 0 for a body with no open venue - no venue record, so no risk, no
+  insurance, no deck - and `ListingFeeBps` answers the service's base, because the fee a
+  trader pays is the fee of the venue the order posts at. A test that reads a civilisation
+  as the control of the charges has to **open its venue first**: Civ-02 in the venue-tree
+  case is a venue with a record, a civilisation that buys no tier, and the base charges 40,
+  120 and 0.
+- `DescribeCivilisation` prints, for every store the civilisation owns, the effects the
+  store flies - the name the catalogue gives them and the tier the tree bought, in effect-id
+  order, which is the order the modifiers sum in - and the stats they sum to after them, in
+  the stat-table order, in brackets: `Market Civ-01: Cargo Insurance x1, Docking Licence x1
+  (Market Risk -15 bps, Docking Clearance 20 berths/day, Cargo Insurance -40 bps)`. The
+  words of the catalogue, never an effect id, and never an enum spelling; a store that
+  flies no effect prints the `no ... effects bought` line it has always printed, and a
+  civilisation that owns no store prints nothing at all. `DescribeStore`, private to the
+  engine, is the one helper of all five store lines, and it reads the store's sources with
+  the `SourcesOn` that writes the store's cache, so the read-out and the cache are the same
+  fact read the same way, and a panel that shows the tree twice shows the same lines.
 
 ### Remaining work
 
@@ -710,17 +739,62 @@ are the reason the tests read the way they do now):
     asserts that `Close` leaves `MarketEffects` where the tree put it, takes
     `MarketRecord` with it, and leaves the reopened venue reading its world's tree: base
     40 bps, charge 0.
-- [ ] Cases after line 1329 that the crashes left unreached: three of the four are
-  green, and the one that fails is the first of them.
-  - [ ] `the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue` (1329)
-    fails 2 checks, and they look like one cause: `InsuranceBps(world, "Civ-02")` is 0
-    where the case expects the 120 base (1378), and `DescribeCivilisation(world,
-    "Civ-01")` names no `CargoInsurance` (1409). `InsuranceBps` takes its base from the
-    venue record - `venue != nullptr ? options.insuranceBps : 0` - so the venue of
-    "Civ-02" is not open when the case reads it; and `DescribeCivilisation` prints the
-    stores a civilisation owns, so read the order of `Open` and `Apply` in the case
-    before touching the code. The sums the case asserts are the sums the venue-charge case
-    now asserts, so read the two together.
+- [x] Cases after line 1329 that the crashes left unreached: all four of them are green,
+  and the one that failed was the first.
+  - [x] `the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue` (1329)
+    passes, and the two checks had two causes, not the one cause the list guessed.
+    - **The insurance is a charge of an open venue, and the case's control had no venue.**
+      `InsuranceBps` reads its base with the venue record - `venue != nullptr ?
+      options.insuranceBps : 0` - and the passing cases already assert that rule at the
+      end of it: `InsuranceBps(world, "Civ-99") == 0`, at 1016 and at 1167, a body with no
+      venue having no venue insurance to read. Civ-02 is the control of the case, "the
+      civilisation that owns a venue and bought nothing", and the case never opened its
+      venue, so the control read 0 where the case wrote 120. The test moves, as the hint
+      said: `service.Open(world, "Civ-02", ...)` goes in beside the open of Civ-01 and
+      before the tree is applied, and a `Market` effect lands on the venues of the
+      civilisation that owns them, so the tree of Civ-01 cannot reach Civ-02's venue and
+      the control keeps the base charges the case reads: fee 40, insurance 120, risk 0,
+      `MarketInsurance` 0.0. The insurance read, the fee, the risk, the deck and the quote
+      of Civ-01 are the sums the venue-charge case reads, and they read as written.
+    - **The read-out named the stats and not the effects, and the case was right.** The
+      header of the engine says `DescribeCivilisation` prints "the effects a civilisation
+      has bought ... one per store it owns", and `EffectTests` says the read-out "names the
+      stores, the effects and the tiers, in words, in a fixed order, and prints no enum
+      spelling"; the code printed the store id and the summed stats and named no effect, so
+      `CargoInsurance` was not in the string. The code moves: `DescribeStore`, private and
+      new, reads a store's sources with the `SourcesOn` the store's cache is written from
+      and prints each effect by the name the catalogue gives it and the tier the tree
+      bought, then the summed stats in brackets, and the five store lines of
+      `DescribeCivilisation` call it:
+
+      ```
+      Market Civ-01: Cargo Insurance x1, Docking Licence x1 (Market Risk -15 bps, Docking Clearance 20 berths/day, Cargo Insurance -40 bps)
+      Lanes Lanes-Civ-01: Convoy x1 (Route Risk -12 bps)
+      Yards Yard-Civ-01: Drydock x1 (Drydock Throughput 1 hull/tick)
+      Body Civ-01: no body effects bought
+      ```
+
+      The effects print in effect-id order, which is the order `WriteStore` sums the
+      modifiers in, so the panel is the same panel twice; the words of the catalogue and not
+      the id a `targetEffectID` carries, because the read-out is for a person; and a source
+      of an effect the catalogue has forgotten prints the id, because the store flies it and
+      the read-out prints what the store flies. A store with no source keeps the message it
+      printed before, and `EffectTests` passes on the words it asserts, with no new assert
+      needed: `Drydock` and `Docking Clearance` are in the lines as they were, and the
+      read-out prints no enum.
+    - The case now asserts the read-out as the read-out is: `Cargo Insurance x1` and
+      `Docking Licence x1` on the market line, `Convoy x1` on the lane the goods come down
+      and `Drydock x1` in the yard store, the two stat names, the three store ids, and the
+      absence of the effect id `CargoInsurance`, of `EffectStat` and of `EffectDomain` - the
+      shape `EffectTests` pins. The control is asserted too, because a venue that buys
+      nothing flies no effect and says so, and `DescribeCivilisation(world, "Civ-99")` is
+      the empty string it has always been.
+    - **No line of `Marketplace.cpp` moved for this case.** The fill block reads Civ-01's
+      venue and Civ-02's venue is a venue of a civilisation with no tree, so the fill keeps
+      the case's arithmetic: gross 100, 1 credit a side, `venueTake` 2, Civ-01 at
+      `1000 + 100 - 1` and Civ-02 at `1000 - 100 - 1`, `InsuranceBps(world, "Civ-01")` 80
+      with one tier of insurance on the venue, and `OpenOrderCount` of the fill's pair
+      unchanged.
   - [x] `a_fill_trades_in_whole_units_of_the_price_and_the_fee` (`Tests/MarketplaceTests.cpp:1413`)
     passes, and the segfault goes with it: the suite reports `12 cases`, `1499 checks,
     2 failures` and `exit=1`, the 2 failures being the venue-tree case above. The cause the
@@ -809,18 +883,49 @@ are the reason the tests read the way they do now):
   checks, and `ctest` 7 of 8 targets - the failure is the segfault of
   `MarketplaceTests`, and the other six suites are clean. Re-run them when the suite is
   green.
+- [x] Re-ran every suite after the venue-tree fix, the format gate not run (it fails on the
+  code the checkpoints committed, and it is the task below): `ctest` **8 of 8 targets**,
+  `100% tests passed`. `ConfigTests` 14 cases 97 checks, `UniverseTests` 8 and 26,
+  `ProgressionTests` 14 and 104, `SimulationTests` 12 and 728, `EcsTests` 9 and 83, and
+  `EffectTests` 8 and 933 - its describe case reads the richer lines of the read-out and
+  passes on the words it already asserts - `MarketplaceTests` 12 and 1515, `DataTests` on
+  the merged documents. No suite segfaults and every suite prints 0 failures.
 - [ ] Run the format gate last, after the code and test churn:
   `clang-format --dry-run -Werror` over `*.h`, `*.hpp`, `*.cpp` in `Source` and `Tests`.
-  **The gate fails at `35e3812` already**, on code the checkpoints committed: the
-  violations are 68 lines of `Market/Marketplace.h`, 395 of `Market/Marketplace.cpp`,
-  489 of `Tests/MarketplaceTests.cpp`, 2 of `Ecs/EcsWorld.h` (measured as the diff of
-  `clang-format` against the file, tab-indented, ColumnLimit 104). `Source/CivSimCore/Public/Ecs/Components.h`
-  is clean. `clang-format -i` over the tree is the task, and it is a commit of its own,
-  because a reformat of this size buries the recovery in whitespace. CI runs build,
+  **The gate fails already**, on the code the checkpoints committed and on the recovery on
+  top of them, and the measure is the diff of `clang-format` against the file, tab-indented,
+  ColumnLimit 104:
+
+  ```sh
+  cd /home/ivan/projects/civilisation-simulation
+  find Source Tests \( -name '*.h' -o -name '*.hpp' -o -name '*.cpp' \) -print0 \
+    | xargs -0 -r -I{} sh -c 'diff "{}" <(clang-format "{}") | grep -c "^[<>]"'
+  ```
+
+  The tree is 34 files and **2266 drift lines** in the working tree, 2248 of them at
+  `3855390`: 18 lines are the venue-tree fix, 14 of `CivilisationEffects.cpp` (253 to 267)
+  and 4 of its header (38 to 42), and the 38 lines the case adds to
+  `Tests/MarketplaceTests.cpp` are format-clean, so the test file is at 493 before and
+  after. The drift is in 16 files, and `clang-format -i` over the tree is the task, in a
+  commit of its own, because a reformat of this size buries the recovery in whitespace:
+  `Tests/EffectTests.cpp` 664, `Tests/MarketplaceTests.cpp` 493, `Market/Marketplace.cpp`
+  395, `Effects/CivilisationEffects.cpp` 267, `Effects/ShipEffectEngine.cpp` 118,
+  `Market/Marketplace.h` 68, `Effects/EffectCatalogue.cpp` 63, `Effects/EffectTypes.cpp` 62,
+  `Effects/CivilisationEffects.h` 42, `Effects/ShipEffectEngine.h` 28,
+  `Ecs/Components.cpp` 27, `Tests/EcsTests.cpp` 19, `Effects/EffectTypes.h` 9,
+  `Ecs/EcsWorld.cpp` 6, `Tests/TestFramework.h` 3 and `Ecs/EcsWorld.h` 2 - every number the
+  same at `3855390` as in the working tree, except the engine's two. Every other file in the
+  tree is clean, the five `.cpp` of `Core` and their headers among them, and
+  `Source/CivSimCore/Public/Ecs/Components.h` with them. After the `-i`, the gate command
+  prints nothing: `clang-format --dry-run -Werror` over the two trees exits 0 on a clean
+  tree, and that is the number the task is judged on. CI runs build,
   `ctest --test-dir build --output-on-failure` and format on `ubuntu-24.04`
   (`.github/workflows/ci.yml`, `.config/wt.toml`); a merge needs all three.
 - [ ] Then commit. The two checkpoints are deliberately broken, so the recovery lands as
-  new commits on top of them; do not amend them.
+  new commits on top of them; do not amend them. The venue-tree fix is in the working tree:
+  `Source/CivSimCore/Private/Effects/CivilisationEffects.cpp`,
+  `Source/CivSimCore/Public/Effects/CivilisationEffects.h` and `Tests/MarketplaceTests.cpp`,
+  121 lines inserted and 19 removed across the three, and the suite is green with them in.
 - [ ] Optional cleanups noted in passing, not required for green:
   - [ ] `python3` arrived at `f24e0c3` (3.12.15 in the devenv), so the absences in the notes
     below are history. `perl -0pi -e 's{...}{...}' file` stays the tool for exact multi-line

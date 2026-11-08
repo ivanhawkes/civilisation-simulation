@@ -424,6 +424,58 @@ double CivilisationEffectEngine::ReadStat(
 }
 
 
+std::string CivilisationEffectEngine::DescribeStore(
+    const EcsWorld &World, EffectDomain Domain, const std::string &StoreId, const std::map<EffectStat, double> &Stats,
+    const char *NoEffectsMessage) const
+{
+	// The sources keyed by effect id, which is the order the modifiers are applied in,
+	// and so the order the read-out prints them in: a panel that showed the same tree
+	// twice has to show the same lines, and the store's cache is a map with no order of
+	// its own to print.
+	const std::map<std::string, EffectSource> sources = SourcesOn(World, Domain, StoreId);
+
+	if (sources.empty())
+	{
+		return NoEffectsMessage;
+	}
+
+	std::ostringstream out;
+	bool first = true;
+
+	for (const auto &entry : sources)
+	{
+		if (!first)
+		{
+			out << ", ";
+		}
+
+		// The effect by the name the catalogue spells, and the tier the tree bought of
+		// it: "Cargo Insurance x2". The read-out is for a person, so it prints the words
+		// the catalogue gives the effect and not the id a targetEffectID carries; a
+		// source of an effect the catalogue has forgotten prints the id, because the store
+		// flies it and the read-out prints what the store flies.
+		const EffectDefinition *definition = catalogue.Find(entry.first);
+		const std::string name =
+		    definition != nullptr && !definition->displayName.empty() ? definition->displayName : entry.first;
+
+		out << name << " x" << entry.second.tier;
+		first = false;
+	}
+
+	// The stats the effects sum to, in the stat-table order the stats print in, in
+	// brackets after the effects: the effects are what the civilisation bought and the
+	// stats are what the venue charges, and a store answers both questions at once.
+	const std::string stats = DescribeEffectStats(Stats);
+
+	if (!stats.empty())
+	{
+		out << " (" << stats << ")";
+	}
+
+	return out.str();
+}
+
+
 std::string CivilisationEffectEngine::DescribeCivilisation(const EcsWorld &World, const std::string &CivilisationId) const
 {
 	const std::vector<std::string> markets = MarketsOf(World, CivilisationId);
@@ -454,37 +506,39 @@ std::string CivilisationEffectEngine::DescribeCivilisation(const EcsWorld &World
 
 	for (const auto &venue : markets)
 	{
-		const std::string stats = DescribeEffectStats(MarketStatsOf(World, venue));
-
-		out << "  Market " << venue << ": " << (stats.empty() ? "no market effects bought" : stats) << "\n";
+		out << "  Market " << venue << ": "
+		    << DescribeStore(World, EffectDomain::Market, venue, MarketStatsOf(World, venue), "no market effects bought")
+		    << "\n";
 	}
 
 	for (const auto &body : bodies)
 	{
-		const std::string stats = DescribeEffectStats(BodyStatsOf(World, body));
-
-		out << "  Body " << body << ": " << (stats.empty() ? "no body effects bought" : stats) << "\n";
+		out << "  Body " << body << ": "
+		    << DescribeStore(World, EffectDomain::Body, body, BodyStatsOf(World, body), "no body effects bought") << "\n";
 	}
 
 	if (World.Has(lanes))
 	{
-		const std::string stats = DescribeEffectStats(RouteStatsOf(World, CivilisationId));
-
-		out << "  Lanes " << lanes << ": " << (stats.empty() ? "no route effects bought" : stats) << "\n";
+		out << "  Lanes " << lanes << ": "
+		    << DescribeStore(
+		           World, EffectDomain::Route, lanes, RouteStatsOf(World, CivilisationId), "no route effects bought")
+		    << "\n";
 	}
 
 	if (World.Has(survey))
 	{
-		const std::string stats = DescribeEffectStats(SurveyStatsOf(World, CivilisationId));
-
-		out << "  Survey " << survey << ": " << (stats.empty() ? "no survey effects bought" : stats) << "\n";
+		out << "  Survey " << survey << ": "
+		    << DescribeStore(
+		           World, EffectDomain::Survey, survey, SurveyStatsOf(World, CivilisationId), "no survey effects bought")
+		    << "\n";
 	}
 
 	if (World.Has(yards))
 	{
-		const std::string stats = DescribeEffectStats(YardStatsOf(World, CivilisationId));
-
-		out << "  Yards " << yards << ": " << (stats.empty() ? "no yard effects bought" : stats) << "\n";
+		out << "  Yards " << yards << ": "
+		    << DescribeStore(
+		           World, EffectDomain::Yard, yards, YardStatsOf(World, CivilisationId), "no yard effects bought")
+		    << "\n";
 	}
 
 	return out.str();
