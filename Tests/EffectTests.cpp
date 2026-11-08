@@ -24,17 +24,60 @@ using namespace CivSimCore;
 const std::vector<std::string> &ShippedEffectIds()
 {
 	static const std::vector<std::string> ids = {
-	    "AdmiraltyWarrant", "AttitudeControl",  "BoardingParties", "CargoHolds",      "CargoInsurance",
-	    "ClaimRefinery",    "ClosedLoop",       "ComputerNavigation", "ComputerTrader", "Convoy",
-	    "Countermeasures",  "CrewTraining",     "DamageControl",   "DeepSurvey",      "DockingLicence",
-	    "Drydock",          "Education",        "EmissionsControl", "EngineThrust",   "EscortWing",
-	    "ExclusiveClaim",   "FencingNetwork",   "FuelBunkers",     "GunFront",        "GunRear",
-	    "HabitatDomes",     "LaserFront",       "LaserRear",       "LifeSupport",     "ManoeuvringJets",
-	    "MiningClaim",      "ModularHulls",     "PiratePardon",    "PirateStanding",  "PublicMedicine",
-	    "RaiderHulls",      "RansomExchange",   "RefitDocks",      "RouteWard",       "SafeHarbours",
-	    "SalvageRig",       "SensorCommercial", "SensorFireControl", "SensorLongRange", "ShieldFront",
-	    "ShieldRear",       "ShieldSide",       "SparesLockers",   "StealthCoating",  "TerraformAtmosphere",
-	    "TerraformBiosphere", "TradeTribunal",  "WardenPatrol",    "YardOutfitting",
+	    "AdmiraltyWarrant",
+	    "AttitudeControl",
+	    "BoardingParties",
+	    "CargoHolds",
+	    "CargoInsurance",
+	    "ClaimRefinery",
+	    "ClosedLoop",
+	    "ComputerNavigation",
+	    "ComputerTrader",
+	    "Convoy",
+	    "Countermeasures",
+	    "CrewTraining",
+	    "DamageControl",
+	    "DeepSurvey",
+	    "DockingLicence",
+	    "Drydock",
+	    "Education",
+	    "EmissionsControl",
+	    "EngineThrust",
+	    "EscortWing",
+	    "ExclusiveClaim",
+	    "FencingNetwork",
+	    "FuelBunkers",
+	    "GunFront",
+	    "GunRear",
+	    "HabitatDomes",
+	    "LaserFront",
+	    "LaserRear",
+	    "LifeSupport",
+	    "ManoeuvringJets",
+	    "MiningClaim",
+	    "ModularHulls",
+	    "PiratePardon",
+	    "PirateStanding",
+	    "PublicMedicine",
+	    "RaiderHulls",
+	    "RansomExchange",
+	    "RefitDocks",
+	    "RouteWard",
+	    "SafeHarbours",
+	    "SalvageRig",
+	    "SensorCommercial",
+	    "SensorFireControl",
+	    "SensorLongRange",
+	    "ShieldFront",
+	    "ShieldRear",
+	    "ShieldSide",
+	    "SparesLockers",
+	    "StealthCoating",
+	    "TerraformAtmosphere",
+	    "TerraformBiosphere",
+	    "TradeTribunal",
+	    "WardenPatrol",
+	    "YardOutfitting",
 	};
 
 	return ids;
@@ -112,7 +155,8 @@ EcsWorld OpenWorld(const std::string &id, const std::string &name)
 
 // One effect of one domain, for an engine tested against a catalogue of its own.
 EffectDefinition Effect(
-    const std::string &effectId, EffectDomain domain, EffectOperator op, EffectStat stat, double perTier)
+    const std::string &effectId, EffectDomain domain, EffectOperator op, EffectStat stat,
+    double perTier)
 {
 	EffectDefinition definition;
 
@@ -157,29 +201,34 @@ TEST_CASE(the_ship_engine_lands_its_effects_on_the_hull)
 
 	// A tier of a shield bank is 60 MW of forward screen: thickness, not a new slot,
 	// and the system sits in the hull's own list of what it carries.
-	CHECK(engine.Fit(world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 120.0 + 2 * 60.0, 1e-9);
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldSide), 80.0, 1e-9);
 	CHECK_EQ(engine.FittedTier(world, "Trader", "ShieldFront"), 2);
 	CHECK_EQ(engine.FittedEffects(world, "Trader").size(), 1u);
 	CHECK_EQ(engine.SourcesOn(world, "Trader").size(), 1u);
 	CHECK_NEAR(
-	    world.Get<ShipStats>(ship)->values.at(EffectStat::ShieldFront), engine.GetStat(world, "Trader", EffectStat::ShieldFront),
-	    1e-9);
+	    world.Get<ShipStats>(ship)->values.at(EffectStat::ShieldFront),
+	    engine.GetStat(world, "Trader", EffectStat::ShieldFront), 1e-9);
 
 	// A refit replaces the tier: the same system on the hull twice is the same system
 	// once, which is what a refit dock does when it fits the bank the hull already has.
-	CHECK(engine.Fit(world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 240.0, 1e-9);
 	CHECK_EQ(engine.SourcesOn(world, "Trader").size(), 1u);
-	CHECK(engine.Fit(world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 1, errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 180.0, 1e-9);
 	CHECK_EQ(engine.FittedTier(world, "Trader", "ShieldFront"), 1);
 
 	// A system is the hull's, keyed by the effect it is: a second skill that buys the
 	// same forward screen replaces the tier the hull flies, it does not stack a second
 	// screen on the first, and the hull carries one system of that name.
-	CHECK(engine.Fit(world, "Trader", "SkillShipShieldsAuxiliary", "ShieldFront", EffectOrigin::Skill, 3, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "SkillShipShieldsAuxiliary", "ShieldFront", EffectOrigin::Skill, 3,
+	    errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 120.0 + 3 * 60.0, 1e-9);
 	CHECK_EQ(engine.FittedTier(world, "Trader", "ShieldFront"), 3);
 	CHECK_EQ(engine.SourcesOn(world, "Trader").size(), 1u);
@@ -194,10 +243,14 @@ TEST_CASE(the_ship_engine_lands_its_effects_on_the_hull)
 
 	// UnfitSkill is the respec road: every source of one skill comes off every hull it
 	// touched, and the numbers of those hulls go back.
-	CHECK(engine.Fit(world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 1, errorMessage));
-	CHECK(engine.Fit(world, "Trader", "SkillShipGunFronts", "GunFront", EffectOrigin::Skill, 2, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "SkillShipGunFronts", "GunFront", EffectOrigin::Skill, 2, errorMessage));
 	CHECK(engine.BuildShip(world, "Trader-2", trader, "Civ-01", errorMessage));
-	CHECK(engine.Fit(world, "Trader-2", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 4, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader-2", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 4,
+	    errorMessage));
 	CHECK_EQ(engine.UnfitSkill(world, "SkillShipShieldsFront", errorMessage), 2u);
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 120.0, 1e-9);
 	CHECK_NEAR(engine.GetStat(world, "Trader-2", EffectStat::ShieldFront), 120.0, 1e-9);
@@ -211,7 +264,8 @@ TEST_CASE(the_ship_engine_lands_its_effects_on_the_hull)
 	std::string otherError;
 
 	CHECK(other.BuildShip(otherWorld, "Trader", trader, "Civ-01", otherError));
-	CHECK(other.Fit(otherWorld, "Trader", "SkillShipGunFronts", "GunFront", EffectOrigin::Skill, 2, otherError));
+	CHECK(other.Fit(
+	    otherWorld, "Trader", "SkillShipGunFronts", "GunFront", EffectOrigin::Skill, 2, otherError));
 	CHECK(engine.Recompute(world, "Trader", errorMessage));
 	CHECK(other.Recompute(otherWorld, "Trader", otherError));
 	CHECK(engine.StatsOf(world, "Trader") == other.StatsOf(otherWorld, "Trader"));
@@ -242,22 +296,28 @@ TEST_CASE(the_hull_refuses_a_system_it_has_no_slot_for)
 	// The hull has a slot for each of the 25 ship systems of the tree, and a system
 	// the hull has no frame for does not fit: a salvage rig cannot be fitted to a hull
 	// that has no rig frame.
-	CHECK(engine.Fit(world, "Trader", "SkillShipSalvageRigs", "SalvageRig", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "SkillShipSalvageRigs", "SalvageRig", EffectOrigin::Skill, 1, errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::SalvageCapacity), 15.0 + 10.0, 1e-9);
 
 	// A system outside the 25 has no slot on this hull, and the fit says so.
 	EffectCatalogue catalogue = EffectCatalogue::Default();
-	CHECK(catalogue.Register(Effect("DroneDefense", EffectDomain::Ship, EffectOperator::Add, EffectStat::ShieldFront, 10.0),
-	                         errorMessage));
+	CHECK(catalogue.Register(
+	    Effect("DroneDefense", EffectDomain::Ship, EffectOperator::Add, EffectStat::ShieldFront, 10.0),
+	    errorMessage));
 	engine.SetCatalogue(catalogue);
-	CHECK(!engine.Fit(world, "Trader", "SkillShipDroneDefense", "DroneDefense", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(!engine.Fit(
+	    world, "Trader", "SkillShipDroneDefense", "DroneDefense", EffectOrigin::Skill, 1,
+	    errorMessage));
 	CHECK_CONTAINS(errorMessage, "slot");
 
 	// A technology is knowledge, not a system: no hull refuses it, and it costs no
 	// slot, which is why a civilisation that has bought a technology flies a fleet of
 	// it, and why the same effect that a hull refuses as a system it accepts as
 	// knowledge.
-	CHECK(engine.Fit(world, "Trader", "TechDroneDefense", "DroneDefense", EffectOrigin::Technology, 2, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "TechDroneDefense", "DroneDefense", EffectOrigin::Technology, 2,
+	    errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 120.0 + 2 * 10.0, 1e-9);
 
 	// The sources on the hull, in sorted effect id order: the rig the hull carries in a
@@ -271,20 +331,30 @@ TEST_CASE(the_hull_refuses_a_system_it_has_no_slot_for)
 
 	// An effect of another store is not a system at all: the yard, the lane, the claim,
 	// the venue and the world belong to the civilisation engine.
-	CHECK(!engine.Fit(world, "Trader", "SkillShipShipyardsDrydock", "Drydock", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(!engine.Fit(
+	    world, "Trader", "SkillShipShipyardsDrydock", "Drydock", EffectOrigin::Skill, 1, errorMessage));
 	CHECK(!errorMessage.empty());
-	CHECK(!engine.Fit(world, "Trader", "SkillLawDockingLicence", "DockingLicence", EffectOrigin::Skill, 1, errorMessage));
-	CHECK(!engine.Fit(world, "Trader", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 1, errorMessage));
-	CHECK(!engine.Fit(world, "Trader", "SkillSurveyDeepScan", "DeepSurvey", EffectOrigin::Skill, 1, errorMessage));
-	CHECK(!engine.Fit(world, "Trader", "SkillHabitatDomes", "HabitatDomes", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(!engine.Fit(
+	    world, "Trader", "SkillLawDockingLicence", "DockingLicence", EffectOrigin::Skill, 1,
+	    errorMessage));
+	CHECK(!engine.Fit(
+	    world, "Trader", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(!engine.Fit(
+	    world, "Trader", "SkillSurveyDeepScan", "DeepSurvey", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(!engine.Fit(
+	    world, "Trader", "SkillHabitatDomes", "HabitatDomes", EffectOrigin::Skill, 1, errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 140.0, 1e-9);
 
 	// An unknown effect, a tier below 1 and an unknown hull all fail with a message.
 	CHECK(!engine.Fit(world, "Trader", "SkillNope", "Nope", EffectOrigin::Skill, 1, errorMessage));
 	CHECK(!errorMessage.empty());
-	CHECK(!engine.Fit(world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 0, errorMessage));
-	CHECK(!engine.Fit(world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, -1, errorMessage));
-	CHECK(!engine.Fit(world, "Nope", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(!engine.Fit(
+	    world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 0, errorMessage));
+	CHECK(!engine.Fit(
+	    world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, -1,
+	    errorMessage));
+	CHECK(!engine.Fit(
+	    world, "Nope", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 1, errorMessage));
 	CHECK_CONTAINS(errorMessage, "Nope");
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 140.0, 1e-9);
 
@@ -293,15 +363,21 @@ TEST_CASE(the_hull_refuses_a_system_it_has_no_slot_for)
 	// same way, and the node's nodeType is what decides slot against knowledge.
 	bool bought = true;
 
-	CHECK(engine.FitSkill(world, "Trader", Node("Age02", 1, 1, "", NodeType::Tech), 1, bought, errorMessage));
+	CHECK(engine.FitSkill(
+	    world, "Trader", Node("Age02", 1, 1, "", NodeType::Tech), 1, bought, errorMessage));
 	CHECK(!bought);
-	CHECK(engine.FitSkill(world, "Trader", Node("SkillLawDockingLicence", 4, 1, "DockingLicence"), 4, bought, errorMessage));
+	CHECK(engine.FitSkill(
+	    world, "Trader", Node("SkillLawDockingLicence", 4, 1, "DockingLicence"), 4, bought,
+	    errorMessage));
 	CHECK(!bought);
-	CHECK(engine.FitSkill(world, "Trader", Node("SkillShipShieldsFront", 5, 2, "ShieldFront"), 3, bought, errorMessage));
+	CHECK(engine.FitSkill(
+	    world, "Trader", Node("SkillShipShieldsFront", 5, 2, "ShieldFront"), 3, bought, errorMessage));
 	CHECK(bought);
-	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 120.0 + 2 * 10.0 + 3 * 60.0, 1e-9);
-	CHECK(engine.FitSkill(world, "Trader", Node("TechSensorLongMasts", 2, 1, "SensorLongRange", NodeType::Tech), 1, bought,
-	                      errorMessage));
+	CHECK_NEAR(
+	    engine.GetStat(world, "Trader", EffectStat::ShieldFront), 120.0 + 2 * 10.0 + 3 * 60.0, 1e-9);
+	CHECK(engine.FitSkill(
+	    world, "Trader", Node("TechSensorLongMasts", 2, 1, "SensorLongRange", NodeType::Tech), 1,
+	    bought, errorMessage));
 	CHECK(bought);
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::SensorLongRange), 4000.0 + 1500.0, 1e-9);
 
@@ -359,8 +435,10 @@ TEST_CASE(the_shipped_tree_and_the_shipped_catalogue_agree)
 
 	// A catalogue may be bigger than one tree: the effects it defines that this tree
 	// does not buy are named, and are not an error.
-	CHECK_EQ(catalogue.EffectsUnusedBy(Skills{Node("SkillLawDockingLicence", 4, 1, "DockingLicence")}).size(),
-	         catalogue.EffectCount() - 1u);
+	CHECK_EQ(
+	    catalogue.EffectsUnusedBy(Skills{Node("SkillLawDockingLicence", 4, 1, "DockingLicence")})
+	        .size(),
+	    catalogue.EffectCount() - 1u);
 
 	// The catalogue the shipped data drives: one effect for every non-null
 	// targetEffectID of the tree, in the six stores, and every one of them lands on the
@@ -375,8 +453,8 @@ TEST_CASE(the_shipped_tree_and_the_shipped_catalogue_agree)
 	CHECK(catalogue.Validate(errorMessage));
 
 	for (EffectDomain domain :
-	     {EffectDomain::Ship, EffectDomain::Yard, EffectDomain::Route, EffectDomain::Survey, EffectDomain::Market,
-	      EffectDomain::Body})
+	     {EffectDomain::Ship, EffectDomain::Yard, EffectDomain::Route, EffectDomain::Survey,
+	      EffectDomain::Market, EffectDomain::Body})
 	{
 		for (const std::string &effectId : catalogue.EffectIdsInDomain(domain))
 		{
@@ -407,17 +485,24 @@ TEST_CASE(the_shipped_tree_and_the_shipped_catalogue_agree)
 	// and this layer exist to check.
 	EffectCatalogue custom;
 
-	CHECK(!custom.Register(Effect("", EffectDomain::Ship, EffectOperator::Add, EffectStat::ShieldFront, 10.0), errorMessage));
-	CHECK(!custom.Register(EffectDefinition{"NoModifier", EffectDomain::Ship, "No Modifier", "", {}}, errorMessage));
-	CHECK(!custom.Register(Effect("ZeroTier", EffectDomain::Ship, EffectOperator::Add, EffectStat::ShieldFront, 0.0),
-	                       errorMessage));
-	CHECK(!custom.Register(Effect("WrongDomain", EffectDomain::Market, EffectOperator::Add, EffectStat::ShieldFront, 10.0),
-	                       errorMessage));
+	CHECK(!custom.Register(
+	    Effect("", EffectDomain::Ship, EffectOperator::Add, EffectStat::ShieldFront, 10.0),
+	    errorMessage));
+	CHECK(!custom.Register(
+	    EffectDefinition{"NoModifier", EffectDomain::Ship, "No Modifier", "", {}}, errorMessage));
+	CHECK(!custom.Register(
+	    Effect("ZeroTier", EffectDomain::Ship, EffectOperator::Add, EffectStat::ShieldFront, 0.0),
+	    errorMessage));
+	CHECK(!custom.Register(
+	    Effect("WrongDomain", EffectDomain::Market, EffectOperator::Add, EffectStat::ShieldFront, 10.0),
+	    errorMessage));
 	CHECK_CONTAINS(errorMessage, "Shield Front");
-	CHECK(custom.Register(Effect("DroneDefense", EffectDomain::Ship, EffectOperator::Add, EffectStat::ShieldFront, 10.0),
-	                      errorMessage));
-	CHECK(!custom.Register(Effect("DroneDefense", EffectDomain::Ship, EffectOperator::Add, EffectStat::ShieldFront, 20.0),
-	                       errorMessage));
+	CHECK(custom.Register(
+	    Effect("DroneDefense", EffectDomain::Ship, EffectOperator::Add, EffectStat::ShieldFront, 10.0),
+	    errorMessage));
+	CHECK(!custom.Register(
+	    Effect("DroneDefense", EffectDomain::Ship, EffectOperator::Add, EffectStat::ShieldFront, 20.0),
+	    errorMessage));
 	CHECK_EQ(custom.EffectCount(), 1u);
 	CHECK_EQ(custom.Find("DroneDefense")->modifiers[0].perTier, 10.0);
 	CHECK(custom.Validate(errorMessage));
@@ -428,14 +513,17 @@ TEST_CASE(the_shipped_tree_and_the_shipped_catalogue_agree)
 	CHECK_EQ(custom.EffectCount(), 0u);
 	CHECK(custom.Build(
 	    {Effect("DroneDefense", EffectDomain::Ship, EffectOperator::Add, EffectStat::ShieldFront, 10.0),
-	     Effect("WardenDrones", EffectDomain::Route, EffectOperator::Add, EffectStat::RouteRiskPremium, -4.0)},
+	     Effect(
+	         "WardenDrones", EffectDomain::Route, EffectOperator::Add, EffectStat::RouteRiskPremium,
+	         -4.0)},
 	    errorMessage));
 	CHECK_EQ(custom.EffectCount(), 2u);
 	CHECK_EQ(custom.EffectIds()[0], std::string("DroneDefense"));
 	CHECK_EQ(custom.EffectIdsInDomain(EffectDomain::Route).size(), 1u);
 	CHECK(custom.Validate(errorMessage));
-	CHECK(!custom.Build({Effect("Broken", EffectDomain::Route, EffectOperator::Add, EffectStat::ShieldFront, 10.0)},
-	                    errorMessage));
+	CHECK(!custom.Build(
+	    {Effect("Broken", EffectDomain::Route, EffectOperator::Add, EffectStat::ShieldFront, 10.0)},
+	    errorMessage));
 }
 
 TEST_CASE(an_effect_reads_the_domain_of_the_store_it_lands_on)
@@ -459,9 +547,10 @@ TEST_CASE(an_effect_reads_the_domain_of_the_store_it_lands_on)
 	CHECK_EQ(StatDomain(AllEffectStats()[0]), EffectDomain::Ship);
 
 	for (EffectStat stat : AllEffectStats())
-		CHECK(StatDomain(stat) == EffectDomain::Ship || StatDomain(stat) == EffectDomain::Yard ||
-		      StatDomain(stat) == EffectDomain::Route || StatDomain(stat) == EffectDomain::Survey ||
-		      StatDomain(stat) == EffectDomain::Market || StatDomain(stat) == EffectDomain::Body);
+		CHECK(
+		    StatDomain(stat) == EffectDomain::Ship || StatDomain(stat) == EffectDomain::Yard ||
+		    StatDomain(stat) == EffectDomain::Route || StatDomain(stat) == EffectDomain::Survey ||
+		    StatDomain(stat) == EffectDomain::Market || StatDomain(stat) == EffectDomain::Body);
 
 	// The engine of one store lands on that store and refuses the others: a law, a
 	// policy, a licence, a yard, a lane, a claim and a habitat are the civilisation's,
@@ -474,18 +563,24 @@ TEST_CASE(an_effect_reads_the_domain_of_the_store_it_lands_on)
 	std::string shipError;
 	std::string civError;
 
-	CHECK(shipEngine.BuildShip(world, "Trader", ShipEffectEngine::LongHaulTrader(), "Civ-01", shipError));
+	CHECK(
+	    shipEngine.BuildShip(world, "Trader", ShipEffectEngine::LongHaulTrader(), "Civ-01", shipError));
 
-	CHECK(!civEngine.Apply(world, "Civ-01", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, civError));
+	CHECK(!civEngine.Apply(
+	    world, "Civ-01", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, civError));
 	CHECK_CONTAINS(civError, "ShipEffectEngine");
 
 	// The same effect the civilisation engine refuses is the hull's own, and the hull
 	// has a slot for it: the refusal names the engine, and the engine that owns the
 	// effect lands it.
-	CHECK(shipEngine.Fit(world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, shipError));
+	CHECK(shipEngine.Fit(
+	    world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, shipError));
 	CHECK(shipError.empty());
-	CHECK(!shipEngine.Fit(world, "Trader", "SkillLawDockingLicence", "DockingLicence", EffectOrigin::Skill, 1, shipError));
-	CHECK(!shipEngine.Fit(world, "Trader", "SkillShipShipyardsDrydock", "Drydock", EffectOrigin::Skill, 1, shipError));
+	CHECK(!shipEngine.Fit(
+	    world, "Trader", "SkillLawDockingLicence", "DockingLicence", EffectOrigin::Skill, 1,
+	    shipError));
+	CHECK(!shipEngine.Fit(
+	    world, "Trader", "SkillShipShipyardsDrydock", "Drydock", EffectOrigin::Skill, 1, shipError));
 
 	// The catalogue names the domain of each effect the shipped tree asks for, and the
 	// two spellings of the same number - the domain of the effect and the domain of its
@@ -582,7 +677,9 @@ TEST_CASE(an_effect_reads_the_domain_of_the_store_it_lands_on)
 	CHECK_EQ(std::string(DescribeEffectDomain(EffectDomain::Market)), std::string("Market"));
 	CHECK_EQ(std::string(DescribeEffectOrigin(EffectOrigin::Technology)), std::string("Technology"));
 	CHECK_EQ(std::string(DescribeEffectOperator(EffectOperator::Add)), std::string("add"));
-	CHECK_CONTAINS(DescribeEffectModifier({EffectStat::MarketRiskPremium, EffectOperator::Add, -12.0}), "Market Risk");
+	CHECK_CONTAINS(
+	    DescribeEffectModifier({EffectStat::MarketRiskPremium, EffectOperator::Add, -12.0}),
+	    "Market Risk");
 	CHECK_EQ(AllEffectStats().size(), 46u);
 }
 
@@ -598,97 +695,142 @@ TEST_CASE(the_civilisation_engine_lands_its_effects_on_the_stores_its_domain_own
 	// The venue: a licence is a berth and the clearance it buys, a policy is the
 	// premium the cargo carries, and both lower the risk of the place, which is the
 	// number the fee is built from.
-	CHECK(engine.Apply(world, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4,
-	                   errorMessage));
-	CHECK_NEAR(engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 20.0, 1e-9);
-	CHECK_NEAR(engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -60.0, 1e-9);
-	CHECK_NEAR(engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketInsurance), 0.0, 1e-9);
+	CHECK(engine.Apply(
+	    world, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4,
+	    errorMessage));
+	CHECK_NEAR(
+	    engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 20.0,
+	    1e-9);
+	CHECK_NEAR(
+	    engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -60.0,
+	    1e-9);
+	CHECK_NEAR(
+	    engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketInsurance), 0.0, 1e-9);
 	CHECK_EQ(engine.MarketStatsOf(world, "Civ-01").size(), 2u);
 	CHECK_EQ(engine.MarketsOf(world, "Civ-01").size(), 1u);
 	CHECK_EQ(engine.MarketsOf(world, "Civ-02").size(), 0u);
-	CHECK_NEAR(engine.ReadStat(world, EffectDomain::Market, "Nope", EffectStat::MarketClearance), 0.0, 1e-9);
+	CHECK_NEAR(
+	    engine.ReadStat(world, EffectDomain::Market, "Nope", EffectStat::MarketClearance), 0.0, 1e-9);
 
 	// One source per effect on one store: the same skill applied twice is the same law
 	// once, and the venue charges the same fee, which is what keeps a save-load, a UI
 	// and a test from adding a tier to a law that is already in force.
-	CHECK(engine.Apply(world, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4,
-	                   errorMessage));
-	CHECK_NEAR(engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 20.0, 1e-9);
-	CHECK_NEAR(engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -60.0, 1e-9);
+	CHECK(engine.Apply(
+	    world, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4,
+	    errorMessage));
+	CHECK_NEAR(
+	    engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 20.0,
+	    1e-9);
+	CHECK_NEAR(
+	    engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -60.0,
+	    1e-9);
 	CHECK_EQ(world.Get<MarketEffects>(world.Find("Civ-01"))->values.size(), 2u);
 
 	// Two sources of one stat on one store: the licence, the bench, the harbours, the
 	// crews and the pardon all move the risk of the venue, and the venue's fee is the
 	// sum of them.
-	CHECK(engine.Apply(world, "Civ-01", "SkillTradeTribunal", "TradeTribunal", EffectOrigin::Skill, 2, errorMessage));
-	CHECK(engine.Apply(world, "Civ-01", "SkillPiracySafeHarbours", "SafeHarbours", EffectOrigin::Skill, 1, errorMessage));
-	CHECK_NEAR(engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketDepth), 2 * 40.0 + 25.0, 1e-9);
+	CHECK(engine.Apply(
+	    world, "Civ-01", "SkillTradeTribunal", "TradeTribunal", EffectOrigin::Skill, 2, errorMessage));
+	CHECK(engine.Apply(
+	    world, "Civ-01", "SkillPiracySafeHarbours", "SafeHarbours", EffectOrigin::Skill, 1,
+	    errorMessage));
 	CHECK_NEAR(
-	    engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -60.0 - 2 * 9.0 - 14.0,
-	    1e-9);
+	    engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketDepth),
+	    2 * 40.0 + 25.0, 1e-9);
+	CHECK_NEAR(
+	    engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium),
+	    -60.0 - 2 * 9.0 - 14.0, 1e-9);
 
 	// The lane: a convoy is the cheapest way to buy safety and buys the most, and the
 	// lane is one shared store per civilisation, created by the first effect that needs
 	// it, because a lane is the civilisation's, not a world's.
-	CHECK(engine.Apply(world, "Civ-01", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 2, errorMessage));
+	CHECK(engine.Apply(
+	    world, "Civ-01", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 2, errorMessage));
 	CHECK_NEAR(
-	    engine.ReadStat(world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
-	                   EffectStat::RouteRiskPremium),
+	    engine.ReadStat(
+	        world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
+	        EffectStat::RouteRiskPremium),
 	    -24.0, 1e-9);
 	CHECK(world.Get<RouteEffects>(CivilisationEffectEngine::LaneStoreId("Civ-01")) != nullptr);
-	CHECK(engine.Apply(world, "Civ-01", "SkillPiracyEscortWing", "EscortWing", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(engine.Apply(
+	    world, "Civ-01", "SkillPiracyEscortWing", "EscortWing", EffectOrigin::Skill, 1, errorMessage));
 	CHECK_NEAR(
-	    engine.ReadStat(world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
-	                   EffectStat::RouteRiskPremium),
+	    engine.ReadStat(
+	        world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
+	        EffectStat::RouteRiskPremium),
 	    -24.0 - 9.0, 1e-9);
 
 	// The yard, the survey and the world: each on the store its own domain names, and
 	// each a shared store per civilisation except the world's own bodies and venues.
-	CHECK(engine.Apply(world, "Civ-01", "SkillShipShipyardsDrydock", "Drydock", EffectOrigin::Skill, 3, errorMessage));
-	CHECK(engine.Apply(world, "Civ-01", "SkillShipShipyardsOutfitting", "YardOutfitting", EffectOrigin::Skill, 2,
-	                   errorMessage));
+	CHECK(engine.Apply(
+	    world, "Civ-01", "SkillShipShipyardsDrydock", "Drydock", EffectOrigin::Skill, 3, errorMessage));
+	CHECK(engine.Apply(
+	    world, "Civ-01", "SkillShipShipyardsOutfitting", "YardOutfitting", EffectOrigin::Skill, 2,
+	    errorMessage));
 	CHECK_NEAR(
-	    engine.ReadStat(world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"),
-	                   EffectStat::YardDockThroughput),
+	    engine.ReadStat(
+	        world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"),
+	        EffectStat::YardDockThroughput),
 	    3.0, 1e-9);
 	CHECK_NEAR(
-	    engine.ReadStat(world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"), EffectStat::YardFitSlots),
+	    engine.ReadStat(
+	        world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"),
+	        EffectStat::YardFitSlots),
 	    2.0, 1e-9);
 
-	CHECK(engine.Apply(world, "Civ-01", "SkillSurveyDeepScan", "DeepSurvey", EffectOrigin::Skill, 3, errorMessage));
-	CHECK(engine.Apply(world, "Civ-01", "SkillSurveyMiningClaims", "MiningClaim", EffectOrigin::Skill, 2, errorMessage));
+	CHECK(engine.Apply(
+	    world, "Civ-01", "SkillSurveyDeepScan", "DeepSurvey", EffectOrigin::Skill, 3, errorMessage));
+	CHECK(engine.Apply(
+	    world, "Civ-01", "SkillSurveyMiningClaims", "MiningClaim", EffectOrigin::Skill, 2,
+	    errorMessage));
 	CHECK_NEAR(
-	    engine.ReadStat(world, EffectDomain::Survey, CivilisationEffectEngine::SurveyStoreId("Civ-01"),
-	                   EffectStat::SurveyRange),
+	    engine.ReadStat(
+	        world, EffectDomain::Survey, CivilisationEffectEngine::SurveyStoreId("Civ-01"),
+	        EffectStat::SurveyRange),
 	    36.0, 1e-9);
 	CHECK_NEAR(
-	    engine.ReadStat(world, EffectDomain::Survey, CivilisationEffectEngine::SurveyStoreId("Civ-01"),
-	                   EffectStat::ClaimCount),
+	    engine.ReadStat(
+	        world, EffectDomain::Survey, CivilisationEffectEngine::SurveyStoreId("Civ-01"),
+	        EffectStat::ClaimCount),
 	    4.0, 1e-9);
 
-	CHECK(engine.Apply(world, "Civ-01", "SkillHabitatPublicMedicine", "PublicMedicine", EffectOrigin::Skill, 2,
-	                   errorMessage));
-	CHECK(engine.Apply(world, "Civ-01", "SkillHabitatClosedLoop", "ClosedLoop", EffectOrigin::Skill, 1, errorMessage));
-	CHECK_NEAR(engine.ReadStat(world, EffectDomain::Body, "Civ-01", EffectStat::MedicineCoverage), 0.5, 1e-9);
-	CHECK_NEAR(engine.ReadStat(world, EffectDomain::Body, "Civ-01", EffectStat::BodyRecyclingLoop), 0.15, 1e-9);
+	CHECK(engine.Apply(
+	    world, "Civ-01", "SkillHabitatPublicMedicine", "PublicMedicine", EffectOrigin::Skill, 2,
+	    errorMessage));
+	CHECK(engine.Apply(
+	    world, "Civ-01", "SkillHabitatClosedLoop", "ClosedLoop", EffectOrigin::Skill, 1, errorMessage));
+	CHECK_NEAR(
+	    engine.ReadStat(world, EffectDomain::Body, "Civ-01", EffectStat::MedicineCoverage), 0.5, 1e-9);
+	CHECK_NEAR(
+	    engine.ReadStat(world, EffectDomain::Body, "Civ-01", EffectStat::BodyRecyclingLoop), 0.15,
+	    1e-9);
 	CHECK_EQ(engine.BodyStatsOf(world, "Civ-01").size(), 2u);
-	CHECK_NEAR(engine.ReadStat(world, EffectDomain::Body, "Station-Civ-01", EffectStat::MedicineCoverage), 0.0, 1e-9);
+	CHECK_NEAR(
+	    engine.ReadStat(world, EffectDomain::Body, "Station-Civ-01", EffectStat::MedicineCoverage), 0.0,
+	    1e-9);
 
 	// The same effect on two civilisations: a law is the law of one civilisation, and
 	// the venue, the lane, the yard and the survey of another are stores of their own,
 	// so the same tree buys a second civilisation the same numbers and no civilisation
 	// pays for another's law.
-	CHECK(engine.Apply(world, "Civ-02", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 5, errorMessage));
+	CHECK(engine.Apply(
+	    world, "Civ-02", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 5, errorMessage));
 	CHECK_NEAR(
-	    engine.ReadStat(world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
-	                   EffectStat::RouteRiskPremium),
+	    engine.ReadStat(
+	        world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
+	        EffectStat::RouteRiskPremium),
 	    -33.0, 1e-9);
 	CHECK_NEAR(
-	    engine.ReadStat(world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-02"),
-	                   EffectStat::RouteRiskPremium),
+	    engine.ReadStat(
+	        world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-02"),
+	        EffectStat::RouteRiskPremium),
 	    -60.0, 1e-9);
-	CHECK_NEAR(engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -92.0, 1e-9);
-	CHECK_NEAR(engine.ReadStat(world, EffectDomain::Market, "Civ-02", EffectStat::MarketRiskPremium), 0.0, 1e-9);
+	CHECK_NEAR(
+	    engine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -92.0,
+	    1e-9);
+	CHECK_NEAR(
+	    engine.ReadStat(world, EffectDomain::Market, "Civ-02", EffectStat::MarketRiskPremium), 0.0,
+	    1e-9);
 
 	// The respec road: taking one skill off takes every source of it off every store it
 	// touched, and the store goes back to what the rest of the tree bought. The convoy
@@ -697,12 +839,14 @@ TEST_CASE(the_civilisation_engine_lands_its_effects_on_the_stores_its_domain_own
 	// 2 - the count is the sources, and a law that lands in two worlds is two sources.
 	CHECK_EQ(engine.UnapplySkill(world, "SkillPiracyConvoy", errorMessage), 2u);
 	CHECK_NEAR(
-	    engine.ReadStat(world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
-	                   EffectStat::RouteRiskPremium),
+	    engine.ReadStat(
+	        world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
+	        EffectStat::RouteRiskPremium),
 	    -9.0, 1e-9);
 	CHECK_NEAR(
-	    engine.ReadStat(world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-02"),
-	                   EffectStat::RouteRiskPremium),
+	    engine.ReadStat(
+	        world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-02"),
+	        EffectStat::RouteRiskPremium),
 	    0.0, 1e-9);
 	CHECK_EQ(engine.UnapplySkill(world, "SkillNope", errorMessage), 0u);
 
@@ -725,12 +869,15 @@ TEST_CASE(the_civilisation_engine_lands_its_effects_on_the_stores_its_domain_own
 	EcsWorld barren;
 	std::string bar;
 
-	CHECK(!engine.Apply(barren, "Civ-09", "SkillLawDockingLicence", "DockingLicence", EffectOrigin::Skill, 1, bar));
+	CHECK(!engine.Apply(
+	    barren, "Civ-09", "SkillLawDockingLicence", "DockingLicence", EffectOrigin::Skill, 1, bar));
 	CHECK(!bar.empty());
-	CHECK(!engine.Apply(barren, "Civ-09", "SkillHabitatDomes", "HabitatDomes", EffectOrigin::Skill, 1, bar));
+	CHECK(!engine.Apply(
+	    barren, "Civ-09", "SkillHabitatDomes", "HabitatDomes", EffectOrigin::Skill, 1, bar));
 	CHECK(!bar.empty());
 	CHECK(!engine.Apply(world, "Civ-01", "SkillNope", "Nope", EffectOrigin::Skill, 1, errorMessage));
-	CHECK(!engine.Apply(world, "Civ-01", "SkillHabitatDomes", "HabitatDomes", EffectOrigin::Skill, 0, errorMessage));
+	CHECK(!engine.Apply(
+	    world, "Civ-01", "SkillHabitatDomes", "HabitatDomes", EffectOrigin::Skill, 0, errorMessage));
 }
 
 TEST_CASE(a_tree_walk_lands_every_effect_the_tree_buys)
@@ -770,8 +917,12 @@ TEST_CASE(a_tree_walk_lands_every_effect_the_tree_buys)
 	CHECK_EQ(applied, 0u);
 	CHECK_EQ(skipped, 9u);
 	CHECK_EQ(applied + skipped, static_cast<unsigned>(nodes.size()));
-	CHECK_NEAR(civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 0.0, 1e-9);
-	CHECK_NEAR(civEngine.ReadStat(world, EffectDomain::Body, "Civ-01", EffectStat::MedicineCoverage), 0.0, 1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 0.0,
+	    1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(world, EffectDomain::Body, "Civ-01", EffectStat::MedicineCoverage), 0.0,
+	    1e-9);
 	CHECK_EQ(civEngine.MarketStatsOf(world, "Civ-01").size(), 0u);
 
 	// The gate opens, the points go down by what the tier cost, and an unknown node, a
@@ -818,31 +969,40 @@ TEST_CASE(a_tree_walk_lands_every_effect_the_tree_buys)
 	CHECK_EQ(applied, 5u);
 	CHECK_EQ(skipped, 4u);
 	CHECK_EQ(applied + skipped, static_cast<unsigned>(nodes.size()));
-	CHECK_NEAR(civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 3 * 20.0 + 4 * 5.0,
-	           1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance),
+	    3 * 20.0 + 4 * 5.0, 1e-9);
 	CHECK_NEAR(
 	    civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium),
 	    3 * -5.0 + 2 * -10.0 + 4 * -15.0, 1e-9);
-	CHECK_NEAR(civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketInsurance), 2 * -40.0, 1e-9);
 	CHECK_NEAR(
-	    civEngine.ReadStat(world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
-	                       EffectStat::RouteRiskPremium),
+	    civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketInsurance),
+	    2 * -40.0, 1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(
+	        world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
+	        EffectStat::RouteRiskPremium),
 	    2 * -12.0, 1e-9);
 	CHECK_NEAR(
-	    civEngine.ReadStat(world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"),
-	                       EffectStat::YardDockThroughput),
+	    civEngine.ReadStat(
+	        world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"),
+	        EffectStat::YardDockThroughput),
 	    1.0, 1e-9);
 	CHECK_NEAR(
-	    civEngine.ReadStat(world, EffectDomain::Survey, CivilisationEffectEngine::SurveyStoreId("Civ-01"),
-	                       EffectStat::SurveyRange),
+	    civEngine.ReadStat(
+	        world, EffectDomain::Survey, CivilisationEffectEngine::SurveyStoreId("Civ-01"),
+	        EffectStat::SurveyRange),
 	    0.0, 1e-9);
-	CHECK_NEAR(civEngine.ReadStat(world, EffectDomain::Body, "Civ-01", EffectStat::MedicineCoverage), 0.0, 1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(world, EffectDomain::Body, "Civ-01", EffectStat::MedicineCoverage), 0.0,
+	    1e-9);
 
 	// The hull: the same tree on a hull buys the systems and skips the laws, which is
 	// the split the two engines exist to make. The shield bank is the one system this
 	// tree buys, and the eight nodes that buy a law, a lane, a yard, a survey, a clinic
 	// or nothing are the ones the hull skips.
-	CHECK(shipEngine.BuildShip(world, "Trader", ShipEffectEngine::LongHaulTrader(), "Civ-01", errorMessage));
+	CHECK(shipEngine.BuildShip(
+	    world, "Trader", ShipEffectEngine::LongHaulTrader(), "Civ-01", errorMessage));
 	applied = 0u;
 	skipped = 0u;
 
@@ -858,8 +1018,10 @@ TEST_CASE(a_tree_walk_lands_every_effect_the_tree_buys)
 
 	// A technology reaches every hull of the operator at once, which is why a
 	// civilisation that has bought a technique flies a fleet of it.
-	CHECK(shipEngine.BuildShip(world, "Trader-2", ShipEffectEngine::LongHaulTrader(), "Civ-01", errorMessage));
-	CHECK(shipEngine.ApplyProgressionToWorld(world, progression, "Civ-01", applied, skipped, errorMessage));
+	CHECK(shipEngine.BuildShip(
+	    world, "Trader-2", ShipEffectEngine::LongHaulTrader(), "Civ-01", errorMessage));
+	CHECK(shipEngine.ApplyProgressionToWorld(
+	    world, progression, "Civ-01", applied, skipped, errorMessage));
 	CHECK_EQ(applied, 2u);
 	CHECK_EQ(skipped, 16u);
 	CHECK_NEAR(shipEngine.GetStat(world, "Trader", EffectStat::ShieldFront), 240.0, 1e-9);
@@ -869,20 +1031,24 @@ TEST_CASE(a_tree_walk_lands_every_effect_the_tree_buys)
 	// A tree walked twice is the same store: the sources are keyed by the effect they
 	// bought, so a second walk replaces what the first bought and adds nothing, which is
 	// what a save-load, a UI and a test all need.
-	const double clearance = civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance);
+	const double clearance =
+	    civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance);
 
 	applied = 0u;
 	skipped = 0u;
 
 	CHECK(civEngine.ApplyProgression(world, progression, "Civ-01", applied, skipped, errorMessage));
 	CHECK_EQ(applied, 5u);
-	CHECK_NEAR(civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), clearance, 1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance),
+	    clearance, 1e-9);
 	CHECK_NEAR(
 	    civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium),
 	    3 * -5.0 + 2 * -10.0 + 4 * -15.0, 1e-9);
 	CHECK_NEAR(
-	    civEngine.ReadStat(world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
-	                       EffectStat::RouteRiskPremium),
+	    civEngine.ReadStat(
+	        world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
+	        EffectStat::RouteRiskPremium),
 	    2 * -12.0, 1e-9);
 
 	applied = 0u;
@@ -902,18 +1068,24 @@ TEST_CASE(a_tree_walk_lands_every_effect_the_tree_buys)
 	CHECK(civEngine.ApplyProgression(world, progression, "Civ-01", applied, skipped, errorMessage));
 	CHECK_EQ(applied, 7u);
 	CHECK_NEAR(
-	    civEngine.ReadStat(world, EffectDomain::Survey, CivilisationEffectEngine::SurveyStoreId("Civ-01"),
-	                       EffectStat::SurveyRange),
+	    civEngine.ReadStat(
+	        world, EffectDomain::Survey, CivilisationEffectEngine::SurveyStoreId("Civ-01"),
+	        EffectStat::SurveyRange),
 	    12.0, 1e-9);
-	CHECK_NEAR(civEngine.ReadStat(world, EffectDomain::Body, "Civ-01", EffectStat::MedicineCoverage), 0.25, 1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(world, EffectDomain::Body, "Civ-01", EffectStat::MedicineCoverage), 0.25,
+	    1e-9);
 
 	// The respec road reaches the tree too: taking a skill off takes its source off
 	// every store it touched, the store goes back to what the rest of the tree bought,
 	// and taking it off again takes nothing.
 	CHECK_EQ(civEngine.UnapplySkill(world, "SkillLawAdmiraltyWarrant", errorMessage), 1u);
-	CHECK_NEAR(civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 3 * 20.0, 1e-9);
 	CHECK_NEAR(
-	    civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), 3 * -5.0 + 2 * -10.0, 1e-9);
+	    civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance),
+	    3 * 20.0, 1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium),
+	    3 * -5.0 + 2 * -10.0, 1e-9);
 	CHECK_EQ(civEngine.UnapplySkill(world, "SkillLawAdmiraltyWarrant", errorMessage), 0u);
 	CHECK_EQ(civEngine.UnapplySkill(world, "SkillNope", errorMessage), 0u);
 	CHECK_EQ(shipEngine.UnfitSkill(world, "SkillShipShieldsFront", errorMessage), 2u);
@@ -987,7 +1159,8 @@ TEST_CASE(an_effect_applies_the_way_its_operator_says)
 
 	CHECK(catalogue.Build(
 	    {Effect("ShieldFront", EffectDomain::Ship, EffectOperator::Add, EffectStat::ShieldFront, 60.0),
-	     Effect("ShieldSide", EffectDomain::Ship, EffectOperator::Multiply, EffectStat::ShieldSide, 0.5),
+	     Effect(
+	         "ShieldSide", EffectDomain::Ship, EffectOperator::Multiply, EffectStat::ShieldSide, 0.5),
 	     Effect("ShieldRear", EffectDomain::Ship, EffectOperator::Set, EffectStat::ShieldRear, 1200.0)},
 	    errorMessage));
 
@@ -1006,11 +1179,14 @@ TEST_CASE(an_effect_applies_the_way_its_operator_says)
 
 	engine.SetCatalogue(catalogue);
 	CHECK(engine.BuildShip(world, "Trader", trader, "Civ-01", errorMessage));
-	CHECK(engine.Fit(world, "Trader", "SkillShieldStep", "ShieldFront", EffectOrigin::Skill, 2, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "SkillShieldStep", "ShieldFront", EffectOrigin::Skill, 2, errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 120.0 + 2 * 60.0, 1e-9);
-	CHECK(engine.Fit(world, "Trader", "SkillScreenShare", "ShieldSide", EffectOrigin::Skill, 2, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "SkillScreenShare", "ShieldSide", EffectOrigin::Skill, 2, errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldSide), 80.0 * 2.0, 1e-9);
-	CHECK(engine.Fit(world, "Trader", "SkillScreenCap", "ShieldRear", EffectOrigin::Skill, 3, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "SkillScreenCap", "ShieldRear", EffectOrigin::Skill, 3, errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldRear), 1200.0, 1e-9);
 	CHECK(engine.UnfitEffect(world, "Trader", "ShieldRear", errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldRear), 60.0, 1e-9);
@@ -1023,25 +1199,35 @@ TEST_CASE(an_effect_applies_the_way_its_operator_says)
 	EffectCatalogue single;
 
 	CHECK(single.Build(
-	    {Effect("ScreenShare", EffectDomain::Ship, EffectOperator::Multiply, EffectStat::ShieldFront, 0.5)}, errorMessage));
+	    {Effect(
+	        "ScreenShare", EffectDomain::Ship, EffectOperator::Multiply, EffectStat::ShieldFront, 0.5)},
+	    errorMessage));
 	engine.SetCatalogue(single);
 	CHECK(engine.BuildShip(world, "Frigate", trader, "Civ-01", errorMessage));
 
 	for (int tier = 1; tier <= 4; ++tier)
 	{
-		CHECK(engine.Fit(world, "Frigate", "SkillScreenShare", "ScreenShare", EffectOrigin::Skill, tier, errorMessage));
-		CHECK_NEAR(engine.GetStat(world, "Frigate", EffectStat::ShieldFront), 120.0 * (1.0 + 0.5 * tier), 1e-9);
-		CHECK(engine.Fit(world, "Trader", "SkillScreenShare", "ScreenShare", EffectOrigin::Skill, tier, errorMessage));
+		CHECK(engine.Fit(
+		    world, "Frigate", "SkillScreenShare", "ScreenShare", EffectOrigin::Skill, tier,
+		    errorMessage));
 		CHECK_NEAR(
-		    engine.GetStat(world, "Trader", EffectStat::ShieldFront), engine.GetStat(world, "Frigate", EffectStat::ShieldFront),
+		    engine.GetStat(world, "Frigate", EffectStat::ShieldFront), 120.0 * (1.0 + 0.5 * tier),
 		    1e-9);
+		CHECK(engine.Fit(
+		    world, "Trader", "SkillScreenShare", "ScreenShare", EffectOrigin::Skill, tier,
+		    errorMessage));
+		CHECK_NEAR(
+		    engine.GetStat(world, "Trader", EffectStat::ShieldFront),
+		    engine.GetStat(world, "Frigate", EffectStat::ShieldFront), 1e-9);
 	}
 
 	// The catalogue is the source of what exists: an effect it does not define is not a
 	// system, not knowledge, and not a stat, and the fit says so in a message.
-	CHECK(!engine.Fit(world, "Frigate", "SkillShieldStep", "ShieldFront", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(!engine.Fit(
+	    world, "Frigate", "SkillShieldStep", "ShieldFront", EffectOrigin::Skill, 1, errorMessage));
 	CHECK(!errorMessage.empty());
-	CHECK(!engine.Fit(world, "Frigate", "SkillShieldStep", "ShieldFront", EffectOrigin::Technology, 1, errorMessage));
+	CHECK(!engine.Fit(
+	    world, "Frigate", "SkillShieldStep", "ShieldFront", EffectOrigin::Technology, 1, errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Frigate", EffectStat::ShieldFront), 360.0, 1e-9);
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 360.0, 1e-9);
 
@@ -1052,28 +1238,49 @@ TEST_CASE(an_effect_applies_the_way_its_operator_says)
 	EffectCatalogue civCatalogue;
 
 	CHECK(civCatalogue.Register(
-	    Effect("HabitatShare", EffectDomain::Body, EffectOperator::Multiply, EffectStat::BodyHabitatCapacity, 0.25),
+	    Effect(
+	        "HabitatShare", EffectDomain::Body, EffectOperator::Multiply,
+	        EffectStat::BodyHabitatCapacity, 0.25),
 	    errorMessage));
 	CHECK(civCatalogue.Register(
-	    Effect("AirShare", EffectDomain::Body, EffectOperator::Set, EffectStat::TerraformAtmosphere, 0.75), errorMessage));
+	    Effect(
+	        "AirShare", EffectDomain::Body, EffectOperator::Set, EffectStat::TerraformAtmosphere, 0.75),
+	    errorMessage));
 	CHECK(civCatalogue.Register(
-	    Effect("CoverageStep", EffectDomain::Body, EffectOperator::Add, EffectStat::MedicineCoverage, 0.25), errorMessage));
+	    Effect(
+	        "CoverageStep", EffectDomain::Body, EffectOperator::Add, EffectStat::MedicineCoverage,
+	        0.25),
+	    errorMessage));
 
 	CivilisationEffectEngine civEngine;
 	EcsWorld civWorld = OpenWorld("Civ-01", "Abigail Prime");
 
 	civEngine.SetCatalogue(civCatalogue);
-	CHECK(civEngine.Apply(civWorld, "Civ-01", "SkillHabitatDomes", "HabitatShare", EffectOrigin::Skill, 4, errorMessage));
-	CHECK(civEngine.Apply(civWorld, "Civ-01", "SkillTerraformAir", "AirShare", EffectOrigin::Skill, 4, errorMessage));
-	CHECK(civEngine.Apply(civWorld, "Civ-01", "SkillHabitatClinics", "CoverageStep", EffectOrigin::Skill, 2, errorMessage));
-	CHECK_NEAR(civEngine.ReadStat(civWorld, EffectDomain::Body, "Civ-01", EffectStat::TerraformAtmosphere), 0.75, 1e-9);
-	CHECK_NEAR(civEngine.ReadStat(civWorld, EffectDomain::Body, "Civ-01", EffectStat::MedicineCoverage), 0.5, 1e-9);
-	CHECK_NEAR(civEngine.ReadStat(civWorld, EffectDomain::Body, "Civ-01", EffectStat::BodyHabitatCapacity), 0.0, 1e-9);
+	CHECK(civEngine.Apply(
+	    civWorld, "Civ-01", "SkillHabitatDomes", "HabitatShare", EffectOrigin::Skill, 4, errorMessage));
+	CHECK(civEngine.Apply(
+	    civWorld, "Civ-01", "SkillTerraformAir", "AirShare", EffectOrigin::Skill, 4, errorMessage));
+	CHECK(civEngine.Apply(
+	    civWorld, "Civ-01", "SkillHabitatClinics", "CoverageStep", EffectOrigin::Skill, 2,
+	    errorMessage));
+	CHECK_NEAR(
+	    civEngine.ReadStat(civWorld, EffectDomain::Body, "Civ-01", EffectStat::TerraformAtmosphere),
+	    0.75, 1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(civWorld, EffectDomain::Body, "Civ-01", EffectStat::MedicineCoverage), 0.5,
+	    1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(civWorld, EffectDomain::Body, "Civ-01", EffectStat::BodyHabitatCapacity),
+	    0.0, 1e-9);
 	CHECK_EQ(civEngine.BodyStatsOf(civWorld, "Civ-01").size(), 3u);
-	CHECK_NEAR(civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 0.0, 1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 0.0,
+	    1e-9);
 	CHECK_EQ(civEngine.MarketsOf(civWorld, "Civ-01").size(), 1u);
 	CHECK_EQ(civEngine.BodyStatsOf(civWorld, "Station-Civ-01").size(), 0u);
-	CHECK(civEngine.DescribeCivilisation(civWorld, "Civ-01").find("Terraform Atmosphere") != std::string::npos);
+	CHECK(
+	    civEngine.DescribeCivilisation(civWorld, "Civ-01").find("Terraform Atmosphere") !=
+	    std::string::npos);
 }
 
 TEST_CASE(a_skill_bought_twice_costs_once)
@@ -1091,10 +1298,13 @@ TEST_CASE(a_skill_bought_twice_costs_once)
 	// system once, the source on the hull is one, and the numbers of the hull do not
 	// move. A tree walked twice, a save loaded, a UI opened again: none of them buys a
 	// shield bank twice.
-	CHECK(engine.Fit(world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, errorMessage));
 
 	for (unsigned count = 0; count < 4u; ++count)
-		CHECK(engine.Fit(world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, errorMessage));
+		CHECK(engine.Fit(
+		    world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2,
+		    errorMessage));
 
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 240.0, 1e-9);
 	CHECK_EQ(engine.SourcesOn(world, "Trader").size(), 1u);
@@ -1107,14 +1317,18 @@ TEST_CASE(a_skill_bought_twice_costs_once)
 	// hull flies: the hull has one forward screen, keyed by the effect it is, and the
 	// tier it flies is the tier last fitted, which is what a refit dock does when it
 	// fits the bank the hull already has.
-	CHECK(engine.Fit(world, "Trader", "SkillShipShieldsAuxiliary", "ShieldFront", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "SkillShipShieldsAuxiliary", "ShieldFront", EffectOrigin::Skill, 1,
+	    errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 180.0, 1e-9);
 	CHECK_EQ(engine.FittedTier(world, "Trader", "ShieldFront"), 1);
 	CHECK_EQ(engine.SourcesOn(world, "Trader").size(), 1u);
 	CHECK_EQ(engine.FittedEffects(world, "Trader").size(), 1u);
 
 	for (unsigned count = 0; count < 3u; ++count)
-		CHECK(engine.Fit(world, "Trader", "SkillShipShieldReserve", "ShieldFront", EffectOrigin::Skill, 1, errorMessage));
+		CHECK(engine.Fit(
+		    world, "Trader", "SkillShipShieldReserve", "ShieldFront", EffectOrigin::Skill, 1,
+		    errorMessage));
 
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 180.0, 1e-9);
 	CHECK_EQ(engine.SourcesOn(world, "Trader").size(), 1u);
@@ -1123,12 +1337,17 @@ TEST_CASE(a_skill_bought_twice_costs_once)
 	// Two hulls of one civilisation: a system is the hull's, and a second hull pays for
 	// its own, which is what keeps a fleet of three traders from being one trader
 	// flying three screens, and keeps the second hull's screen at its own tier.
-	CHECK(engine.Fit(world, "Trader-2", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader-2", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 1,
+	    errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader-2", EffectStat::ShieldFront), 180.0, 1e-9);
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 180.0, 1e-9);
-	CHECK(engine.Fit(world, "Trader-2", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader-2", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 1,
+	    errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader-2", EffectStat::ShieldFront), 180.0, 1e-9);
-	CHECK(engine.Fit(world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 4, errorMessage));
+	CHECK(engine.Fit(
+	    world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 4, errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 360.0, 1e-9);
 	CHECK_NEAR(engine.GetStat(world, "Trader-2", EffectStat::ShieldFront), 180.0, 1e-9);
 	CHECK_EQ(engine.UnfitSkill(world, "SkillShipShieldsFront", errorMessage), 2u);
@@ -1144,57 +1363,80 @@ TEST_CASE(a_skill_bought_twice_costs_once)
 	CivilisationEffectEngine civEngine;
 	EcsWorld civWorld = OpenWorld("Civ-01", "Abigail Prime");
 
-	CHECK(civEngine.Apply(civWorld, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4,
-	                      errorMessage));
-	CHECK_NEAR(civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -60.0, 1e-9);
-	CHECK(civEngine.Apply(civWorld, "Civ-01", "SkillPiracyPiratePardon", "PiratePardon", EffectOrigin::Skill, 3,
-	                      errorMessage));
-	CHECK_NEAR(civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -60.0 - 36.0,
-	           1e-9);
+	CHECK(civEngine.Apply(
+	    civWorld, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4,
+	    errorMessage));
+	CHECK_NEAR(
+	    civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium),
+	    -60.0, 1e-9);
+	CHECK(civEngine.Apply(
+	    civWorld, "Civ-01", "SkillPiracyPiratePardon", "PiratePardon", EffectOrigin::Skill, 3,
+	    errorMessage));
+	CHECK_NEAR(
+	    civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium),
+	    -60.0 - 36.0, 1e-9);
 
 	for (unsigned count = 0; count < 3u; ++count)
 	{
-		CHECK(civEngine.Apply(civWorld, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4,
-		                      errorMessage));
-		CHECK(civEngine.Apply(civWorld, "Civ-01", "SkillPiracyPiratePardon", "PiratePardon", EffectOrigin::Skill, 3,
-		                      errorMessage));
+		CHECK(civEngine.Apply(
+		    civWorld, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4,
+		    errorMessage));
+		CHECK(civEngine.Apply(
+		    civWorld, "Civ-01", "SkillPiracyPiratePardon", "PiratePardon", EffectOrigin::Skill, 3,
+		    errorMessage));
 	}
 
-	CHECK_NEAR(civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -96.0, 1e-9);
-	CHECK_NEAR(civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 20.0, 1e-9);
-	CHECK_NEAR(civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-02", EffectStat::MarketRiskPremium), 0.0, 1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium),
+	    -96.0, 1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 20.0,
+	    1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-02", EffectStat::MarketRiskPremium),
+	    0.0, 1e-9);
 	CHECK_EQ(civEngine.MarketsOf(civWorld, "Civ-01").size(), 1u);
 	CHECK_EQ(civEngine.MarketsOf(civWorld, "Civ-02").size(), 0u);
 	CHECK_EQ(civEngine.BodyStatsOf(civWorld, "Civ-01").size(), 0u);
 	CHECK_NEAR(
-	    civEngine.ReadStat(civWorld, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
-	                       EffectStat::RouteRiskPremium),
+	    civEngine.ReadStat(
+	        civWorld, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
+	        EffectStat::RouteRiskPremium),
 	    0.0, 1e-9);
 
 	// A lane is one shared store, and three effects of one stat on it, each applied
 	// twice by its own skill, are the safety of the lane: once each, and the sum of the
 	// three.
-	CHECK(civEngine.Apply(civWorld, "Civ-01", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 2, errorMessage));
-	CHECK(civEngine.Apply(civWorld, "Civ-01", "SkillPiracyEscortWing", "EscortWing", EffectOrigin::Skill, 1, errorMessage));
-	CHECK(civEngine.Apply(civWorld, "Civ-01", "SkillSurveyRouteWard", "RouteWard", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(civEngine.Apply(
+	    civWorld, "Civ-01", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 2, errorMessage));
+	CHECK(civEngine.Apply(
+	    civWorld, "Civ-01", "SkillPiracyEscortWing", "EscortWing", EffectOrigin::Skill, 1,
+	    errorMessage));
+	CHECK(civEngine.Apply(
+	    civWorld, "Civ-01", "SkillSurveyRouteWard", "RouteWard", EffectOrigin::Skill, 1, errorMessage));
 
 	for (unsigned count = 0; count < 2u; ++count)
 	{
-		CHECK(civEngine.Apply(civWorld, "Civ-01", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 2, errorMessage));
-		CHECK(civEngine.Apply(civWorld, "Civ-01", "SkillPiracyEscortWing", "EscortWing", EffectOrigin::Skill, 1,
-		                      errorMessage));
-		CHECK(civEngine.Apply(civWorld, "Civ-01", "SkillSurveyRouteWard", "RouteWard", EffectOrigin::Skill, 1,
-		                      errorMessage));
+		CHECK(civEngine.Apply(
+		    civWorld, "Civ-01", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 2, errorMessage));
+		CHECK(civEngine.Apply(
+		    civWorld, "Civ-01", "SkillPiracyEscortWing", "EscortWing", EffectOrigin::Skill, 1,
+		    errorMessage));
+		CHECK(civEngine.Apply(
+		    civWorld, "Civ-01", "SkillSurveyRouteWard", "RouteWard", EffectOrigin::Skill, 1,
+		    errorMessage));
 	}
 
 	CHECK_NEAR(
-	    civEngine.ReadStat(civWorld, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
-	                       EffectStat::RouteRiskPremium),
+	    civEngine.ReadStat(
+	        civWorld, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
+	        EffectStat::RouteRiskPremium),
 	    2 * -12.0 - 9.0 - 7.0, 1e-9);
 	CHECK_EQ(civEngine.UnapplySkill(civWorld, "SkillPiracyConvoy", errorMessage), 1u);
 	CHECK_NEAR(
-	    civEngine.ReadStat(civWorld, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
-	                       EffectStat::RouteRiskPremium),
+	    civEngine.ReadStat(
+	        civWorld, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
+	        EffectStat::RouteRiskPremium),
 	    -9.0 - 7.0, 1e-9);
 	CHECK_EQ(civEngine.UnapplySkill(civWorld, "SkillPiracyConvoy", errorMessage), 0u);
 
@@ -1218,19 +1460,27 @@ TEST_CASE(a_skill_bought_twice_costs_once)
 	unsigned secondApplied = 0u;
 	unsigned secondSkipped = 0u;
 
-	CHECK(civEngine.ApplyProgression(civWorld, progression, "Civ-01", firstApplied, firstSkipped, errorMessage));
-	CHECK(civEngine.ApplyProgression(civWorld, progression, "Civ-01", secondApplied, secondSkipped, errorMessage));
+	CHECK(civEngine.ApplyProgression(
+	    civWorld, progression, "Civ-01", firstApplied, firstSkipped, errorMessage));
+	CHECK(civEngine.ApplyProgression(
+	    civWorld, progression, "Civ-01", secondApplied, secondSkipped, errorMessage));
 	CHECK_EQ(firstApplied, secondApplied);
 	CHECK_EQ(firstSkipped, secondSkipped);
 	CHECK_EQ(firstApplied, 1u);
 	CHECK_EQ(firstSkipped, 2u);
-	CHECK_NEAR(civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 20.0 + 20.0, 1e-9);
-	CHECK_NEAR(civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -96.0 - 5.0, 1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance),
+	    20.0 + 20.0, 1e-9);
+	CHECK_NEAR(
+	    civEngine.ReadStat(civWorld, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium),
+	    -96.0 - 5.0, 1e-9);
 
-	CHECK(engine.ApplyProgression(world, progression, "Trader", firstApplied, firstSkipped, errorMessage));
+	CHECK(engine.ApplyProgression(
+	    world, progression, "Trader", firstApplied, firstSkipped, errorMessage));
 	const double screen = engine.GetStat(world, "Trader", EffectStat::ShieldFront);
 
-	CHECK(engine.ApplyProgression(world, progression, "Trader", secondApplied, secondSkipped, errorMessage));
+	CHECK(engine.ApplyProgression(
+	    world, progression, "Trader", secondApplied, secondSkipped, errorMessage));
 	CHECK_EQ(firstApplied, secondApplied);
 	CHECK_EQ(firstSkipped, secondSkipped);
 	CHECK_EQ(firstApplied, 1u);

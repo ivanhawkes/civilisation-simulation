@@ -24,7 +24,9 @@ std::string AddWorld(
 {
 	std::string errorMessage;
 
-	if (!MarketplaceService::AddPlanet(world, civilisationId, planetName, planetName + " System", civilisationId, "Age02", errorMessage))
+	if (!MarketplaceService::AddPlanet(
+	        world, civilisationId, planetName, planetName + " System", civilisationId, "Age02",
+	        errorMessage))
 	{
 		return errorMessage;
 	}
@@ -103,7 +105,9 @@ double StockOf(const Civilisation &world, const std::string &itemId)
 
 // A node of the tree the marketplace reads: the shipped shape, the set it sits in, the
 // tiers it opens, the resource each tier costs, and the effect its tiers write.
-SkillNode Node(const std::string &skillId, unsigned maxTiers, unsigned costPerTier, const std::string &targetEffectId)
+SkillNode Node(
+    const std::string &skillId, unsigned maxTiers, unsigned costPerTier,
+    const std::string &targetEffectId)
 {
 	SkillNode node;
 
@@ -163,7 +167,9 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one)
 
 	// A station above a planet is a place the ships of that planet put in and pull out
 	// of, and the trade of a station is the trade of those ships.
-	CHECK(MarketplaceService::AddSatellite(world, "Beacon-Station", "Civ-01", "Beacon Station", 420000.0, 4.1, errorMessage));
+	CHECK(
+	    MarketplaceService::AddSatellite(
+	        world, "Beacon-Station", "Civ-01", "Beacon Station", 420000.0, 4.1, errorMessage));
 	CHECK(service.VenueBlockReason(world, "Beacon-Station").empty());
 	CHECK(service.Open(world, "Beacon-Station", errorMessage));
 	CHECK_EQ(service.MarketCount(world), 2u);
@@ -185,7 +191,8 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one)
 
 	// A star has no market: no people, and the gravity well of a star is a well no
 	// market sits at the bottom of.
-	CHECK(!MarketplaceService::AddPlanet(world, "Star-01", "Abigail", "Abigail Prime System", "", "", errorMessage));
+	CHECK(!MarketplaceService::AddPlanet(
+	    world, "Star-01", "Abigail", "Abigail Prime System", "", "", errorMessage));
 	CHECK_CONTAINS(errorMessage, "civilisation");
 
 	{
@@ -193,7 +200,9 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one)
 
 		CHECK(world.Create("Star-01", created, errorMessage));
 		world.Add<BodyInfo>(
-		    "Star-01", BodyInfo{"Star-01", BodyKind::Star, "Abigail", {}, "Abigail Prime System", "Civ-01", "Age05"});
+		    "Star-01",
+		    BodyInfo{
+		        "Star-01", BodyKind::Star, "Abigail", {}, "Abigail Prime System", "Civ-01", "Age05"});
 
 		CHECK(!service.Open(world, "Star-01", errorMessage));
 		CHECK_CONTAINS(errorMessage, "star");
@@ -204,13 +213,22 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one)
 	// A station that orbits a star is the same argument one step further: the station
 	// trade is the trade of the ships that come up a planet's well, and a star has no
 	// market at the bottom of its.
-	CHECK(MarketplaceService::AddPlanet(world, "Civ-02", "Beacon Reach", "Beacon Reach System", "Civ-02", "Age02", errorMessage));
+	CHECK(
+	    MarketplaceService::AddPlanet(
+	        world, "Civ-02", "Beacon Reach", "Beacon Reach System", "Civ-02", "Age02", errorMessage));
 	{
 		EcsWorld::Entity created = EcsWorld::Null;
 
 		CHECK(world.Create("Moon-01", created, errorMessage));
 		world.Add<BodyInfo>(
-		    "Moon-01", BodyInfo{"Moon-01", BodyKind::Satellite, "Moon-01", "Star-01", "Abigail Prime System", "Civ-01", {}});
+		    "Moon-01", BodyInfo{
+		                   "Moon-01",
+		                   BodyKind::Satellite,
+		                   "Moon-01",
+		                   "Star-01",
+		                   "Abigail Prime System",
+		                   "Civ-01",
+		                   {}});
 
 		CHECK(!service.Open(world, "Moon-01", errorMessage));
 		CHECK_CONTAINS(errorMessage, "gravity well");
@@ -223,7 +241,8 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one)
 	// to serve, and the scaffold that builds a station in the orbit of a planet builds no
 	// station at a star, because the body the venue rule reads would be a body no market
 	// can ever open at.
-	CHECK(!MarketplaceService::AddSatellite(world, "Moon-02", "Star-01", "Moon-02", 1.0, 1.0, errorMessage));
+	CHECK(!MarketplaceService::AddSatellite(
+	    world, "Moon-02", "Star-01", "Moon-02", 1.0, 1.0, errorMessage));
 	CHECK_CONTAINS(errorMessage, "star");
 	CHECK_CONTAINS(errorMessage, "Star-01");
 	CHECK(!world.Has("Moon-02"));
@@ -235,7 +254,14 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one)
 
 		CHECK(world.Create("Station-01", created, errorMessage));
 		world.Add<BodyInfo>(
-		    "Station-01", BodyInfo{"Station-01", BodyKind::Satellite, "Station-01", {}, "Abigail Prime System", "Civ-01", {}});
+		    "Station-01", BodyInfo{
+		                      "Station-01",
+		                      BodyKind::Satellite,
+		                      "Station-01",
+		                      {},
+		                      "Abigail Prime System",
+		                      "Civ-01",
+		                      {}});
 
 		CHECK(!service.Open(world, "Station-01", errorMessage));
 		CHECK_CONTAINS(errorMessage, "orbits no planet");
@@ -245,7 +271,8 @@ TEST_CASE(a_marketplace_sits_at_a_planet_and_at_a_station_in_orbit_above_one)
 	// A body that belongs to no one: the fee, the risk and the take of a venue all
 	// belong to a world, and so does the take.
 	CHECK(world.Create("Body-01", created, errorMessage));
-	world.Add<BodyInfo>("Body-01", BodyInfo{"Body-01", BodyKind::Planet, "Body-01", {}, "Nowhere", "", {}});
+	world.Add<BodyInfo>(
+	    "Body-01", BodyInfo{"Body-01", BodyKind::Planet, "Body-01", {}, "Nowhere", "", {}});
 	CHECK(!service.Open(world, "Body-01", errorMessage));
 	CHECK_CONTAINS(errorMessage, "no civilisation");
 
@@ -291,7 +318,9 @@ TEST_CASE(a_resting_order_holds_the_goods_and_the_credits_it_promises)
 
 	// The seller's side: the goods leave the seller's stockpile when the order posts,
 	// and sit in the order until it fills, leaves the book, or expires.
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 40.0, 12.0, 1), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 40.0, 12.0, 1), orderId,
+	    errorMessage));
 
 	CHECK_EQ(orderId, std::string("Order-1"));
 	CHECK_EQ(Units(world, "Civ-01", "iron_ore"), 60.0);
@@ -304,7 +333,9 @@ TEST_CASE(a_resting_order_holds_the_goods_and_the_credits_it_promises)
 
 	// A sell order the seller cannot cover is a promise the venue will not keep: the
 	// message says who, how much is held, how much was posted.
-	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 200.0, 12.0, 1), orderId, errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 200.0, 12.0, 1), orderId,
+	    errorMessage));
 
 	CHECK_CONTAINS(errorMessage, "Civ-01");
 	CHECK_CONTAINS(errorMessage, "iron_ore");
@@ -316,7 +347,9 @@ TEST_CASE(a_resting_order_holds_the_goods_and_the_credits_it_promises)
 	// The buyer's side: the credits leave the treasury at the limit price, which is the
 	// worst the order can pay, and the venue's fee is in the reservation, because the
 	// fee is paid on top of the price of the goods.
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 30.0, 10.0, 1), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 30.0, 10.0, 1), orderId,
+	    errorMessage));
 
 	CHECK_EQ(orderId, std::string("Order-2"));
 	CHECK_EQ(Credits(world, "Civ-02"), 698);
@@ -324,21 +357,31 @@ TEST_CASE(a_resting_order_holds_the_goods_and_the_credits_it_promises)
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 2u);
 	CHECK_EQ(service.OpenOrderCount(world, ""), 2u);
 
-	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 1000.0, 10.0, 1), orderId, errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 1000.0, 10.0, 1), orderId,
+	    errorMessage));
 
 	CHECK_CONTAINS(errorMessage, "Civ-02");
 	CHECK_CONTAINS(errorMessage, "credits");
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 2u);
 
-	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 10.0, 0.0, 1), orderId, errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 10.0, 0.0, 1), orderId,
+	    errorMessage));
 	CHECK_CONTAINS(errorMessage, "limit price");
-	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 10.0, -3.0, 1), orderId, errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 10.0, -3.0, 1), orderId,
+	    errorMessage));
 	CHECK_CONTAINS(errorMessage, "negative");
-	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 0.0, 10.0, 1), orderId, errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 0.0, 10.0, 1), orderId,
+	    errorMessage));
 	CHECK_CONTAINS(errorMessage, "nothing");
-	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-02", "", OrderSide::Buy, 10.0, 10.0, 1), orderId, errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "", OrderSide::Buy, 10.0, 10.0, 1), orderId, errorMessage));
 	CHECK_CONTAINS(errorMessage, "itemId");
-	CHECK(!service.PostOrder(world, Order("", "Civ-02", "iron_ore", OrderSide::Buy, 10.0, 10.0, 1), orderId, errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("", "Civ-02", "iron_ore", OrderSide::Buy, 10.0, 10.0, 1), orderId, errorMessage));
 	CHECK_CONTAINS(errorMessage, "empty");
 	// A trader of the scaffold's own making that carries credits and no cargo: a venue
 	// settles a fill in goods and credits, the goods out of the seller's stockpile and the
@@ -351,17 +394,23 @@ TEST_CASE(a_resting_order_holds_the_goods_and_the_credits_it_promises)
 		world.Add<Treasury>("Civ-03", Treasury{500});
 	}
 
-	CHECK(!service.PostOrder(world, Order("Civ-03", "Civ-02", "iron_ore", OrderSide::Buy, 10.0, 10.0, 1), orderId, errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("Civ-03", "Civ-02", "iron_ore", OrderSide::Buy, 10.0, 10.0, 1), orderId,
+	    errorMessage));
 	CHECK_CONTAINS(errorMessage, "Civ-03");
 	CHECK_CONTAINS(errorMessage, "Open");
-	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Buy, 10.0, 10.0, 1), orderId, errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Buy, 10.0, 10.0, 1), orderId,
+	    errorMessage));
 	CHECK_CONTAINS(errorMessage, "Civ-03");
 	CHECK_CONTAINS(errorMessage, "Stockpile");
 	// The rule is the venue's settlement rule, and it is the same on the sell side: the
 	// trader that carries no cargo has no stockpile to reserve the goods out of, and a
 	// venue that requires stock turns the order away before it books, so the book keeps
 	// the two orders it had.
-	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Sell, 10.0, 10.0, 1), orderId, errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Sell, 10.0, 10.0, 1), orderId,
+	    errorMessage));
 	CHECK_CONTAINS(errorMessage, "Civ-03");
 	CHECK_CONTAINS(errorMessage, "Stockpile");
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 2u);
@@ -400,11 +449,17 @@ TEST_CASE(a_resting_order_holds_the_goods_and_the_credits_it_promises)
 	floors.minPrice = 1.0;
 	service.SetOptions(floors);
 
-	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 4.0, 12.0, 1), orderId, errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 4.0, 12.0, 1), orderId,
+	    errorMessage));
 	CHECK_CONTAINS(errorMessage, "5");
-	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 10.0, 0.5, 1), orderId, errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 10.0, 0.5, 1), orderId,
+	    errorMessage));
 	CHECK_CONTAINS(errorMessage, "price");
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 5.0, 1.0, 1), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 5.0, 1.0, 1), orderId,
+	    errorMessage));
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 1u);
 
 	service.SetOptions(MarketplaceOptions{});
@@ -422,7 +477,9 @@ TEST_CASE(a_post_that_crosses_the_book_trades_at_the_price_that_was_resting)
 	CHECK(AddWorld(world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 100.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 40.0, 12.0, 1), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 40.0, 12.0, 1), orderId,
+	    errorMessage));
 
 	// The buyer who posts at the seller's price has sold: the order that crossed is out
 	// of the book and in the fill log, and the price of the fill is the price the
@@ -431,7 +488,9 @@ TEST_CASE(a_post_that_crosses_the_book_trades_at_the_price_that_was_resting)
 	const std::string buyId = "Order-2";
 	std::vector<TradeFill> fills;
 
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 40.0, 12.0, 2), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 40.0, 12.0, 2), orderId,
+	    errorMessage));
 
 	CHECK_EQ(orderId, buyId);
 	CHECK(service.Book(world, "Civ-01", "iron_ore", OrderSide::Buy).empty());
@@ -498,13 +557,19 @@ TEST_CASE(a_post_that_crosses_the_book_trades_at_the_price_that_was_resting)
 	std::string first;
 	std::string second;
 
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Buy, 40.0, 10.0, 1), first, errorMessage));
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Buy, 40.0, 10.0, 1), second, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Buy, 40.0, 10.0, 1), first,
+	    errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Buy, 40.0, 10.0, 1), second,
+	    errorMessage));
 
 	CHECK_LT(first, second);
 	CHECK_EQ(service.Book(world, "Civ-01", "iron_ore", OrderSide::Buy)[0], first);
 
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 30.0, 10.0, 3), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 30.0, 10.0, 3), orderId,
+	    errorMessage));
 
 	fills = service.Fills(world, "Civ-01");
 
@@ -524,7 +589,9 @@ TEST_CASE(a_post_that_crosses_the_book_trades_at_the_price_that_was_resting)
 	// the ask, not closer, so a cancel is settled money and never a new trade.
 	std::string askId;
 
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 20.0, 11.0, 4), askId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 20.0, 11.0, 4), askId,
+	    errorMessage));
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 3u);
 	CHECK_EQ(service.Book(world, "Civ-01", "iron_ore", OrderSide::Buy).size(), 2u);
 
@@ -596,16 +663,27 @@ TEST_CASE(an_order_that_walks_the_book_pays_the_best_price_first)
 	std::string orderId;
 
 	CHECK(AddWorld(world, "Civ-01", "Abigail Prime", 1000, {}).empty());
-	CHECK(AddWorld(world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 40.0}, {"grain", 10.0}}).empty());
+	CHECK(
+	    AddWorld(world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 40.0}, {"grain", 10.0}}).empty());
 	CHECK(AddWorld(world, "Civ-03", "Cinder Port", 1000, {{"iron_ore", 30.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
 	// The book, resting first: three asks at 10, 11 and 12, and two bids at 9.
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 10.0, 1), orderId, errorMessage));
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 11.0, 2), orderId, errorMessage));
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 12.0, 3), orderId, errorMessage));
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Buy, 8.0, 9.0, 1), orderId, errorMessage));
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Buy, 2.0, 9.0, 2), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 10.0, 1), orderId,
+	    errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 11.0, 2), orderId,
+	    errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 12.0, 3), orderId,
+	    errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Buy, 8.0, 9.0, 1), orderId,
+	    errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Buy, 2.0, 9.0, 2), orderId,
+	    errorMessage));
 
 	CHECK_EQ(service.Book(world, "Civ-01", "iron_ore", OrderSide::Sell).size(), 3u);
 	CHECK_EQ(service.Book(world, "Civ-01", "iron_ore", OrderSide::Buy).size(), 2u);
@@ -747,7 +825,9 @@ TEST_CASE(an_order_that_walks_the_book_pays_the_best_price_first)
 	// be posted at, so the walk of a good the book quotes on one side only has no price to
 	// be posted at, and the answer is nothing traded and a message that names the good and
 	// the price it lacked. The grain bid just posted is the bid the first walk takes.
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "grain", OrderSide::Buy, 10.0, 6.0, 9), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "grain", OrderSide::Buy, 10.0, 6.0, 9), orderId,
+	    errorMessage));
 	CHECK(service.BestBid(world, "Civ-01", "grain", bestBid));
 	CHECK_EQ(bestBid, 6.0);
 
@@ -763,7 +843,11 @@ TEST_CASE(an_order_that_walks_the_book_pays_the_best_price_first)
 	// The bid is gone, and the next grain walk has no bid to walk against and no worst
 	// bid to name as the price it posts at, which is the message that says why nothing
 	// happened, naming the good and the price.
-	CHECK(service.ExecuteOrder(world, Order("Civ-01", "Civ-02", "grain", OrderSide::Sell, 10.0, 0.0, 9), errorMessage).empty());
+	CHECK(
+	    service
+	        .ExecuteOrder(
+	            world, Order("Civ-01", "Civ-02", "grain", OrderSide::Sell, 10.0, 0.0, 9), errorMessage)
+	        .empty());
 	CHECK_CONTAINS(errorMessage, "grain");
 	CHECK_CONTAINS(errorMessage, "price");
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 1u);
@@ -773,10 +857,21 @@ TEST_CASE(an_order_that_walks_the_book_pays_the_best_price_first)
 	// order walks, finds nothing, and leaves the book as it came, with its cargo. A walk
 	// of nothing units is the venue's rule that an order has to be above nothing, and a
 	// walk at a venue that is no venue names the venue in the message.
-	CHECK(service.ExecuteOrder(world, Order("Civ-01", "Civ-01", "grain", OrderSide::Sell, 10.0, 6.0, 10), errorMessage).empty());
-	CHECK(service.ExecuteOrder(world, Order("Civ-01", "Civ-01", "grain", OrderSide::Buy, 0.0, 0.0, 10), errorMessage).empty());
+	CHECK(
+	    service
+	        .ExecuteOrder(
+	            world, Order("Civ-01", "Civ-01", "grain", OrderSide::Sell, 10.0, 6.0, 10), errorMessage)
+	        .empty());
+	CHECK(service
+	          .ExecuteOrder(
+	              world, Order("Civ-01", "Civ-01", "grain", OrderSide::Buy, 0.0, 0.0, 10), errorMessage)
+	          .empty());
 	CHECK_CONTAINS(errorMessage, "nothing");
-	CHECK(service.ExecuteOrder(world, Order("Civ-99", "Civ-01", "grain", OrderSide::Buy, 10.0, 10.0, 10), errorMessage).empty());
+	CHECK(
+	    service
+	        .ExecuteOrder(
+	            world, Order("Civ-99", "Civ-01", "grain", OrderSide::Buy, 10.0, 10.0, 10), errorMessage)
+	        .empty());
 	CHECK_CONTAINS(errorMessage, "Civ-99");
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 1u);
 	CHECK_EQ(Units(world, "Civ-01", "grain"), 10.0);
@@ -790,18 +885,36 @@ TEST_CASE(the_book_is_the_book_the_quoters_read)
 	std::string errorMessage;
 	std::string orderId;
 
-	CHECK(AddWorld(world, "Civ-01", "Abigail Prime", 10000, {{"iron_ore", 100.0}, {"grain", 100.0}}).empty());
-	CHECK(AddWorld(world, "Civ-02", "Beacon Reach", 10000, {{"iron_ore", 100.0}, {"grain", 100.0}, {"water", 10.0}}).empty());
+	CHECK(AddWorld(world, "Civ-01", "Abigail Prime", 10000, {{"iron_ore", 100.0}, {"grain", 100.0}})
+	          .empty());
+	CHECK(AddWorld(
+	          world, "Civ-02", "Beacon Reach", 10000,
+	          {{"iron_ore", 100.0}, {"grain", 100.0}, {"water", 10.0}})
+	          .empty());
 
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 12.0, 1), orderId, errorMessage));
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 12.0, 2), orderId, errorMessage));
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 13.0, 3), orderId, errorMessage));
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Buy, 8.0, 10.0, 4), orderId, errorMessage));
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Buy, 6.0, 9.0, 5), orderId, errorMessage));
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "grain", OrderSide::Buy, 20.0, 4.0, 6), orderId, errorMessage));
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "grain", OrderSide::Sell, 15.0, 5.0, 7), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 12.0, 1), orderId,
+	    errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 12.0, 2), orderId,
+	    errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 13.0, 3), orderId,
+	    errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Buy, 8.0, 10.0, 4), orderId,
+	    errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Buy, 6.0, 9.0, 5), orderId,
+	    errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "grain", OrderSide::Buy, 20.0, 4.0, 6), orderId,
+	    errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "grain", OrderSide::Sell, 15.0, 5.0, 7), orderId,
+	    errorMessage));
 
 	CHECK(service.RefreshQuotes(world, "Civ-01", errorMessage));
 
@@ -853,7 +966,9 @@ TEST_CASE(the_book_is_the_book_the_quoters_read)
 	// One side of a book: the reference price of a good nobody is buying is the ask,
 	// and a good nobody is quoting has a mid of nothing, which is what a screen shows
 	// as "nobody is bidding for it".
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "water", OrderSide::Sell, 5.0, 30.0, 8), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "water", OrderSide::Sell, 5.0, 30.0, 8), orderId,
+	    errorMessage));
 	CHECK(service.RefreshQuotes(world, "Civ-01", errorMessage));
 
 	const MarketQuote *water = service.QuoteFor(world, "Civ-01", "water");
@@ -921,7 +1036,9 @@ TEST_CASE(the_book_is_the_book_the_quoters_read)
 	// The fill of a book that crossed at the quote the table was built from: the last
 	// price and the volume move, and the mid that was the reference goes to the price
 	// the trade left behind.
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 12.0, 9), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 12.0, 9), orderId,
+	    errorMessage));
 
 	const std::vector<TradeFill> fills = service.ExecuteOrder(
 	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Buy, 10.0, 0.0, 10), errorMessage);
@@ -933,10 +1050,6 @@ TEST_CASE(the_book_is_the_book_the_quoters_read)
 	CHECK_EQ(service.QuoteFor(world, "Civ-01", "iron_ore")->lastTick, 10);
 	CHECK_EQ(service.QuoteFor(world, "Civ-01", "water")->volume, 0.0);
 }
-
-
-
-
 
 
 TEST_CASE(the_deck_of_a_venue_holds_just_so_many_units_of_one_good)
@@ -957,8 +1070,12 @@ TEST_CASE(the_deck_of_a_venue_holds_just_so_many_units_of_one_good)
 	// A venue with a deck of 30 units of a good: the units one side of one good's book
 	// may hold, which is the queue the berth can clear in a day.
 	CHECK_EQ(service.DepthUnits(world, "Civ-01"), 30.0);
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 20.0, 12.0, 1), orderId, errorMessage));
-	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 15.0, 12.0, 2), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 20.0, 12.0, 1), orderId,
+	    errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 15.0, 12.0, 2), orderId,
+	    errorMessage));
 
 	CHECK_CONTAINS(errorMessage, "20.00");
 	CHECK_CONTAINS(errorMessage, "30.00");
@@ -971,16 +1088,22 @@ TEST_CASE(the_deck_of_a_venue_holds_just_so_many_units_of_one_good)
 	// 10 left: the ask the deck had room for is in the fill log and out of the book, and
 	// the book that is left has the bid on it and nothing to meet it with. The grain bid of
 	// 30 at 3.0 lands on a book with no grain on it and rests whole.
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 30.0, 12.0, 3), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 30.0, 12.0, 3), orderId,
+	    errorMessage));
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 1u);
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "grain", OrderSide::Buy, 30.0, 3.0, 4), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "grain", OrderSide::Buy, 30.0, 3.0, 4), orderId,
+	    errorMessage));
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 2u);
 
 	// The safe harbours of the law tree: a berth that clears, and a lane that is
 	// worth less, is a venue with a deeper book, because the depth a venue has is the
 	// depth the harbours and the tribunal buy. The reading is the market store the
 	// effect landed on, and the deck of the venue is the deck of the options plus it.
-	CHECK(effects.Apply(world, "Civ-01", "SkillPiracySafeHarbours", "SafeHarbours", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(effects.Apply(
+	    world, "Civ-01", "SkillPiracySafeHarbours", "SafeHarbours", EffectOrigin::Skill, 1,
+	    errorMessage));
 	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketDepth), 25.0);
 
 	CHECK_EQ(service.DepthUnits(world, "Civ-01"), 55.0);
@@ -989,9 +1112,13 @@ TEST_CASE(the_deck_of_a_venue_holds_just_so_many_units_of_one_good)
 	// 10-unit bid resting at 12.0 trades 10 units at the resting price and rests with 5.
 	// The side then holds 5 of the 55 the harbours and the tribunal buy, and a 60-unit ask
 	// would put it at 65, which is over the deck.
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 15.0, 12.0, 5), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 15.0, 12.0, 5), orderId,
+	    errorMessage));
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 2u);
-	CHECK(!service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 60.0, 12.0, 6), orderId, errorMessage));
+	CHECK(!service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 60.0, 12.0, 6), orderId,
+	    errorMessage));
 	CHECK_CONTAINS(errorMessage, "55.00");
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -14);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 26);
@@ -1009,7 +1136,9 @@ TEST_CASE(the_deck_of_a_venue_holds_just_so_many_units_of_one_good)
 	service.SetOptions(MarketplaceOptions{});
 
 	CHECK_EQ(service.DepthUnits(world, "Civ-01"), 0.0);
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 500.0, 12.0, 7), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 500.0, 12.0, 7), orderId,
+	    errorMessage));
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 3u);
 	CHECK_EQ(service.DepthUnits(world, "Civ-99"), 0.0);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-99"), 40);
@@ -1062,10 +1191,16 @@ TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 	// The licence and the warrant: the deck clears, and the berth is cheaper, one
 	// basis point off the fee for every two berths a day the licence clears, and the
 	// commission takes the risk of the place off the fee as well.
-	CHECK(effects.Apply(world, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4, errorMessage));
+	CHECK(effects.Apply(
+	    world, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4,
+	    errorMessage));
 
-	CHECK_NEAR(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 20.0, 1e-9);
-	CHECK_NEAR(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -60.0, 1e-9);
+	CHECK_NEAR(
+	    effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 20.0,
+	    1e-9);
+	CHECK_NEAR(
+	    effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium), -60.0,
+	    1e-9);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-02"), 40);
@@ -1073,10 +1208,14 @@ TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 	// The tribunal and the harbours: the trade that is settled is a trade worth less,
 	// and a venue with a court of record and decks a ship can land cargo on is a venue
 	// with a deeper book, because a ship that knows the contract will be kept puts in.
-	CHECK(effects.Apply(world, "Civ-01", "SkillTradeTribunal", "TradeTribunal", EffectOrigin::Skill, 2, errorMessage));
-	CHECK(effects.Apply(world, "Civ-01", "SkillPiracySafeHarbours", "SafeHarbours", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(effects.Apply(
+	    world, "Civ-01", "SkillTradeTribunal", "TradeTribunal", EffectOrigin::Skill, 2, errorMessage));
+	CHECK(effects.Apply(
+	    world, "Civ-01", "SkillPiracySafeHarbours", "SafeHarbours", EffectOrigin::Skill, 1,
+	    errorMessage));
 
-	CHECK_NEAR(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketDepth), 105.0, 1e-9);
+	CHECK_NEAR(
+	    effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketDepth), 105.0, 1e-9);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60 - 2 * 9 - 14);
 	CHECK_EQ(service.DepthUnits(world, "Civ-01"), 205.0);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
@@ -1086,13 +1225,17 @@ TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 	// basis points of the hull's value, and a venue that writes the policy is a venue
 	// that charges for it. The policy is worth more than the base premium of the
 	// venue, and a premium the policy has driven below nothing is a premium of nothing.
-	CHECK(effects.Apply(world, "Civ-01", "SkillTradeCargoInsurance", "CargoInsurance", EffectOrigin::Skill, 5, errorMessage));
+	CHECK(effects.Apply(
+	    world, "Civ-01", "SkillTradeCargoInsurance", "CargoInsurance", EffectOrigin::Skill, 5,
+	    errorMessage));
 
 	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 0);
 	CHECK_EQ(service.InsuranceBps(world, "Civ-02"), 120);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-02"), 40);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-02"), 0);
-	CHECK_NEAR(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketInsurance), -200.0, 1e-9);
+	CHECK_NEAR(
+	    effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketInsurance), -200.0,
+	    1e-9);
 
 	// The policy is a market effect like any other, and its term lands on the same stat
 	// the licence, the bench and the harbours land on: 10 basis points off the risk of
@@ -1102,8 +1245,7 @@ TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 	// the fee of the venue prices the risk of the place with the policy in it.
 	CHECK_NEAR(
 	    effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketRiskPremium),
-	    -60.0 - 2 * 9.0 - 14.0 - 5 * 10.0,
-	    1e-9);
+	    -60.0 - 2 * 9.0 - 14.0 - 5 * 10.0, 1e-9);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60 - 2 * 9 - 14 - 5 * 10);
 
 	// The fence network of the piracy tree: a market that takes stolen cargo is a
@@ -1112,23 +1254,28 @@ TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 	// basis points on the risk of the place, and the 0.15 a tier of fence share is the
 	// fraction of a cargo a fence takes off book: the share is no basis point of any
 	// charge of the venue, and no charge of the venue moves with it.
-	CHECK(effects.Apply(world, "Civ-01", "SkillPiracyFencingNetwork", "FencingNetwork", EffectOrigin::Skill, 3, errorMessage));
+	CHECK(effects.Apply(
+	    world, "Civ-01", "SkillPiracyFencingNetwork", "FencingNetwork", EffectOrigin::Skill, 3,
+	    errorMessage));
 
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60 - 2 * 9 - 14 - 5 * 10 + 3 * 8);
-	CHECK_NEAR(effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketFenceShare), 3 * 0.15, 1e-9);
+	CHECK_NEAR(
+	    effects.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketFenceShare), 3 * 0.15,
+	    1e-9);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
 
 	// The risk of the venue is the risk of the place and the risk of the lane the
 	// goods came down: the convoy of the trade tree is a lane effect, it lands on the
 	// one lane store the civilisation owns, and the venue at either end of the lane
 	// reads it.
-	CHECK(effects.Apply(world, "Civ-01", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 2, errorMessage));
+	CHECK(effects.Apply(
+	    world, "Civ-01", "SkillPiracyConvoy", "Convoy", EffectOrigin::Skill, 2, errorMessage));
 
 	CHECK_NEAR(
 	    effects.ReadStat(
-	        world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"), EffectStat::RouteRiskPremium),
-	    -2 * 12.0,
-	    1e-9);
+	        world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
+	        EffectStat::RouteRiskPremium),
+	    -2 * 12.0, 1e-9);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60 - 2 * 9 - 14 - 5 * 10 + 3 * 8 - 2 * 12);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-02"), 0);
 
@@ -1137,7 +1284,9 @@ TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 	// nothing from the fill, which is the same ledger read from the other side.
 	std::string warrant;
 
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 10.0, 10.0, 1), warrant, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 10.0, 10.0, 1), warrant,
+	    errorMessage));
 	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 0);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
 
@@ -1145,18 +1294,21 @@ TEST_CASE(a_market_effect_moves_the_charge_of_the_venue_it_lands_on)
 	// shield is the ship engine's, and the yard is a store of the civilisation, so the
 	// fee of the venue is the fee of the venue and the tree of the ship is the tree of
 	// the ship.
-	CHECK(!effects.Apply(world, "Civ-01", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, errorMessage));
+	CHECK(!effects.Apply(
+	    world, "Civ-01", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, errorMessage));
 	CHECK_CONTAINS(errorMessage, "ShipEffectEngine");
-	CHECK(effects.Apply(world, "Civ-01", "SkillShipShipyardsDrydock", "Drydock", EffectOrigin::Skill, 1, errorMessage));
+	CHECK(effects.Apply(
+	    world, "Civ-01", "SkillShipShipyardsDrydock", "Drydock", EffectOrigin::Skill, 1, errorMessage));
 
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60 - 2 * 9 - 14 - 5 * 10 + 3 * 8 - 2 * 12);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
 	CHECK_NEAR(
 	    effects.ReadStat(
-	        world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"), EffectStat::YardDockThroughput),
-	    1.0,
-	    1e-9);
-	CHECK_NEAR(effects.ReadStat(world, EffectDomain::Ship, "Civ-01", EffectStat::ShieldFront), 0.0, 1e-9);
+	        world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"),
+	        EffectStat::YardDockThroughput),
+	    1.0, 1e-9);
+	CHECK_NEAR(
+	    effects.ReadStat(world, EffectDomain::Ship, "Civ-01", EffectStat::ShieldFront), 0.0, 1e-9);
 
 	// A venue that never opened has no charges at all: the venue of a world that did
 	// not open is no venue, and the charges of a body with no venue are the base
@@ -1182,8 +1334,12 @@ TEST_CASE(an_order_that_outlives_its_life_leaves_the_book)
 	CHECK(AddWorld(world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 100.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 20.0, 10.0, 10), orderId, errorMessage));
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 10.0, 30.0, 12), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 20.0, 10.0, 10), orderId,
+	    errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 10.0, 30.0, 12), orderId,
+	    errorMessage));
 
 	const MarketOrderInfo *first = world.Get<MarketOrderInfo>("Order-1");
 
@@ -1237,7 +1393,9 @@ TEST_CASE(an_order_that_outlives_its_life_leaves_the_book)
 
 	std::string immortal;
 
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 5.0, 10.0, 40), immortal, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 5.0, 10.0, 40), immortal,
+	    errorMessage));
 	CHECK_EQ(world.Get<MarketOrderInfo>(immortal)->expiresTick, 40);
 	CHECK_EQ(service.AdvanceTick(world, 1000, errorMessage), 1u);
 
@@ -1256,7 +1414,9 @@ TEST_CASE(an_order_that_outlives_its_life_leaves_the_book)
 	// Every venue of the world, in sorted venue order, and the venues of one
 	// civilisation are the venues the venue's own record of itself is written for.
 	CHECK(service.Open(world, "Civ-02", errorMessage));
-	CHECK(service.PostOrder(world, Order("Civ-02", "Civ-01", "iron_ore", OrderSide::Buy, 10.0, 8.0, 50), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-02", "Civ-01", "iron_ore", OrderSide::Buy, 10.0, 8.0, 50), orderId,
+	    errorMessage));
 	CHECK_EQ(service.AdvanceTick(world, 100, errorMessage), 2u);
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 1u);
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-02"), 0u);
@@ -1272,7 +1432,9 @@ TEST_CASE(an_order_that_outlives_its_life_leaves_the_book)
 	// 60 bps off the risk of the place, and the fee of the venue is 40 base, less the risk
 	// and less a basis point for every two berths the warrant clears, which is below
 	// nothing and so nothing. The venue is open, and the effect lands on it.
-	CHECK(effects.Apply(world, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4, errorMessage));
+	CHECK(effects.Apply(
+	    world, "Civ-01", "SkillLawAdmiraltyWarrant", "AdmiraltyWarrant", EffectOrigin::Skill, 4,
+	    errorMessage));
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 0);
 	CHECK_EQ(service.RiskPremiumBps(world, "Civ-01"), -60);
 
@@ -1285,14 +1447,18 @@ TEST_CASE(an_order_that_outlives_its_life_leaves_the_book)
 	std::string heldSell;
 	std::string heldBuy;
 
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 30.0, 40.0, 60), heldSell, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 30.0, 40.0, 60), heldSell,
+	    errorMessage));
 
 	// The buy posted at 60.0 crosses the ask resting at 40.0: the resting trader is the
 	// maker and sets the price, and the crossing order takes the 10 units it wants of the
 	// 30 the ask offers. The fill is the venue's 40.0, a gross of 400 credits, and the fee
 	// of a venue the warrant has made free is nothing on each side: the buyer pays the
 	// 400 of its fill out of the 600 its order holds, and the seller is paid its gross.
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 10.0, 60.0, 61), heldBuy, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 10.0, 60.0, 61), heldBuy,
+	    errorMessage));
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 2u);
 	CHECK_EQ(Units(world, "Civ-01", "iron_ore"), 70.0);
 
@@ -1369,7 +1535,8 @@ TEST_CASE(the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue
 	// the stores, and the venue reads them. The ship system is the ship engine's, and
 	// the age gate names no effect, and a yard is a store of the civilisation and not
 	// a charge of a venue, so it lands in a yard store and moves no fee.
-	CHECK(service.ApplyProgression(world, progression, effects, "Civ-01", applied, skipped, errorMessage));
+	CHECK(service.ApplyProgression(
+	    world, progression, effects, "Civ-01", applied, skipped, errorMessage));
 
 	CHECK_EQ(applied, 4u);
 	CHECK_EQ(skipped, 2u);
@@ -1381,7 +1548,11 @@ TEST_CASE(the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-01"), 40 - 27 - 10);
 	CHECK_EQ(service.InsuranceBps(world, "Civ-01"), 120 - 40);
 	CHECK_EQ(service.DepthUnits(world, "Civ-01"), 0.0);
-	CHECK_EQ(effects.ReadStat(world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"), EffectStat::YardDockThroughput), 1.0);
+	CHECK_EQ(
+	    effects.ReadStat(
+	        world, EffectDomain::Yard, CivilisationEffectEngine::YardStoreId("Civ-01"),
+	        EffectStat::YardDockThroughput),
+	    1.0);
 	CHECK_EQ(effects.ReadStat(world, EffectDomain::Market, "Civ-02", EffectStat::MarketInsurance), 0.0);
 	CHECK_EQ(service.ListingFeeBps(world, "Civ-02"), 40);
 	CHECK_EQ(service.InsuranceBps(world, "Civ-02"), 120);
@@ -1389,7 +1560,8 @@ TEST_CASE(the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue
 	CHECK(service.QuoteFor(world, "Civ-01", "iron_ore") == nullptr);
 	CHECK_EQ(service.Fills(world, "Civ-01").size(), 0u);
 
-	CHECK(!service.ApplyProgression(world, progression, effects, "Civ-99", applied, skipped, errorMessage));
+	CHECK(!service.ApplyProgression(
+	    world, progression, effects, "Civ-99", applied, skipped, errorMessage));
 	CHECK_CONTAINS(errorMessage, "Civ-99");
 
 	// A fill at the fee the venue charges at the tick the order posted at: a tree that
@@ -1399,7 +1571,9 @@ TEST_CASE(the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue
 	std::string cheap;
 
 	service.SetOptions(MarketplaceOptions{});
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 10.0, 10.0, 1), cheap, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 10.0, 10.0, 1), cheap,
+	    errorMessage));
 
 	const std::vector<TradeFill> fills = service.ExecuteOrder(
 	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 10.0, 0.0, 2), errorMessage);
@@ -1524,11 +1698,15 @@ TEST_CASE(a_fill_trades_in_whole_units_of_the_price_and_the_fee)
 	// buy order the buyer cannot pay - the game of promises, off by default - takes the
 	// money that is there and trades the units it buys, which is the fill that leaves
 	// the ledger exact to the last credit.
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Buy, 10.0, 10.0, 1), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Buy, 10.0, 10.0, 1), orderId,
+	    errorMessage));
 	CHECK_EQ(Credits(world, "Civ-01"), 60);
 	CHECK_EQ(world.Get<MarketOrderInfo>(orderId)->reservedCredits, 0);
 
-	CHECK(service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 10.0, 2), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 10.0, 10.0, 2), orderId,
+	    errorMessage));
 
 	const std::vector<TradeFill> fills = service.Fills(world, "Civ-01");
 
@@ -1574,7 +1752,9 @@ TEST_CASE(a_fill_trades_in_whole_units_of_the_price_and_the_fee)
 
 	std::string promise;
 
-	CHECK(service.PostOrder(world, Order("Civ-03", "Civ-03", "grain", OrderSide::Sell, 100.0, 10.0, 3), promise, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-03", "Civ-03", "grain", OrderSide::Sell, 100.0, 10.0, 3), promise,
+	    errorMessage));
 	CHECK_EQ(world.Get<MarketOrderInfo>(promise)->reservedGoods, 0.0);
 	CHECK_EQ(Units(world, "Civ-03", "grain"), 4.0);
 
@@ -1594,9 +1774,14 @@ TEST_CASE(a_fill_trades_in_whole_units_of_the_price_and_the_fee)
 	// A sell order whose seller has nothing to sell trades nothing: the book has the
 	// price, the pair cannot trade a whole unit, and the venue's log says so in fills
 	// that are not there.
-	CHECK(service.PostOrder(world, Order("Civ-03", "Civ-03", "water", OrderSide::Sell, 10.0, 10.0, 5), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    world, Order("Civ-03", "Civ-03", "water", OrderSide::Sell, 10.0, 10.0, 5), orderId,
+	    errorMessage));
 
-	CHECK(service.ExecuteOrder(world, Order("Civ-03", "Civ-01", "water", OrderSide::Buy, 10.0, 0.0, 6), errorMessage).empty());
+	CHECK(service
+	          .ExecuteOrder(
+	              world, Order("Civ-03", "Civ-01", "water", OrderSide::Buy, 10.0, 0.0, 6), errorMessage)
+	          .empty());
 	CHECK_EQ(service.OpenOrderCount(world, "Civ-03"), 2u);
 	CHECK_EQ(service.Fills(world, "Civ-03").size(), 1u);
 	CHECK_EQ(Units(world, "Civ-03", "water"), 0.0);
@@ -1647,7 +1832,9 @@ TEST_CASE(a_marketplace_loads_the_world_the_generator_built)
 		items.push_back(item);
 	}
 
-	pools.AddPool("latin", {"Abigail Prime", "Beacon Reach", "Cinder Port", "Dark Water", "Ember Reach", "Falcon Port"});
+	pools.AddPool(
+	    "latin",
+	    {"Abigail Prime", "Beacon Reach", "Cinder Port", "Dark Water", "Ember Reach", "Falcon Port"});
 
 	GenerateOptions options;
 
@@ -1733,7 +1920,8 @@ TEST_CASE(a_marketplace_loads_the_world_the_generator_built)
 
 	std::string orderId;
 
-	CHECK(service.PostOrder(store, Order(venueId, seller, good, OrderSide::Sell, 10.0, 25.0, 1), orderId, errorMessage));
+	CHECK(service.PostOrder(
+	    store, Order(venueId, seller, good, OrderSide::Sell, 10.0, 25.0, 1), orderId, errorMessage));
 
 	const std::vector<TradeFill> fills = service.ExecuteOrder(
 	    store, Order(venueId, buyer, good, OrderSide::Buy, 10.0, 0.0, 2), errorMessage);
@@ -1760,7 +1948,9 @@ TEST_CASE(a_marketplace_loads_the_world_the_generator_built)
 	// A loaded world has a station above it: a station is a place the ships of that
 	// world put in and pull out of, and a loaded world is a planet the generator put
 	// in a system.
-	CHECK(MarketplaceService::AddSatellite(store, "Station-" + venueId, venueId, "High Station", 60000.0, 2.5, errorMessage));
+	CHECK(
+	    MarketplaceService::AddSatellite(
+	        store, "Station-" + venueId, venueId, "High Station", 60000.0, 2.5, errorMessage));
 	CHECK(service.Open(store, "Station-" + venueId, errorMessage));
 	CHECK_EQ(service.MarketIds(store, worlds[0].id).size(), 2u);
 
@@ -1774,7 +1964,8 @@ TEST_CASE(a_marketplace_loads_the_world_the_generator_built)
 	Simulation fresh;
 	EcsWorld empty;
 
-	CHECK(!MarketplaceService::LoadSimulation(empty, fresh, MarketplaceOptions{}, venues, errorMessage));
+	CHECK(
+	    !MarketplaceService::LoadSimulation(empty, fresh, MarketplaceOptions{}, venues, errorMessage));
 	CHECK_CONTAINS(errorMessage, "generated");
 	CHECK_EQ(venues, 0u);
 }
@@ -1797,21 +1988,44 @@ TEST_CASE(the_same_posts_in_the_same_order_give_the_same_fills)
 		// The posts in one order, the marketable orders in one order, the ticks in one
 		// order: the fills, the treasuries, the stockpiles and the quote tables of two
 		// worlds built from one list of posts have to be one answer.
-		service.PostOrder(world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 30.0, 12.0, 1), orderId, errorMessage);
-		service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 20.0, 11.0, 1), orderId, errorMessage);
-		service.PostOrder(world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Buy, 25.0, 11.0, 1), orderId, errorMessage);
-		service.PostOrder(world, Order("Civ-01", "Civ-01", "grain", OrderSide::Buy, 40.0, 6.0, 2), orderId, errorMessage);
-		service.PostOrder(world, Order("Civ-01", "Civ-02", "grain", OrderSide::Sell, 30.0, 6.0, 2), orderId, errorMessage);
-		service.PostOrder(world, Order("Civ-01", "Civ-03", "grain", OrderSide::Sell, 25.0, 5.0, 2), orderId, errorMessage);
-		service.ExecuteOrder(world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Buy, 40.0, 0.0, 3), errorMessage);
-		service.ExecuteOrder(world, Order("Civ-01", "Civ-02", "grain", OrderSide::Buy, 20.0, 7.0, 3), errorMessage);
-		service.PostOrder(world, Order("Civ-02", "Civ-01", "iron_ore", OrderSide::Buy, 15.0, 9.0, 4), orderId, errorMessage);
-		service.ExecuteOrder(world, Order("Civ-02", "Civ-02", "iron_ore", OrderSide::Sell, 40.0, 0.0, 5), errorMessage);
+		service.PostOrder(
+		    world, Order("Civ-01", "Civ-01", "iron_ore", OrderSide::Sell, 30.0, 12.0, 1), orderId,
+		    errorMessage);
+		service.PostOrder(
+		    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Sell, 20.0, 11.0, 1), orderId,
+		    errorMessage);
+		service.PostOrder(
+		    world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Buy, 25.0, 11.0, 1), orderId,
+		    errorMessage);
+		service.PostOrder(
+		    world, Order("Civ-01", "Civ-01", "grain", OrderSide::Buy, 40.0, 6.0, 2), orderId,
+		    errorMessage);
+		service.PostOrder(
+		    world, Order("Civ-01", "Civ-02", "grain", OrderSide::Sell, 30.0, 6.0, 2), orderId,
+		    errorMessage);
+		service.PostOrder(
+		    world, Order("Civ-01", "Civ-03", "grain", OrderSide::Sell, 25.0, 5.0, 2), orderId,
+		    errorMessage);
+		service.ExecuteOrder(
+		    world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Buy, 40.0, 0.0, 3), errorMessage);
+		service.ExecuteOrder(
+		    world, Order("Civ-01", "Civ-02", "grain", OrderSide::Buy, 20.0, 7.0, 3), errorMessage);
+		service.PostOrder(
+		    world, Order("Civ-02", "Civ-01", "iron_ore", OrderSide::Buy, 15.0, 9.0, 4), orderId,
+		    errorMessage);
+		service.ExecuteOrder(
+		    world, Order("Civ-02", "Civ-02", "iron_ore", OrderSide::Sell, 40.0, 0.0, 5), errorMessage);
 		service.CancelOrder(world, "Order-6", errorMessage);
-		service.PostOrder(world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 60.0, 13.0, 6), orderId, errorMessage);
-		service.ExecuteOrder(world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Sell, 100.0, 0.0, 7), errorMessage);
-		service.PostOrder(world, Order("Civ-01", "Civ-01", "water", OrderSide::Buy, 12.0, 3.25, 8), orderId, errorMessage);
-		service.ExecuteOrder(world, Order("Civ-01", "Civ-02", "water", OrderSide::Sell, 30.0, 0.0, 9), errorMessage);
+		service.PostOrder(
+		    world, Order("Civ-01", "Civ-02", "iron_ore", OrderSide::Buy, 60.0, 13.0, 6), orderId,
+		    errorMessage);
+		service.ExecuteOrder(
+		    world, Order("Civ-01", "Civ-03", "iron_ore", OrderSide::Sell, 100.0, 0.0, 7), errorMessage);
+		service.PostOrder(
+		    world, Order("Civ-01", "Civ-01", "water", OrderSide::Buy, 12.0, 3.25, 8), orderId,
+		    errorMessage);
+		service.ExecuteOrder(
+		    world, Order("Civ-01", "Civ-02", "water", OrderSide::Sell, 30.0, 0.0, 9), errorMessage);
 		service.RefreshQuotes(world, "Civ-01", errorMessage);
 		service.RefreshQuotes(world, "Civ-02", errorMessage);
 		service.AdvanceTick(world, 34, errorMessage);
@@ -1844,17 +2058,25 @@ TEST_CASE(the_same_posts_in_the_same_order_give_the_same_fills)
 	}
 
 	CHECK_EQ(serviceFirst.Fills(first, "Civ-02").size(), serviceSecond.Fills(second, "Civ-02").size());
-	CHECK_EQ(serviceFirst.MarketAt(first, "Civ-01")->venueTake, serviceSecond.MarketAt(second, "Civ-01")->venueTake);
+	CHECK_EQ(
+	    serviceFirst.MarketAt(first, "Civ-01")->venueTake,
+	    serviceSecond.MarketAt(second, "Civ-01")->venueTake);
 	CHECK_EQ(Credits(first, "Civ-01"), Credits(second, "Civ-01"));
 	CHECK_EQ(Credits(first, "Civ-02"), Credits(second, "Civ-02"));
 	CHECK_EQ(Credits(first, "Civ-03"), Credits(second, "Civ-03"));
 	CHECK_EQ(Units(first, "Civ-03", "iron_ore"), Units(second, "Civ-03", "iron_ore"));
 	CHECK_EQ(Units(first, "Civ-02", "grain"), Units(second, "Civ-02", "grain"));
-	CHECK_EQ(serviceFirst.OpenOrderCount(first, "Civ-01"), serviceSecond.OpenOrderCount(second, "Civ-01"));
-	CHECK_EQ(serviceFirst.Quotes(first, "Civ-01").size(), serviceSecond.Quotes(second, "Civ-01").size());
-	CHECK_EQ(serviceFirst.OrdersOf(first, "Civ-01", "").size(), serviceSecond.OrdersOf(second, "Civ-01", "").size());
-	CHECK_EQ(serviceFirst.DescribeMarket(first, "Civ-01"), serviceSecond.DescribeMarket(second, "Civ-01"));
-	CHECK_EQ(serviceFirst.DescribeMarket(first, "Civ-02"), serviceSecond.DescribeMarket(second, "Civ-02"));
+	CHECK_EQ(
+	    serviceFirst.OpenOrderCount(first, "Civ-01"), serviceSecond.OpenOrderCount(second, "Civ-01"));
+	CHECK_EQ(
+	    serviceFirst.Quotes(first, "Civ-01").size(), serviceSecond.Quotes(second, "Civ-01").size());
+	CHECK_EQ(
+	    serviceFirst.OrdersOf(first, "Civ-01", "").size(),
+	    serviceSecond.OrdersOf(second, "Civ-01", "").size());
+	CHECK_EQ(
+	    serviceFirst.DescribeMarket(first, "Civ-01"), serviceSecond.DescribeMarket(second, "Civ-01"));
+	CHECK_EQ(
+	    serviceFirst.DescribeMarket(first, "Civ-02"), serviceSecond.DescribeMarket(second, "Civ-02"));
 	CHECK_EQ(first.Ids(), second.Ids());
 
 	// The quote table of one venue, read twice in the order the table is kept in, and
@@ -1883,11 +2105,15 @@ TEST_CASE(the_same_posts_in_the_same_order_give_the_same_fills)
 	// The orders that are left in the book, in the order the book keeps them: price
 	// then time, and the id that breaks the last tie, which is the rule that says the
 	// book of a run is the book of every run.
-	const std::vector<std::string> asksOne = serviceFirst.Book(first, "Civ-01", "iron_ore", OrderSide::Sell);
-	const std::vector<std::string> asksTwo = serviceSecond.Book(second, "Civ-01", "iron_ore", OrderSide::Sell);
+	const std::vector<std::string> asksOne =
+	    serviceFirst.Book(first, "Civ-01", "iron_ore", OrderSide::Sell);
+	const std::vector<std::string> asksTwo =
+	    serviceSecond.Book(second, "Civ-01", "iron_ore", OrderSide::Sell);
 
 	CHECK_EQ(asksOne, asksTwo);
-	CHECK_EQ(serviceFirst.Book(first, "Civ-01", "iron_ore", OrderSide::Buy), serviceSecond.Book(second, "Civ-01", "iron_ore", OrderSide::Buy));
+	CHECK_EQ(
+	    serviceFirst.Book(first, "Civ-01", "iron_ore", OrderSide::Buy),
+	    serviceSecond.Book(second, "Civ-01", "iron_ore", OrderSide::Buy));
 
 	for (const std::string &id : asksOne)
 	{
@@ -1895,7 +2121,8 @@ TEST_CASE(the_same_posts_in_the_same_order_give_the_same_fills)
 	}
 
 	CHECK_EQ(serviceFirst.InsuranceBps(first, "Civ-01"), serviceSecond.InsuranceBps(second, "Civ-01"));
-	CHECK_EQ(serviceFirst.ListingFeeBps(first, "Civ-01"), serviceSecond.ListingFeeBps(second, "Civ-01"));
+	CHECK_EQ(
+	    serviceFirst.ListingFeeBps(first, "Civ-01"), serviceSecond.ListingFeeBps(second, "Civ-01"));
 	CHECK_EQ(serviceFirst.DepthUnits(first, "Civ-01"), serviceSecond.DepthUnits(second, "Civ-01"));
 }
 

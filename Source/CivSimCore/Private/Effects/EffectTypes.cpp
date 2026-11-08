@@ -94,10 +94,8 @@ const char *DescribeEffectOrigin(EffectOrigin Origin)
 {
 	switch (Origin)
 	{
-	case EffectOrigin::Skill:
-		return "Skill";
-	case EffectOrigin::Technology:
-		return "Technology";
+		case EffectOrigin::Skill: return "Skill";
+		case EffectOrigin::Technology: return "Technology";
 	}
 
 	return "Unknown";
@@ -108,18 +106,12 @@ const char *DescribeEffectDomain(EffectDomain Domain)
 {
 	switch (Domain)
 	{
-	case EffectDomain::Ship:
-		return "Ship";
-	case EffectDomain::Yard:
-		return "Yard";
-	case EffectDomain::Route:
-		return "Route";
-	case EffectDomain::Survey:
-		return "Survey";
-	case EffectDomain::Market:
-		return "Market";
-	case EffectDomain::Body:
-		return "Body";
+		case EffectDomain::Ship: return "Ship";
+		case EffectDomain::Yard: return "Yard";
+		case EffectDomain::Route: return "Route";
+		case EffectDomain::Survey: return "Survey";
+		case EffectDomain::Market: return "Market";
+		case EffectDomain::Body: return "Body";
 	}
 
 	return "Unknown";
@@ -130,12 +122,9 @@ const char *DescribeEffectOperator(EffectOperator Operator)
 {
 	switch (Operator)
 	{
-	case EffectOperator::Add:
-		return "add";
-	case EffectOperator::Multiply:
-		return "multiply";
-	case EffectOperator::Set:
-		return "set";
+		case EffectOperator::Add: return "add";
+		case EffectOperator::Multiply: return "multiply";
+		case EffectOperator::Set: return "set";
 	}
 
 	return "unknown";
@@ -187,7 +176,8 @@ const std::vector<EffectStat> &AllEffectStats()
 }
 
 
-void ApplyEffectModifiers(std::map<EffectStat, double> &Stats, const EffectModifier &Modifier, int Tiers)
+void ApplyEffectModifiers(
+    std::map<EffectStat, double> &Stats, const EffectModifier &Modifier, int Tiers)
 {
 	if (Tiers <= 0)
 	{
@@ -199,19 +189,19 @@ void ApplyEffectModifiers(std::map<EffectStat, double> &Stats, const EffectModif
 
 	switch (Modifier.op)
 	{
-	case EffectOperator::Add:
-		target = current + Modifier.perTier * static_cast<double>(Tiers);
-		break;
+		case EffectOperator::Add:
+			target = current + Modifier.perTier * static_cast<double>(Tiers);
+			break;
 
-	case EffectOperator::Multiply:
-		target = current * (1.0 + Modifier.perTier * static_cast<double>(Tiers));
-		break;
+		case EffectOperator::Multiply:
+			target = current * (1.0 + Modifier.perTier * static_cast<double>(Tiers));
+			break;
 
-	case EffectOperator::Set:
-		// A cap does not stack: buying a tier of it raises the ceiling, it does not
-		// add the ceiling to itself.
-		target = Modifier.perTier;
-		break;
+		case EffectOperator::Set:
+			// A cap does not stack: buying a tier of it raises the ceiling, it does not
+			// add the ceiling to itself.
+			target = Modifier.perTier;
+			break;
 	}
 }
 

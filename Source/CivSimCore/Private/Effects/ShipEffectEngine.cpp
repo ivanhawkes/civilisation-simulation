@@ -59,36 +59,51 @@ ShipClassSpec ShipEffectEngine::LongHaulTrader()
 	trader.description = "The cargo hauler the trade lanes run on";
 
 	trader.baseStats = {
-	    {EffectStat::ShieldFront, 120.0}, {EffectStat::ShieldSide, 80.0}, {EffectStat::ShieldRear, 60.0},
+	    {EffectStat::ShieldFront, 120.0},
+	    {EffectStat::ShieldSide, 80.0},
+	    {EffectStat::ShieldRear, 60.0},
 
-	    {EffectStat::GunFront, 24.0}, {EffectStat::GunRear, 12.0}, {EffectStat::LaserFront, 12.0},
+	    {EffectStat::GunFront, 24.0},
+	    {EffectStat::GunRear, 12.0},
+	    {EffectStat::LaserFront, 12.0},
 	    {EffectStat::LaserRear, 6.0},
 
-	    {EffectStat::DriveThrust, 420.0}, {EffectStat::ManoeuvreJets, 48.0}, {EffectStat::AttitudeControl, 10.0},
+	    {EffectStat::DriveThrust, 420.0},
+	    {EffectStat::ManoeuvreJets, 48.0},
+	    {EffectStat::AttitudeControl, 10.0},
 
-	    {EffectStat::SensorLongRange, 4000.0}, {EffectStat::SensorFireControl, 800.0},
+	    {EffectStat::SensorLongRange, 4000.0},
+	    {EffectStat::SensorFireControl, 800.0},
 	    {EffectStat::SensorCommercial, 1500.0},
 
-	    {EffectStat::NavigationComputer, 2.0}, {EffectStat::TraderComputer, 1.5},
+	    {EffectStat::NavigationComputer, 2.0},
+	    {EffectStat::TraderComputer, 1.5},
 
-	    {EffectStat::CargoVolume, 900.0}, {EffectStat::FuelCapacity, 60.0}, {EffectStat::SalvageCapacity, 15.0},
+	    {EffectStat::CargoVolume, 900.0},
+	    {EffectStat::FuelCapacity, 60.0},
+	    {EffectStat::SalvageCapacity, 15.0},
 
 	    {EffectStat::LifeSupportDays, 45.0},
 
-	    {EffectStat::StealthRating, 0.25}, {EffectStat::EmissionsControl, 0.2},
+	    {EffectStat::StealthRating, 0.25},
+	    {EffectStat::EmissionsControl, 0.2},
 	    {EffectStat::Countermeasures, 0.15},
 
 	    // The crew stats start at 1.0, because they are multipliers: a crew that is
 	    // trained, that can fight damage and that has spares does more of the same
 	    // work, and a crew that has bought none of it does its base work.
-	    {EffectStat::CrewTraining, 1.0}, {EffectStat::DamageControl, 1.0}, {EffectStat::SparesCapacity, 1.0},
+	    {EffectStat::CrewTraining, 1.0},
+	    {EffectStat::DamageControl, 1.0},
+	    {EffectStat::SparesCapacity, 1.0},
 	};
 
 	trader.fitableEffects = {
-	    "ShieldFront", "ShieldSide", "ShieldRear", "GunFront", "GunRear", "LaserFront", "LaserRear",
-	    "EngineThrust", "ManoeuvringJets", "AttitudeControl", "SensorLongRange", "SensorFireControl",
-	    "SensorCommercial", "ComputerNavigation", "ComputerTrader", "CargoHolds", "FuelBunkers", "SalvageRig",
-	    "LifeSupport", "StealthCoating", "EmissionsControl", "Countermeasures", "CrewTraining", "DamageControl",
+	    "ShieldFront",      "ShieldSide",         "ShieldRear",      "GunFront",
+	    "GunRear",          "LaserFront",         "LaserRear",       "EngineThrust",
+	    "ManoeuvringJets",  "AttitudeControl",    "SensorLongRange", "SensorFireControl",
+	    "SensorCommercial", "ComputerNavigation", "ComputerTrader",  "CargoHolds",
+	    "FuelBunkers",      "SalvageRig",         "LifeSupport",     "StealthCoating",
+	    "EmissionsControl", "Countermeasures",    "CrewTraining",    "DamageControl",
 	    "SparesLockers",
 	};
 
@@ -97,19 +112,21 @@ ShipClassSpec ShipEffectEngine::LongHaulTrader()
 
 
 bool ShipEffectEngine::BuildShip(
-    EcsWorld &World, const std::string &ShipId, const ShipClassSpec &Hull, const std::string &OperatorId,
-    std::string &ErrorMessage)
+    EcsWorld &World, const std::string &ShipId, const ShipClassSpec &Hull,
+    const std::string &OperatorId, std::string &ErrorMessage)
 {
 	if (ShipId.empty())
 	{
-		ErrorMessage = "ShipEffectEngine: the shipId is empty; a hull is named by the id the UI reports";
+		ErrorMessage =
+		    "ShipEffectEngine: the shipId is empty; a hull is named by the id the UI reports";
 
 		return false;
 	}
 
 	if (Hull.hullId.empty() || Hull.baseStats.empty())
 	{
-		ErrorMessage = "ShipEffectEngine: the hull '" + Hull.className + "' has no hullId or no base stats";
+		ErrorMessage =
+		    "ShipEffectEngine: the hull '" + Hull.className + "' has no hullId or no base stats";
 
 		return false;
 	}
@@ -117,7 +134,8 @@ bool ShipEffectEngine::BuildShip(
 	if (OperatorId.empty())
 	{
 		ErrorMessage =
-		    "Ship '" + ShipId + "': the operator is empty; the operator decides whose technology reaches the ship";
+		    "Ship '" + ShipId +
+		    "': the operator is empty; the operator decides whose technology reaches the ship";
 
 		return false;
 	}
@@ -152,7 +170,8 @@ bool ShipEffectEngine::HasShip(const EcsWorld &World, const std::string &ShipId)
 }
 
 
-std::vector<std::string> ShipEffectEngine::ShipsOf(const EcsWorld &World, const std::string &OperatorId) const
+std::vector<std::string> ShipEffectEngine::ShipsOf(
+    const EcsWorld &World, const std::string &OperatorId) const
 {
 	std::vector<std::string> ships;
 
@@ -199,15 +218,16 @@ bool ShipEffectEngine::Fit(
 
 	if (SkillId.empty())
 	{
-		ErrorMessage = "Ship '" + ShipId + "': the skillId is empty; a system on a hull names the node that bought it";
+		ErrorMessage = "Ship '" + ShipId +
+		               "': the skillId is empty; a system on a hull names the node that bought it";
 
 		return false;
 	}
 
 	if (Tier <= 0)
 	{
-		ErrorMessage =
-		    "Ship '" + ShipId + "': '" + EffectId + "' at tier " + std::to_string(Tier) + "; a tier is 1 or above";
+		ErrorMessage = "Ship '" + ShipId + "': '" + EffectId + "' at tier " + std::to_string(Tier) +
+		               "; a tier is 1 or above";
 
 		return false;
 	}
@@ -251,7 +271,8 @@ bool ShipEffectEngine::Fit(
 
 		if (existing == nullptr)
 		{
-			ErrorMessage = "Ship '" + ShipId + "': '" + sourceId + "' exists and carries no EffectSource";
+			ErrorMessage =
+			    "Ship '" + ShipId + "': '" + sourceId + "' exists and carries no EffectSource";
 
 			return false;
 		}
@@ -342,9 +363,8 @@ bool ShipEffectEngine::FitSkill(
 
 	if (definition == nullptr)
 	{
-		ErrorMessage =
-		    "Ship '" + ShipId + "': node '" + Node.skillId + "' asks for effect '" + Node.targetEffectID +
-		    "', which the catalogue does not define";
+		ErrorMessage = "Ship '" + ShipId + "': node '" + Node.skillId + "' asks for effect '" +
+		               Node.targetEffectID + "', which the catalogue does not define";
 
 		return false;
 	}
@@ -368,8 +388,8 @@ bool ShipEffectEngine::FitSkill(
 
 
 bool ShipEffectEngine::ApplyProgression(
-    EcsWorld &World, const ProgressionManager &Progression, const std::string &ShipId, unsigned &Applied,
-    unsigned &Skipped, std::string &ErrorMessage)
+    EcsWorld &World, const ProgressionManager &Progression, const std::string &ShipId,
+    unsigned &Applied, unsigned &Skipped, std::string &ErrorMessage)
 {
 	// The walk writes the caller's two columns: they are set, not added to, and a caller
 	// that arrives with a number in hand is told what this walk did, not what the last
@@ -429,8 +449,8 @@ bool ShipEffectEngine::ApplyProgression(
 
 
 bool ShipEffectEngine::ApplyProgressionToWorld(
-    EcsWorld &World, const ProgressionManager &Progression, const std::string &OperatorId, unsigned &Applied,
-    unsigned &Skipped, std::string &ErrorMessage)
+    EcsWorld &World, const ProgressionManager &Progression, const std::string &OperatorId,
+    unsigned &Applied, unsigned &Skipped, std::string &ErrorMessage)
 {
 	const std::vector<std::string> ships = ShipsOf(World, OperatorId);
 
@@ -464,7 +484,8 @@ bool ShipEffectEngine::ApplyProgressionToWorld(
 }
 
 
-unsigned ShipEffectEngine::UnfitSkill(EcsWorld &World, const std::string &SkillId, std::string &ErrorMessage)
+unsigned ShipEffectEngine::UnfitSkill(
+    EcsWorld &World, const std::string &SkillId, std::string &ErrorMessage)
 {
 	// The sources first, the hulls second, the rebuilds last: a skill that reaches a
 	// fleet touches several hulls, and a hull must not be rebuilt while a source of
@@ -479,7 +500,8 @@ unsigned ShipEffectEngine::UnfitSkill(EcsWorld &World, const std::string &SkillI
 		const EffectSource *source = World.Get<EffectSource>(entity);
 		const EffectOn *on = World.Get<EffectOn>(entity);
 
-		if (source == nullptr || on == nullptr || source->skillId != SkillId || on->domain != EffectDomain::Ship)
+		if (source == nullptr || on == nullptr || source->skillId != SkillId ||
+		    on->domain != EffectDomain::Ship)
 		{
 			continue;
 		}
@@ -602,7 +624,8 @@ bool ShipEffectEngine::Recompute(EcsWorld &World, const std::string &ShipId, std
 		const EffectSource *source = World.Get<EffectSource>(entity);
 		const EffectOn *on = World.Get<EffectOn>(entity);
 
-		if (source == nullptr || on == nullptr || on->targetId != ShipId || on->domain != EffectDomain::Ship)
+		if (source == nullptr || on == nullptr || on->targetId != ShipId ||
+		    on->domain != EffectDomain::Ship)
 		{
 			continue;
 		}
@@ -653,7 +676,8 @@ unsigned ShipEffectEngine::RecomputeAll(EcsWorld &World, std::string &ErrorMessa
 }
 
 
-int ShipEffectEngine::FittedTier(const EcsWorld &World, const std::string &ShipId, const std::string &EffectId) const
+int ShipEffectEngine::FittedTier(
+    const EcsWorld &World, const std::string &ShipId, const std::string &EffectId) const
 {
 	const ShipSystems *systems = World.Get<ShipSystems>(ShipId);
 
@@ -668,7 +692,8 @@ int ShipEffectEngine::FittedTier(const EcsWorld &World, const std::string &ShipI
 }
 
 
-std::vector<std::string> ShipEffectEngine::FittedEffects(const EcsWorld &World, const std::string &ShipId) const
+std::vector<std::string> ShipEffectEngine::FittedEffects(
+    const EcsWorld &World, const std::string &ShipId) const
 {
 	std::vector<std::string> effects;
 
@@ -688,7 +713,8 @@ std::vector<std::string> ShipEffectEngine::FittedEffects(const EcsWorld &World, 
 }
 
 
-std::vector<EffectSource> ShipEffectEngine::SourcesOn(const EcsWorld &World, const std::string &ShipId) const
+std::vector<EffectSource> ShipEffectEngine::SourcesOn(
+    const EcsWorld &World, const std::string &ShipId) const
 {
 	std::map<std::string, EffectSource> ordered;
 
@@ -719,13 +745,15 @@ std::vector<EffectSource> ShipEffectEngine::SourcesOn(const EcsWorld &World, con
 }
 
 
-double ShipEffectEngine::GetStat(const EcsWorld &World, const std::string &ShipId, EffectStat Stat) const
+double ShipEffectEngine::GetStat(
+    const EcsWorld &World, const std::string &ShipId, EffectStat Stat) const
 {
 	return ReadEffectStat(StatsOf(World, ShipId), Stat);
 }
 
 
-std::map<EffectStat, double> ShipEffectEngine::StatsOf(const EcsWorld &World, const std::string &ShipId) const
+std::map<EffectStat, double> ShipEffectEngine::StatsOf(
+    const EcsWorld &World, const std::string &ShipId) const
 {
 	const ShipStats *stats = World.Get<ShipStats>(ShipId);
 
@@ -733,7 +761,8 @@ std::map<EffectStat, double> ShipEffectEngine::StatsOf(const EcsWorld &World, co
 }
 
 
-std::map<EffectStat, double> ShipEffectEngine::BaseStatsOf(const EcsWorld &World, const std::string &ShipId) const
+std::map<EffectStat, double> ShipEffectEngine::BaseStatsOf(
+    const EcsWorld &World, const std::string &ShipId) const
 {
 	const ShipBaseStats *stats = World.Get<ShipBaseStats>(ShipId);
 
@@ -775,8 +804,9 @@ std::string ShipEffectEngine::DescribeShip(const EcsWorld &World, const std::str
 
 		for (const auto &entry : systems->fitted)
 		{
-			out << (first ? "" : "; ") << entry.second.displayName << " " << entry.second.skillId << " tier "
-			    << entry.second.tier << " [" << DescribeEffectOrigin(entry.second.origin) << "]";
+			out << (first ? "" : "; ") << entry.second.displayName << " " << entry.second.skillId
+			    << " tier " << entry.second.tier << " [" << DescribeEffectOrigin(entry.second.origin)
+			    << "]";
 			first = false;
 		}
 	}
@@ -792,7 +822,8 @@ std::string ShipEffectEngine::DescribeShip(const EcsWorld &World, const std::str
 
 
 bool ShipEffectEngine::ResolveShip(
-    const EcsWorld &World, const std::string &ShipId, EcsWorld::Entity &Ship, std::string &ErrorMessage) const
+    const EcsWorld &World, const std::string &ShipId, EcsWorld::Entity &Ship,
+    std::string &ErrorMessage) const
 {
 	Ship = World.Find(ShipId);
 
@@ -828,7 +859,8 @@ bool ShipEffectEngine::ResolveShipEffect(
 
 	if (Definition->domain != EffectDomain::Ship)
 	{
-		ErrorMessage = "'" + EffectId + "' is a " + DescribeEffectDomain(Definition->domain) + " effect, not a ship effect";
+		ErrorMessage = "'" + EffectId + "' is a " + DescribeEffectDomain(Definition->domain) +
+		               " effect, not a ship effect";
 
 		return false;
 	}

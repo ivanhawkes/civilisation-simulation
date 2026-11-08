@@ -91,7 +91,8 @@ inline void Fail(const char *file, int line, const std::string &message)
 // both operands once, and the message carries both. The four order checks are the
 // checks where the order is the point - the order id that counts up, the book that
 // sorts price then time, the budget a fill may not spend past.
-template <typename T, typename U> void Compare(
+template <typename T, typename U>
+void Compare(
     const char *file, int line, const std::string &expression, const T &actual, const U &limit, bool ok)
 {
 	++CheckCount();

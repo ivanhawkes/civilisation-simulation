@@ -546,8 +546,9 @@ left as they are; the checkpoint commits are never amended.
 | Test | Status |
 | --- | --- |
 | ConfigTests, UniverseTests, ProgressionTests, SimulationTests, EcsTests, EffectTests, DataTests | passing, as they have been since `35e3812`: 14 cases 97 checks, 8 and 26, 14 and 104, 12 and 728, 9 and 83, 8 and 933, and the data suite on the merged documents |
-| MarketplaceTests | **green**: 12 cases, `1515 checks, 0 failures`, `exit=0`. No segfault and no failing check: the suite's last two failures, both of them in `the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue`, go in the venue-tree fix, in the working tree |
+| MarketplaceTests | **green**: 12 cases, `1515 checks, 0 failures`, `exit=0`. No segfault and no failing check: the suite's last two failures, both of them in `the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue`, went in the venue-tree fix, committed at `9c6a50d` |
 | `ctest` | **8 of 8 targets**, `100% tests passed` |
+| `clang-format --dry-run -Werror` | **exit 0**: the 2266 drift lines the checkpoints and the recovery carried are formatted in the working tree, awaiting a commit of its own; the build and all 8 suites are green with the reformat in, on the same check counts |
 
 The ECS, effects and marketplace code is committed on the branch at `35e3812`, which
 repaired the broken build of the checkpoints `39a5a15` and `c52da5f`. The recovery lands
@@ -556,7 +557,8 @@ python3 to the environment", python 3.12.15 in the devenv, 51 lines of
 `Tests/MarketplaceTests.cpp`) carries the venue-charge case, `e109de5` the order-life case
 with `Marketplace.h`, `Marketplace.cpp` and `Components.h`, and `3855390` the fill case
 that ends the segfault. The venue-tree case - the last two checks of the suite - is
-repaired in the working tree, uncommitted:
+repaired at `9c6a50d` ("A civilisation's read-out names the effects it flies, and a control
+venue is opened before it is read"), 121 lines inserted and 19 removed across
 `Source/CivSimCore/Private/Effects/CivilisationEffects.cpp`,
 `Source/CivSimCore/Public/Effects/CivilisationEffects.h` and `Tests/MarketplaceTests.cpp`.
 Files of the
@@ -890,11 +892,11 @@ are the reason the tests read the way they do now):
   `EffectTests` 8 and 933 - its describe case reads the richer lines of the read-out and
   passes on the words it already asserts - `MarketplaceTests` 12 and 1515, `DataTests` on
   the merged documents. No suite segfaults and every suite prints 0 failures.
-- [ ] Run the format gate last, after the code and test churn:
+- [x] Ran the format gate last, after the code and test churn:
   `clang-format --dry-run -Werror` over `*.h`, `*.hpp`, `*.cpp` in `Source` and `Tests`.
-  **The gate fails already**, on the code the checkpoints committed and on the recovery on
-  top of them, and the measure is the diff of `clang-format` against the file, tab-indented,
-  ColumnLimit 104:
+  **The gate failed on every commit of the recovery**, on the code the checkpoints committed
+  and on the fixes on top of them, and the measure is the diff of `clang-format` against
+  the file, tab-indented, ColumnLimit 104:
 
   ```sh
   cd /home/ivan/projects/civilisation-simulation
@@ -902,30 +904,56 @@ are the reason the tests read the way they do now):
     | xargs -0 -r -I{} sh -c 'diff "{}" <(clang-format "{}") | grep -c "^[<>]"'
   ```
 
-  The tree is 34 files and **2266 drift lines** in the working tree, 2248 of them at
-  `3855390`: 18 lines are the venue-tree fix, 14 of `CivilisationEffects.cpp` (253 to 267)
+  The tree was 34 files and **2266 drift lines** at `9c6a50d`, 2248 of them at
+  `3855390`: 18 lines were the venue-tree fix, 14 of `CivilisationEffects.cpp` (253 to 267)
   and 4 of its header (38 to 42), and the 38 lines the case adds to
   `Tests/MarketplaceTests.cpp` are format-clean, so the test file is at 493 before and
-  after. The drift is in 16 files, and `clang-format -i` over the tree is the task, in a
-  commit of its own, because a reformat of this size buries the recovery in whitespace:
-  `Tests/EffectTests.cpp` 664, `Tests/MarketplaceTests.cpp` 493, `Market/Marketplace.cpp`
-  395, `Effects/CivilisationEffects.cpp` 267, `Effects/ShipEffectEngine.cpp` 118,
-  `Market/Marketplace.h` 68, `Effects/EffectCatalogue.cpp` 63, `Effects/EffectTypes.cpp` 62,
-  `Effects/CivilisationEffects.h` 42, `Effects/ShipEffectEngine.h` 28,
-  `Ecs/Components.cpp` 27, `Tests/EcsTests.cpp` 19, `Effects/EffectTypes.h` 9,
-  `Ecs/EcsWorld.cpp` 6, `Tests/TestFramework.h` 3 and `Ecs/EcsWorld.h` 2 - every number the
-  same at `3855390` as in the working tree, except the engine's two. Every other file in the
-  tree is clean, the five `.cpp` of `Core` and their headers among them, and
-  `Source/CivSimCore/Public/Ecs/Components.h` with them. After the `-i`, the gate command
-  prints nothing: `clang-format --dry-run -Werror` over the two trees exits 0 on a clean
-  tree, and that is the number the task is judged on. CI runs build,
+  after. The drift is in 16 files: `Tests/EffectTests.cpp` 664, `Tests/MarketplaceTests.cpp`
+  493, `Market/Marketplace.cpp` 395, `Effects/CivilisationEffects.cpp` 267,
+  `Effects/ShipEffectEngine.cpp` 118, `Market/Marketplace.h` 68, `Effects/EffectCatalogue.cpp`
+  63, `Effects/EffectTypes.cpp` 62, `Effects/CivilisationEffects.h` 42,
+  `Effects/ShipEffectEngine.h` 28, `Ecs/Components.cpp` 27, `Tests/EcsTests.cpp` 19,
+  `Effects/EffectTypes.h` 9, `Ecs/EcsWorld.cpp` 6, `Tests/TestFramework.h` 3 and
+  `Ecs/EcsWorld.h` 2 - every number the same at `3855390` as in the working tree, except the
+  engine's two. Every other file in the tree is clean, the five `.cpp` of `Core` and their
+  headers among them, and `Source/CivSimCore/Public/Ecs/Components.h` with them.
+
+  `clang-format -i` over the two trees - LLVM 21.1.8, the version `.clang-format` needs and
+  the version CI pins, because `BinPackParameters: BinPack` is a string a formatter older
+  than 20 reads as an invalid boolean - and **every one of the 34 files is at 0 drift, and
+  the CI gate exits 0**. It touched the 16 files of the drift list, 1456 lines in and 800
+  out, and left the 18 clean files alone. A reformat of this size is exactly the reason it
+  goes in a commit of its own: in a commit with code in it, the recovery drowns in
+  whitespace.
+
+  **The reformat moves no token, and that is measured.** Strip the whitespace from a file
+  and from its `HEAD` version and compare -
+  `diff <(git show HEAD:"$f" | tr -d '[:space:]') <(tr -d '[:space:]' < "$f")` - and 13 of
+  the 16 files are identical. In the three that differ - `CivilisationEffects.cpp`,
+  `Marketplace.cpp`, `EcsWorld.h` - the delta a token walk reports is `Foo(const` splitting
+  into `Foo(` and `const`, and `"a""b"` splitting into `"a" "b"`: the boundaries a
+  whitespace strip glues, not edits. The one real change is `SortIncludes` in
+  `Source/CivSimCore/Public/Ecs/EcsWorld.h`, which moves `#include <cstddef>` above
+  `#include <entt/entity/registry.hpp>`: the header is self-sufficient, the build is green
+  with it moved, and an include order a formatter enforces is an order that cannot drift.
+
+  With the reformat in, the build is clean - no warning, no error - `ctest` is **8 of 8
+  targets, `100% tests passed`**, and the counts are the counts of the checked list above:
+  `ConfigTests` 97, `UniverseTests` 26, `ProgressionTests` 104, `SimulationTests` 728,
+  `EcsTests` 83, `EffectTests` 933, `MarketplaceTests` 1515, `DataTests` on the merged
+  documents, 0 failures in every suite. A format that moves a check count is a format that
+  changed the code, and this one changed nothing. CI runs build,
   `ctest --test-dir build --output-on-failure` and format on `ubuntu-24.04`
-  (`.github/workflows/ci.yml`, `.config/wt.toml`); a merge needs all three.
-- [ ] Then commit. The two checkpoints are deliberately broken, so the recovery lands as
-  new commits on top of them; do not amend them. The venue-tree fix is in the working tree:
-  `Source/CivSimCore/Private/Effects/CivilisationEffects.cpp`,
+  (`.github/workflows/ci.yml`, `.config/wt.toml`); a merge needs all three, and all three
+  pass now.
+- [x] Committed the recovery as new commits on top of the two checkpoints, which are
+  deliberately broken, are left as they are, and are never amended: `f24e0c3` the
+  venue-charge case, `e109de5` the order-life case, `3855390` the fill case that ends the
+  segfault, and `9c6a50d` ("A civilisation's read-out names the effects it flies, and a
+  control venue is opened before it is read") the venue-tree case - 121 lines inserted and
+  19 removed across `Source/CivSimCore/Private/Effects/CivilisationEffects.cpp`,
   `Source/CivSimCore/Public/Effects/CivilisationEffects.h` and `Tests/MarketplaceTests.cpp`,
-  121 lines inserted and 19 removed across the three, and the suite is green with them in.
+  the whole suite green on them. The format above is the commit that follows.
 - [ ] Optional cleanups noted in passing, not required for green:
   - [ ] `python3` arrived at `f24e0c3` (3.12.15 in the devenv), so the absences in the notes
     below are history. `perl -0pi -e 's{...}{...}' file` stays the tool for exact multi-line

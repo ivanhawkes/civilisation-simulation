@@ -73,8 +73,8 @@ class ShipEffectEngine
 	// empty id, a hull with no base stats, an empty operator, and an id the world
 	// already has.
 	bool BuildShip(
-	    EcsWorld &World, const std::string &ShipId, const ShipClassSpec &Hull, const std::string &OperatorId,
-	    std::string &ErrorMessage);
+	    EcsWorld &World, const std::string &ShipId, const ShipClassSpec &Hull,
+	    const std::string &OperatorId, std::string &ErrorMessage);
 
 	bool HasShip(const EcsWorld &World, const std::string &ShipId) const;
 
@@ -96,8 +96,8 @@ class ShipEffectEngine
 	// system spent, because the source is one per effect and the tier that arrives is
 	// the technique's.
 	bool Fit(
-	    EcsWorld &World, const std::string &ShipId, const std::string &SkillId, const std::string &EffectId,
-	    EffectOrigin Origin, int Tier, std::string &ErrorMessage);
+	    EcsWorld &World, const std::string &ShipId, const std::string &SkillId,
+	    const std::string &EffectId, EffectOrigin Origin, int Tier, std::string &ErrorMessage);
 
 	// One node of the tree on one ship: the effect is the node's `targetEffectID` and
 	// the origin is its `nodeType`. A node with no `targetEffectID` - every age gate -
@@ -116,8 +116,8 @@ class ShipEffectEngine
 	// yet. The walk sets the caller's columns, and a fleet walk writes the columns of the
 	// fleet, which is the sum of the walks of its hulls.
 	bool ApplyProgression(
-	    EcsWorld &World, const ProgressionManager &Progression, const std::string &ShipId, unsigned &Applied,
-	    unsigned &Skipped, std::string &ErrorMessage);
+	    EcsWorld &World, const ProgressionManager &Progression, const std::string &ShipId,
+	    unsigned &Applied, unsigned &Skipped, std::string &ErrorMessage);
 
 	// The same onto every ship of one operator - the way a technology reaches a fleet.
 	// An empty OperatorId asks for every ship. The columns of a fleet walk are the
@@ -125,8 +125,8 @@ class ShipEffectEngine
 	// two hulls and a tree of nine nodes has eighteen node visits, and two hulls of one
 	// tree fly the same systems.
 	bool ApplyProgressionToWorld(
-	    EcsWorld &World, const ProgressionManager &Progression, const std::string &OperatorId, unsigned &Applied,
-	    unsigned &Skipped, std::string &ErrorMessage);
+	    EcsWorld &World, const ProgressionManager &Progression, const std::string &OperatorId,
+	    unsigned &Applied, unsigned &Skipped, std::string &ErrorMessage);
 
 	// Takes every source of one skill off every ship, and the systems off the hulls:
 	// the respec road, where the tiers go back to the pool. Returns the sources taken
@@ -140,7 +140,9 @@ class ShipEffectEngine
 	// a skill on every hull the skill reached, and a hull that never carried one of the
 	// systems is not a failure on the road. Taking a system off twice is taking it off
 	// once, and the hull reads the same numbers both times.
-	bool UnfitEffect(EcsWorld &World, const std::string &ShipId, const std::string &EffectId, std::string &ErrorMessage);
+	bool UnfitEffect(
+	    EcsWorld &World, const std::string &ShipId, const std::string &EffectId,
+	    std::string &ErrorMessage);
 
 	// The base plus every source on the ship, applied in sorted effect id order: the
 	// order that says the same tree gives the same numbers on every platform, which is
@@ -177,11 +179,15 @@ class ShipEffectEngine
   private:
 	// The ship's entity, with the message every entry point needs when it is not a
 	// ship.
-	bool ResolveShip(const EcsWorld &World, const std::string &ShipId, EcsWorld::Entity &Ship, std::string &ErrorMessage) const;
+	bool ResolveShip(
+	    const EcsWorld &World, const std::string &ShipId, EcsWorld::Entity &Ship,
+	    std::string &ErrorMessage) const;
 
 	// The effect, with the message every entry point needs when the catalogue has it
 	// not, or has it in another domain.
-	bool ResolveShipEffect(const std::string &EffectId, const EffectDefinition *&Definition, std::string &ErrorMessage) const;
+	bool ResolveShipEffect(
+	    const std::string &EffectId, const EffectDefinition *&Definition,
+	    std::string &ErrorMessage) const;
 
 	EffectCatalogue catalogue;
 };

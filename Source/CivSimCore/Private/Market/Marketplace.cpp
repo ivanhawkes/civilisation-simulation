@@ -99,19 +99,22 @@ std::string MarketplaceService::VenueBlockReason(const EcsWorld &World, const st
 {
 	if (BodyId.empty())
 	{
-		return "the body id is empty: a marketplace sits at a body, and a body is an entity of this world";
+		return "the body id is empty: a marketplace sits at a body, and a body is an entity of this "
+		       "world";
 	}
 
 	if (!World.Has(BodyId))
 	{
-		return "'" + BodyId + "' is not an entity of this world: a venue is a body, and a body is an entity";
+		return "'" + BodyId +
+		       "' is not an entity of this world: a venue is a body, and a body is an entity";
 	}
 
 	const BodyInfo *body = World.Get<BodyInfo>(BodyId);
 
 	if (body == nullptr)
 	{
-		return "'" + BodyId + "' carries no BodyInfo: a market sits at a planet or at a satellite in orbit around one";
+		return "'" + BodyId +
+		       "' carries no BodyInfo: a market sits at a planet or at a satellite in orbit around one";
 	}
 
 	if (World.HasComponent<MarketplaceInfo>(BodyId))
@@ -121,48 +124,50 @@ std::string MarketplaceService::VenueBlockReason(const EcsWorld &World, const st
 
 	if (body->civilisationId.empty())
 	{
-		return "'" + BodyId + "' belongs to no civilisation: the venue's fee, its risk and its take all belong to a world";
+		return "'" + BodyId +
+		       "' belongs to no civilisation: the venue's fee, its risk and its take all belong to a "
+		       "world";
 	}
 
 	switch (body->kind)
 	{
-	case BodyKind::Planet:
-		return std::string{};
+		case BodyKind::Planet: return std::string{};
 
-	case BodyKind::Satellite:
-		if (body->primaryBodyId.empty())
-		{
-			return "the satellite '" + BodyId +
-			       "' orbits no planet: a station hosts a market because it sits above a world's gravity well, and "
-			       "this one sits above nothing";
-		}
-
-		if (body->primaryBodyId == body->bodyId)
-		{
-			return "the satellite '" + BodyId + "' orbits itself";
-		}
-
-		{
-			const BodyInfo *primary = World.Get<BodyInfo>(body->primaryBodyId);
-
-			if (primary == nullptr)
+		case BodyKind::Satellite:
+			if (body->primaryBodyId.empty())
 			{
-				return "the satellite '" + BodyId + "' orbits '" + body->primaryBodyId +
-				       "', which is not a body of this world";
+				return "the satellite '" + BodyId +
+				       "' orbits no planet: a station hosts a market because it sits above a world's "
+				       "gravity well, and "
+				       "this one sits above nothing";
 			}
 
-			if (primary->kind != BodyKind::Planet)
+			if (body->primaryBodyId == body->bodyId)
 			{
-				return "the satellite '" + BodyId + "' orbits " + DescribeBodyKind(primary->kind) + " '" +
-				       body->primaryBodyId + "': the station trade is the trade of the ships that come up a planet's "
-				       "gravity well, and a star has no market at the bottom of its";
+				return "the satellite '" + BodyId + "' orbits itself";
 			}
-		}
 
-		return std::string{};
+			{
+				const BodyInfo *primary = World.Get<BodyInfo>(body->primaryBodyId);
 
-	case BodyKind::Star:
-		return "'" + BodyId + "' is a star: no people, so no market";
+				if (primary == nullptr)
+				{
+					return "the satellite '" + BodyId + "' orbits '" + body->primaryBodyId +
+					       "', which is not a body of this world";
+				}
+
+				if (primary->kind != BodyKind::Planet)
+				{
+					return "the satellite '" + BodyId + "' orbits " + DescribeBodyKind(primary->kind) +
+					       " '" + body->primaryBodyId +
+					       "': the station trade is the trade of the ships that come up a planet's "
+					       "gravity well, and a star has no market at the bottom of its";
+				}
+			}
+
+			return std::string{};
+
+		case BodyKind::Star: return "'" + BodyId + "' is a star: no people, so no market";
 	}
 
 	return "'" + BodyId + "' is no kind of body this core knows";
@@ -260,7 +265,8 @@ bool MarketplaceService::HasMarket(const EcsWorld &World, const std::string &Bod
 }
 
 
-std::vector<std::string> MarketplaceService::MarketIds(const EcsWorld &World, const std::string &CivilisationId) const
+std::vector<std::string> MarketplaceService::MarketIds(
+    const EcsWorld &World, const std::string &CivilisationId) const
 {
 	std::vector<std::string> markets;
 
@@ -290,7 +296,8 @@ std::size_t MarketplaceService::MarketCount(const EcsWorld &World) const
 }
 
 
-const MarketplaceInfo *MarketplaceService::MarketAt(const EcsWorld &World, const std::string &BodyId) const
+const MarketplaceInfo *MarketplaceService::MarketAt(
+    const EcsWorld &World, const std::string &BodyId) const
 {
 	return World.Get<MarketplaceInfo>(BodyId);
 }
@@ -315,8 +322,10 @@ bool MarketplaceService::PostOrder(
 
 	if (Order.limitPrice < 0.0)
 	{
-		ErrorMessage = "Marketplace '" + Order.marketId + "': a limit price is never negative: a trader that would "
-		               "pay negative for a good, or be paid negative to part with one, has a venue's problem and not "
+		ErrorMessage = "Marketplace '" + Order.marketId +
+		               "': a limit price is never negative: a trader that would "
+		               "pay negative for a good, or be paid negative to part with one, has a venue's "
+		               "problem and not "
 		               "this book's";
 
 		return false;
@@ -324,7 +333,8 @@ bool MarketplaceService::PostOrder(
 
 	if (Order.limitPrice == 0.0)
 	{
-		ErrorMessage = "Marketplace '" + Order.marketId + "': a resting order has to state a limit price; the order "
+		ErrorMessage = "Marketplace '" + Order.marketId +
+		               "': a resting order has to state a limit price; the order "
 		               "that walks the book is ExecuteOrder, and it names no price";
 
 		return false;
@@ -351,7 +361,8 @@ bool MarketplaceService::PostOrder(
 }
 
 
-std::vector<TradeFill> MarketplaceService::ExecuteOrder(EcsWorld &World, const OrderRequest &Order, std::string &ErrorMessage)
+std::vector<TradeFill> MarketplaceService::ExecuteOrder(
+    EcsWorld &World, const OrderRequest &Order, std::string &ErrorMessage)
 {
 	std::vector<TradeFill> fills;
 
@@ -396,7 +407,8 @@ std::vector<TradeFill> MarketplaceService::ExecuteOrder(EcsWorld &World, const O
 
 		if (Order.side == OrderSide::Buy)
 		{
-			const std::vector<EcsWorld::Entity> asks = ActiveOrders(World, marketId, Order.itemId, OrderSide::Sell);
+			const std::vector<EcsWorld::Entity> asks =
+			    ActiveOrders(World, marketId, Order.itemId, OrderSide::Sell);
 
 			if (!asks.empty())
 			{
@@ -406,7 +418,8 @@ std::vector<TradeFill> MarketplaceService::ExecuteOrder(EcsWorld &World, const O
 		}
 		else
 		{
-			const std::vector<EcsWorld::Entity> bids = ActiveOrders(World, marketId, Order.itemId, OrderSide::Buy);
+			const std::vector<EcsWorld::Entity> bids =
+			    ActiveOrders(World, marketId, Order.itemId, OrderSide::Buy);
 
 			if (!bids.empty())
 			{
@@ -422,7 +435,8 @@ std::vector<TradeFill> MarketplaceService::ExecuteOrder(EcsWorld &World, const O
 		if (resting.limitPrice <= 0.0)
 		{
 			ErrorMessage = "Marketplace '" + marketId + "': the book of '" + Order.itemId +
-			               "' has no bids for a sell order to walk, and a marketable sell order has to name a price";
+			               "' has no bids for a sell order to walk, and a marketable sell order has to "
+			               "name a price";
 
 			return fills;
 		}
@@ -439,7 +453,8 @@ std::vector<TradeFill> MarketplaceService::ExecuteOrder(EcsWorld &World, const O
 
 	if (!World.IsValid(taker))
 	{
-		ErrorMessage = "Marketplace '" + marketId + "': the order '" + takerId + "' is gone before it walked";
+		ErrorMessage =
+		    "Marketplace '" + marketId + "': the order '" + takerId + "' is gone before it walked";
 
 		return fills;
 	}
@@ -453,7 +468,8 @@ std::vector<TradeFill> MarketplaceService::ExecuteOrder(EcsWorld &World, const O
 			break;
 		}
 
-		const std::vector<EcsWorld::Entity> book = ActiveOrders(World, marketId, Order.itemId, opposite);
+		const std::vector<EcsWorld::Entity> book =
+		    ActiveOrders(World, marketId, Order.itemId, opposite);
 
 		if (book.empty())
 		{
@@ -471,12 +487,14 @@ std::vector<TradeFill> MarketplaceService::ExecuteOrder(EcsWorld &World, const O
 		// The walk's own limit: the asks above a buy limit, and the bids below a sell
 		// limit, are refused, and the book is sorted best first, so the first refusal
 		// is the end of the walk.
-		if (Order.side == OrderSide::Buy && makerInfo->limitPrice > walking->limitPrice + quantityEpsilon)
+		if (Order.side == OrderSide::Buy &&
+		    makerInfo->limitPrice > walking->limitPrice + quantityEpsilon)
 		{
 			break;
 		}
 
-		if (Order.side == OrderSide::Sell && makerInfo->limitPrice < walking->limitPrice - quantityEpsilon)
+		if (Order.side == OrderSide::Sell &&
+		    makerInfo->limitPrice < walking->limitPrice - quantityEpsilon)
 		{
 			break;
 		}
@@ -510,7 +528,8 @@ std::vector<TradeFill> MarketplaceService::ExecuteOrder(EcsWorld &World, const O
 }
 
 
-bool MarketplaceService::CancelOrder(EcsWorld &World, const std::string &OrderId, std::string &ErrorMessage)
+bool MarketplaceService::CancelOrder(
+    EcsWorld &World, const std::string &OrderId, std::string &ErrorMessage)
 {
 	// An empty id names no order at all, which is a caller's error and not an order that
 	// is gone: the venue answers it with a message, because a cancel posted with no id is
@@ -549,7 +568,10 @@ bool MarketplaceService::CancelOrder(EcsWorld &World, const std::string &OrderId
 				if (fill.makerOrderId == OrderId || fill.takerOrderId == OrderId)
 				{
 					ErrorMessage =
-					    "Marketplace: the order '" + OrderId + "' is in the fill log of venue '" + fill.marketId + "': the order traded, its promise is in the log, its reserved goods left the stockpile in the fill, and a withdraw would pay the trader the cargo twice";
+					    "Marketplace: the order '" + OrderId + "' is in the fill log of venue '" +
+					    fill.marketId +
+					    "': the order traded, its promise is in the log, its reserved goods left the "
+					    "stockpile in the fill, and a withdraw would pay the trader the cargo twice";
 
 					return false;
 				}
@@ -591,7 +613,8 @@ bool MarketplaceService::CancelOrder(EcsWorld &World, const std::string &OrderId
 
 
 bool MarketplaceService::CreateOrder(
-    EcsWorld &World, const OrderRequest &Order, const std::string &MarketId, std::string &OrderId, std::string &ErrorMessage)
+    EcsWorld &World, const OrderRequest &Order, const std::string &MarketId, std::string &OrderId,
+    std::string &ErrorMessage)
 {
 	OrderId.clear();
 
@@ -604,7 +627,8 @@ bool MarketplaceService::CreateOrder(
 
 	if (Order.itemId.empty())
 	{
-		ErrorMessage = "Marketplace '" + MarketId + "': the itemId is empty; a book is a pile of orders in one good";
+		ErrorMessage = "Marketplace '" + MarketId +
+		               "': the itemId is empty; a book is a pile of orders in one good";
 
 		return false;
 	}
@@ -618,8 +642,9 @@ bool MarketplaceService::CreateOrder(
 
 	if (Order.limitPrice < 0.0)
 	{
-		ErrorMessage = "Marketplace '" + MarketId + "': a limit price is never negative; a trader that would pay "
-	               "negative for a good is a venue's problem, not this book's";
+		ErrorMessage = "Marketplace '" + MarketId +
+		               "': a limit price is never negative; a trader that would pay "
+		               "negative for a good is a venue's problem, not this book's";
 
 		return false;
 	}
@@ -627,15 +652,16 @@ bool MarketplaceService::CreateOrder(
 	if (options.minQuantity > 0.0 && Order.quantity + quantityEpsilon < options.minQuantity)
 	{
 		ErrorMessage = "Marketplace '" + MarketId + "': the venue takes no order under " +
-	               FormatNumber(options.minQuantity) + " units of a good";
+		               FormatNumber(options.minQuantity) + " units of a good";
 
 		return false;
 	}
 
-	if (options.minPrice > 0.0 && Order.limitPrice > 0.0 && Order.limitPrice + quantityEpsilon < options.minPrice)
+	if (options.minPrice > 0.0 && Order.limitPrice > 0.0 &&
+	    Order.limitPrice + quantityEpsilon < options.minPrice)
 	{
 		ErrorMessage = "Marketplace '" + MarketId + "': the venue takes no order under a price of " +
-	               FormatNumber(options.minPrice);
+		               FormatNumber(options.minPrice);
 
 		return false;
 	}
@@ -673,9 +699,11 @@ bool MarketplaceService::CreateOrder(
 
 		if (sideDepth + Order.quantity > cap + quantityEpsilon)
 		{
-			ErrorMessage = "Marketplace '" + MarketId + "': the " + DescribeOrderSide(Order.side) + " book of '" +
-				           Order.itemId + "' holds " + FormatNumber(sideDepth) + " units and the deck of the venue "
-				           "holds " + FormatNumber(cap) + ", the depth the harbours and the tribunal buy";
+			ErrorMessage = "Marketplace '" + MarketId + "': the " + DescribeOrderSide(Order.side) +
+			               " book of '" + Order.itemId + "' holds " + FormatNumber(sideDepth) +
+			               " units and the deck of the venue "
+			               "holds " +
+			               FormatNumber(cap) + ", the depth the harbours and the tribunal buy";
 
 			return false;
 		}
@@ -719,9 +747,10 @@ bool MarketplaceService::CreateOrder(
 		{
 			if (available + quantityEpsilon < Order.quantity)
 			{
-				ErrorMessage = "Marketplace '" + MarketId + "': the seller '" + Order.civilisationId + "' holds " +
-				               FormatNumber(available) + " units of '" + Order.itemId + "' and posts " +
-				               FormatNumber(Order.quantity) + "; a sell order has to be covered by the stockpile it "
+				ErrorMessage = "Marketplace '" + MarketId + "': the seller '" + Order.civilisationId +
+				               "' holds " + FormatNumber(available) + " units of '" + Order.itemId +
+				               "' and posts " + FormatNumber(Order.quantity) +
+				               "; a sell order has to be covered by the stockpile it "
 				               "sells from";
 
 				return false;
@@ -741,9 +770,10 @@ bool MarketplaceService::CreateOrder(
 
 		if (treasury->credits < need)
 		{
-			ErrorMessage = "Marketplace '" + MarketId + "': the buyer '" + Order.civilisationId + "' has " +
-			               std::to_string(treasury->credits) + " credits and the order needs " +
-			               std::to_string(need) + ", the goods at the limit price and the venue's fee on them";
+			ErrorMessage = "Marketplace '" + MarketId + "': the buyer '" + Order.civilisationId +
+			               "' has " + std::to_string(treasury->credits) +
+			               " credits and the order needs " + std::to_string(need) +
+			               ", the goods at the limit price and the venue's fee on them";
 
 			return false;
 		}
@@ -784,7 +814,8 @@ bool MarketplaceService::CreateOrder(
 
 
 bool MarketplaceService::MatchInto(
-    EcsWorld &World, const std::string &MarketId, std::vector<TradeFill> &FillLog, std::string &ErrorMessage)
+    EcsWorld &World, const std::string &MarketId, std::vector<TradeFill> &FillLog,
+    std::string &ErrorMessage)
 {
 	const MarketplaceInfo *venue = RequireVenue(World, MarketId, ErrorMessage);
 
@@ -804,7 +835,8 @@ bool MarketplaceService::MatchInto(
 		const OrderAt *at = World.Get<OrderAt>(entity);
 		const MarketOrderInfo *info = World.Get<MarketOrderInfo>(entity);
 
-		if (at == nullptr || info == nullptr || at->marketId != MarketId || info->status != OrderStatus::Active)
+		if (at == nullptr || info == nullptr || at->marketId != MarketId ||
+		    info->status != OrderStatus::Active)
 		{
 			continue;
 		}
@@ -819,8 +851,10 @@ bool MarketplaceService::MatchInto(
 		// no longer reaches the best ask.
 		while (true)
 		{
-			const std::vector<EcsWorld::Entity> asks = ActiveOrders(World, MarketId, itemId, OrderSide::Sell);
-			const std::vector<EcsWorld::Entity> bids = ActiveOrders(World, MarketId, itemId, OrderSide::Buy);
+			const std::vector<EcsWorld::Entity> asks =
+			    ActiveOrders(World, MarketId, itemId, OrderSide::Sell);
+			const std::vector<EcsWorld::Entity> bids =
+			    ActiveOrders(World, MarketId, itemId, OrderSide::Buy);
 
 			if (asks.empty() || bids.empty())
 			{
@@ -862,7 +896,8 @@ bool MarketplaceService::MatchInto(
 }
 
 
-std::vector<TradeFill> MarketplaceService::MatchBook(EcsWorld &World, const std::string &MarketId, std::string &ErrorMessage)
+std::vector<TradeFill> MarketplaceService::MatchBook(
+    EcsWorld &World, const std::string &MarketId, std::string &ErrorMessage)
 {
 	std::vector<TradeFill> fills;
 
@@ -925,8 +960,9 @@ std::vector<MarketOrderInfo> MarketplaceService::OrdersOf(
 		orders.push_back(*info);
 	}
 
-	std::sort(orders.begin(), orders.end(), [](const MarketOrderInfo &left, const MarketOrderInfo &right)
-	{ return left.orderId < right.orderId; });
+	std::sort(
+	    orders.begin(), orders.end(), [](const MarketOrderInfo &left, const MarketOrderInfo &right)
+	    { return left.orderId < right.orderId; });
 
 	return orders;
 }
@@ -954,7 +990,8 @@ std::size_t MarketplaceService::OpenOrderCount(const EcsWorld &World, const std:
 }
 
 
-bool MarketplaceService::RefreshQuotes(EcsWorld &World, const std::string &MarketId, std::string &ErrorMessage)
+bool MarketplaceService::RefreshQuotes(
+    EcsWorld &World, const std::string &MarketId, std::string &ErrorMessage)
 {
 	const MarketplaceInfo *venue = RequireVenue(World, MarketId, ErrorMessage);
 
@@ -1013,8 +1050,10 @@ bool MarketplaceService::RefreshQuotes(EcsWorld &World, const std::string &Marke
 		MarketQuote quote;
 		quote.itemId = itemId;
 
-		const std::vector<EcsWorld::Entity> asks = ActiveOrders(World, MarketId, itemId, OrderSide::Sell);
-		const std::vector<EcsWorld::Entity> bids = ActiveOrders(World, MarketId, itemId, OrderSide::Buy);
+		const std::vector<EcsWorld::Entity> asks =
+		    ActiveOrders(World, MarketId, itemId, OrderSide::Sell);
+		const std::vector<EcsWorld::Entity> bids =
+		    ActiveOrders(World, MarketId, itemId, OrderSide::Buy);
 
 		if (!asks.empty())
 		{
@@ -1070,7 +1109,8 @@ bool MarketplaceService::RefreshQuotes(EcsWorld &World, const std::string &Marke
 }
 
 
-std::vector<MarketQuote> MarketplaceService::Quotes(const EcsWorld &World, const std::string &MarketId) const
+std::vector<MarketQuote> MarketplaceService::Quotes(
+    const EcsWorld &World, const std::string &MarketId) const
 {
 	std::vector<MarketQuote> quotes;
 
@@ -1090,7 +1130,8 @@ std::vector<MarketQuote> MarketplaceService::Quotes(const EcsWorld &World, const
 }
 
 
-const MarketQuote *MarketplaceService::QuoteFor(const EcsWorld &World, const std::string &MarketId, const std::string &ItemId) const
+const MarketQuote *MarketplaceService::QuoteFor(
+    const EcsWorld &World, const std::string &MarketId, const std::string &ItemId) const
 {
 	const MarketRecord *record = World.Get<MarketRecord>(MarketId);
 
@@ -1105,7 +1146,8 @@ const MarketQuote *MarketplaceService::QuoteFor(const EcsWorld &World, const std
 }
 
 
-bool MarketplaceService::BestAsk(const EcsWorld &World, const std::string &MarketId, const std::string &ItemId, double &Price) const
+bool MarketplaceService::BestAsk(
+    const EcsWorld &World, const std::string &MarketId, const std::string &ItemId, double &Price) const
 {
 	const MarketQuote *quote = QuoteFor(World, MarketId, ItemId);
 
@@ -1120,7 +1162,8 @@ bool MarketplaceService::BestAsk(const EcsWorld &World, const std::string &Marke
 }
 
 
-bool MarketplaceService::BestBid(const EcsWorld &World, const std::string &MarketId, const std::string &ItemId, double &Price) const
+bool MarketplaceService::BestBid(
+    const EcsWorld &World, const std::string &MarketId, const std::string &ItemId, double &Price) const
 {
 	const MarketQuote *quote = QuoteFor(World, MarketId, ItemId);
 
@@ -1135,7 +1178,8 @@ bool MarketplaceService::BestBid(const EcsWorld &World, const std::string &Marke
 }
 
 
-bool MarketplaceService::MidPrice(const EcsWorld &World, const std::string &MarketId, const std::string &ItemId, double &Price) const
+bool MarketplaceService::MidPrice(
+    const EcsWorld &World, const std::string &MarketId, const std::string &ItemId, double &Price) const
 {
 	const MarketQuote *quote = QuoteFor(World, MarketId, ItemId);
 
@@ -1150,7 +1194,8 @@ bool MarketplaceService::MidPrice(const EcsWorld &World, const std::string &Mark
 }
 
 
-double MarketplaceService::SpreadBps(const EcsWorld &World, const std::string &MarketId, const std::string &ItemId) const
+double MarketplaceService::SpreadBps(
+    const EcsWorld &World, const std::string &MarketId, const std::string &ItemId) const
 {
 	const MarketQuote *quote = QuoteFor(World, MarketId, ItemId);
 
@@ -1158,7 +1203,8 @@ double MarketplaceService::SpreadBps(const EcsWorld &World, const std::string &M
 }
 
 
-double MarketplaceService::ReferencePrice(const EcsWorld &World, const std::string &MarketId, const std::string &ItemId) const
+double MarketplaceService::ReferencePrice(
+    const EcsWorld &World, const std::string &MarketId, const std::string &ItemId) const
 {
 	const MarketQuote *quote = QuoteFor(World, MarketId, ItemId);
 
@@ -1328,7 +1374,8 @@ unsigned MarketplaceService::AdvanceTick(EcsWorld &World, long long Tick, std::s
 			// posted at a venue with no order life, and the sweep passes it: a venue that
 			// sets no order life is a venue that keeps its book, and the order that rests
 			// without a life rests until it trades, is cancelled, or the venue closes.
-			if (info->status == OrderStatus::Active && info->expiresTick > info->placedTick && info->expiresTick <= Tick)
+			if (info->status == OrderStatus::Active && info->expiresTick > info->placedTick &&
+			    info->expiresTick <= Tick)
 			{
 				const std::string name = World.NameOf(entity);
 
@@ -1362,7 +1409,8 @@ unsigned MarketplaceService::AdvanceTick(EcsWorld &World, long long Tick, std::s
 }
 
 
-std::vector<TradeFill> MarketplaceService::Fills(const EcsWorld &World, const std::string &MarketId) const
+std::vector<TradeFill> MarketplaceService::Fills(
+    const EcsWorld &World, const std::string &MarketId) const
 {
 	std::vector<TradeFill> fills;
 
@@ -1390,8 +1438,9 @@ std::string MarketplaceService::DescribeMarket(const EcsWorld &World, const std:
 
 	std::ostringstream out;
 
-	out << "Market " << venue->marketId << " at " << (venue->venueName.empty() ? venue->marketId : venue->venueName)
-	    << " (" << DescribeBodyKind(body != nullptr ? body->kind : BodyKind::Planet) << " of "
+	out << "Market " << venue->marketId << " at "
+	    << (venue->venueName.empty() ? venue->marketId : venue->venueName) << " ("
+	    << DescribeBodyKind(body != nullptr ? body->kind : BodyKind::Planet) << " of "
 	    << venue->civilisationId << ")";
 
 	if (body != nullptr && body->kind == BodyKind::Satellite)
@@ -1401,8 +1450,8 @@ std::string MarketplaceService::DescribeMarket(const EcsWorld &World, const std:
 
 	out << "\n  Charges " << ListingFeeBps(World, venue->marketId) << " bps a side (base "
 	    << venue->baseListingFeeBps << ", risk " << RiskPremiumBps(World, venue->marketId)
-	    << "), insurance " << InsuranceBps(World, venue->marketId) << " bps, orders rest " << venue->orderLifeTicks
-	    << " ticks, take " << venue->venueTake << " credits\n";
+	    << "), insurance " << InsuranceBps(World, venue->marketId) << " bps, orders rest "
+	    << venue->orderLifeTicks << " ticks, take " << venue->venueTake << " credits\n";
 
 	out << "  " << OpenOrderCount(World, venue->marketId) << " open orders, ";
 
@@ -1421,15 +1470,17 @@ std::string MarketplaceService::DescribeMarket(const EcsWorld &World, const std:
 	// dozens of goods and a screen shows a handful.
 	std::vector<MarketQuote> ranked = quotes;
 
-	std::sort(ranked.begin(), ranked.end(), [](const MarketQuote &left, const MarketQuote &right)
-	{
-		if (left.volume != right.volume)
-		{
-			return left.volume > right.volume;
-		}
+	std::sort(
+	    ranked.begin(), ranked.end(),
+	    [](const MarketQuote &left, const MarketQuote &right)
+	    {
+		    if (left.volume != right.volume)
+		    {
+			    return left.volume > right.volume;
+		    }
 
-		return left.itemId < right.itemId;
-	});
+		    return left.itemId < right.itemId;
+	    });
 
 	for (std::size_t index = 0; index < ranked.size() && index < 5; ++index)
 	{
@@ -1452,7 +1503,8 @@ std::string MarketplaceService::DescribeOrder(const EcsWorld &World, const std::
 
 	if (info == nullptr)
 	{
-		return "Order '" + OrderId + "': no order in the world by that name - it filled, expired, was cancelled, or "
+		return "Order '" + OrderId +
+		       "': no order in the world by that name - it filled, expired, was cancelled, or "
 		       "was never posted";
 	}
 
@@ -1461,28 +1513,30 @@ std::string MarketplaceService::DescribeOrder(const EcsWorld &World, const std::
 
 	std::ostringstream out;
 
-	out << "Order " << info->orderId << " " << DescribeOrderSide(info->side) << " " << FormatNumber(info->quantity)
-	    << " " << info->itemId << " @ " << FormatNumber(info->limitPrice) << " at "
+	out << "Order " << info->orderId << " " << DescribeOrderSide(info->side) << " "
+	    << FormatNumber(info->quantity) << " " << info->itemId << " @ "
+	    << FormatNumber(info->limitPrice) << " at "
 	    << (at != nullptr ? at->marketId : std::string("<no venue>")) << " for "
 	    << (owner != nullptr ? owner->civilisationId : std::string("<no trader>")) << ", "
-	    << DescribeOrderStatus(info->status) << ", " << FormatNumber(info->filled) << " filled, posted at tick "
-	    << info->placedTick << ", leaves at tick " << info->expiresTick;
+	    << DescribeOrderStatus(info->status) << ", " << FormatNumber(info->filled)
+	    << " filled, posted at tick " << info->placedTick << ", leaves at tick " << info->expiresTick;
 
 	return out.str();
 }
 
 
 bool MarketplaceService::LoadSimulation(
-    EcsWorld &World, const Simulation &Sim, const MarketplaceOptions &Options, std::size_t &VenuesOpened,
-    std::string &ErrorMessage)
+    EcsWorld &World, const Simulation &Sim, const MarketplaceOptions &Options,
+    std::size_t &VenuesOpened, std::string &ErrorMessage)
 {
 	VenuesOpened = 0;
 
 	if (World.EntityCount() != 0)
 	{
-		ErrorMessage = "MarketplaceService: the world holds " + std::to_string(World.EntityCount()) +
-		               " entities: the generated universe loads into a fresh world, because the ids of a second "
-		               "load collide with the first";
+		ErrorMessage =
+		    "MarketplaceService: the world holds " + std::to_string(World.EntityCount()) +
+		    " entities: the generated universe loads into a fresh world, because the ids of a second "
+		    "load collide with the first";
 
 		return false;
 	}
@@ -1498,7 +1552,8 @@ bool MarketplaceService::LoadSimulation(
 
 	for (const Civilisation &world : Sim.GetCivilisations())
 	{
-		if (!AddPlanet(World, world.id, world.name, world.systemName, world.id, world.ageId, ErrorMessage))
+		if (!AddPlanet(
+		        World, world.id, world.name, world.systemName, world.id, world.ageId, ErrorMessage))
 		{
 			ErrorMessage = "MarketplaceService: " + ErrorMessage;
 
@@ -1529,8 +1584,9 @@ bool MarketplaceService::LoadSimulation(
 
 
 bool MarketplaceService::AddPlanet(
-    EcsWorld &World, const std::string &BodyId, const std::string &DisplayName, const std::string &SystemName,
-    const std::string &CivilisationId, const std::string &AgeId, std::string &ErrorMessage)
+    EcsWorld &World, const std::string &BodyId, const std::string &DisplayName,
+    const std::string &SystemName, const std::string &CivilisationId, const std::string &AgeId,
+    std::string &ErrorMessage)
 {
 	if (BodyId.empty())
 	{
@@ -1541,8 +1597,9 @@ bool MarketplaceService::AddPlanet(
 
 	if (CivilisationId.empty())
 	{
-		ErrorMessage = "MarketplaceService: the planet '" + BodyId +
-		               "' belongs to no civilisation, and a venue's fee, risk and take belong to a world";
+		ErrorMessage =
+		    "MarketplaceService: the planet '" + BodyId +
+		    "' belongs to no civilisation, and a venue's fee, risk and take belong to a world";
 
 		return false;
 	}
@@ -1576,8 +1633,8 @@ bool MarketplaceService::AddPlanet(
 
 
 bool MarketplaceService::AddSatellite(
-    EcsWorld &World, const std::string &SatelliteId, const std::string &PlanetBodyId, const std::string &DisplayName,
-    double RadiusKm, double PeriodDays, std::string &ErrorMessage)
+    EcsWorld &World, const std::string &SatelliteId, const std::string &PlanetBodyId,
+    const std::string &DisplayName, double RadiusKm, double PeriodDays, std::string &ErrorMessage)
 {
 	if (SatelliteId.empty())
 	{
@@ -1590,8 +1647,8 @@ bool MarketplaceService::AddSatellite(
 
 	if (planet == nullptr)
 	{
-		ErrorMessage = "MarketplaceService: the satellite '" + SatelliteId + "' orbits '" + PlanetBodyId +
-		               "', which is not a body of this world";
+		ErrorMessage = "MarketplaceService: the satellite '" + SatelliteId + "' orbits '" +
+		               PlanetBodyId + "', which is not a body of this world";
 
 		return false;
 	}
@@ -1600,7 +1657,8 @@ bool MarketplaceService::AddSatellite(
 	{
 		ErrorMessage = "MarketplaceService: the satellite '" + SatelliteId + "' orbits " +
 		               DescribeBodyKind(planet->kind) + " '" + PlanetBodyId +
-		               "'; the station trade is the trade of the ships that come up a planet's gravity well, and a "
+		               "'; the station trade is the trade of the ships that come up a planet's gravity "
+		               "well, and a "
 		               "star has no market at the bottom of its";
 
 		return false;
@@ -1670,11 +1728,13 @@ double MarketplaceService::AffordableQuantity(double Price, int FeeBps, long lon
 }
 
 
-const MarketplaceInfo *MarketplaceService::RequireVenue(const EcsWorld &World, const std::string &MarketId, std::string &ErrorMessage) const
+const MarketplaceInfo *MarketplaceService::RequireVenue(
+    const EcsWorld &World, const std::string &MarketId, std::string &ErrorMessage) const
 {
 	if (MarketId.empty())
 	{
-		ErrorMessage = "Marketplace: the marketId is empty; a market is named by the body id of its venue";
+		ErrorMessage =
+		    "Marketplace: the marketId is empty; a market is named by the body id of its venue";
 
 		return nullptr;
 	}
@@ -1693,7 +1753,8 @@ const MarketplaceInfo *MarketplaceService::RequireVenue(const EcsWorld &World, c
 
 
 bool MarketplaceService::RequireTrader(
-    const EcsWorld &World, const std::string &CivilisationId, EcsWorld::Entity &Trader, std::string &ErrorMessage) const
+    const EcsWorld &World, const std::string &CivilisationId, EcsWorld::Entity &Trader,
+    std::string &ErrorMessage) const
 {
 	Trader = World.Find(CivilisationId);
 
@@ -1707,8 +1768,9 @@ bool MarketplaceService::RequireTrader(
 
 	if (World.Get<Treasury>(Trader) == nullptr || World.Get<Stockpile>(Trader) == nullptr)
 	{
-		ErrorMessage = "Marketplace: '" + CivilisationId +
-		               "' carries no Treasury and Stockpile, and a trader without both cannot settle a fill";
+		ErrorMessage =
+		    "Marketplace: '" + CivilisationId +
+		    "' carries no Treasury and Stockpile, and a trader without both cannot settle a fill";
 
 		return false;
 	}
@@ -1717,7 +1779,8 @@ bool MarketplaceService::RequireTrader(
 }
 
 
-const MarketOrderInfo *MarketplaceService::RequireOrder(const EcsWorld &World, const std::string &OrderId, std::string &ErrorMessage) const
+const MarketOrderInfo *MarketplaceService::RequireOrder(
+    const EcsWorld &World, const std::string &OrderId, std::string &ErrorMessage) const
 {
 	if (OrderId.empty())
 	{
@@ -1730,8 +1793,9 @@ const MarketOrderInfo *MarketplaceService::RequireOrder(const EcsWorld &World, c
 
 	if (info == nullptr)
 	{
-		ErrorMessage = "Marketplace: '" + OrderId +
-		               "' is no order of this world: it filled, expired, was cancelled, or was never posted";
+		ErrorMessage =
+		    "Marketplace: '" + OrderId +
+		    "' is no order of this world: it filled, expired, was cancelled, or was never posted";
 
 		return nullptr;
 	}
@@ -1786,39 +1850,42 @@ std::vector<EcsWorld::Entity> MarketplaceService::ActiveOrders(
 	// filled first" says it in every run.
 	const EcsWorld *world = &World;
 
-	std::sort(orders.begin(), orders.end(), [world, Side](EcsWorld::Entity left, EcsWorld::Entity right)
-	{
-		const MarketOrderInfo *a = world->Get<MarketOrderInfo>(left);
-		const MarketOrderInfo *b = world->Get<MarketOrderInfo>(right);
+	std::sort(
+	    orders.begin(), orders.end(),
+	    [world, Side](EcsWorld::Entity left, EcsWorld::Entity right)
+	    {
+		    const MarketOrderInfo *a = world->Get<MarketOrderInfo>(left);
+		    const MarketOrderInfo *b = world->Get<MarketOrderInfo>(right);
 
-		if (a == nullptr || b == nullptr)
-		{
-			return false;
-		}
+		    if (a == nullptr || b == nullptr)
+		    {
+			    return false;
+		    }
 
-		// A sell book runs cheapest first and a buy book richest first, which is one
-		// ascending sort with the buy side's price turned over.
-		const double keyA = Side == OrderSide::Sell ? a->limitPrice : -a->limitPrice;
-		const double keyB = Side == OrderSide::Sell ? b->limitPrice : -b->limitPrice;
+		    // A sell book runs cheapest first and a buy book richest first, which is one
+		    // ascending sort with the buy side's price turned over.
+		    const double keyA = Side == OrderSide::Sell ? a->limitPrice : -a->limitPrice;
+		    const double keyB = Side == OrderSide::Sell ? b->limitPrice : -b->limitPrice;
 
-		if (keyA != keyB)
-		{
-			return keyA < keyB;
-		}
+		    if (keyA != keyB)
+		    {
+			    return keyA < keyB;
+		    }
 
-		if (a->placedTick != b->placedTick)
-		{
-			return a->placedTick < b->placedTick;
-		}
+		    if (a->placedTick != b->placedTick)
+		    {
+			    return a->placedTick < b->placedTick;
+		    }
 
-		return a->orderId < b->orderId;
-	});
+		    return a->orderId < b->orderId;
+	    });
 
 	return orders;
 }
 
 
-bool MarketplaceService::RetireOrder(EcsWorld &World, const std::string &OrderId, std::string &ErrorMessage)
+bool MarketplaceService::RetireOrder(
+    EcsWorld &World, const std::string &OrderId, std::string &ErrorMessage)
 {
 	const MarketOrderInfo *info = World.Get<MarketOrderInfo>(OrderId);
 
@@ -1886,7 +1953,8 @@ bool MarketplaceService::FillPair(
 
 	if (maker->itemId != taker->itemId)
 	{
-		ErrorMessage = "Marketplace '" + MarketId + "': '" + maker->itemId + "' cannot trade against '" + taker->itemId + "'";
+		ErrorMessage = "Marketplace '" + MarketId + "': '" + maker->itemId +
+		               "' cannot trade against '" + taker->itemId + "'";
 
 		return false;
 	}
@@ -1925,7 +1993,8 @@ bool MarketplaceService::FillPair(
 
 	if (price <= 0.0)
 	{
-		ErrorMessage = "Marketplace '" + MarketId + "': the maker '" + maker->orderId + "' names no price";
+		ErrorMessage =
+		    "Marketplace '" + MarketId + "': the maker '" + maker->orderId + "' names no price";
 
 		return false;
 	}
@@ -1998,15 +2067,17 @@ bool MarketplaceService::FillPair(
 	// both, because the berth and the deck are the venue's. The buyer's money comes out
 	// of the pocket its order holds, and the seller's proceeds go to its treasury.
 	if (!SettleParty(
-	    World, buyerId, itemId, quantity, gross, buyerId == makerOwner->civilisationId ? makerFee : takerFee,
-	    buyOrder->reservedCredits, true, ErrorMessage))
+	        World, buyerId, itemId, quantity, gross,
+	        buyerId == makerOwner->civilisationId ? makerFee : takerFee, buyOrder->reservedCredits,
+	        true, ErrorMessage))
 	{
 		return false;
 	}
 
 	if (!SettleParty(
-	    World, sellerId, itemId, quantity, gross, sellerId == makerOwner->civilisationId ? makerFee : takerFee,
-	    sellOrder->reservedCredits, false, ErrorMessage))
+	        World, sellerId, itemId, quantity, gross,
+	        sellerId == makerOwner->civilisationId ? makerFee : takerFee, sellOrder->reservedCredits,
+	        false, ErrorMessage))
 	{
 		return false;
 	}
@@ -2067,7 +2138,9 @@ bool MarketplaceService::FillPair(
 
 	if (record.fills.size() > marketFillLogSize)
 	{
-		record.fills.erase(record.fills.begin(), record.fills.begin() + static_cast<std::ptrdiff_t>(record.fills.size() - marketFillLogSize));
+		record.fills.erase(
+		    record.fills.begin(), record.fills.begin() + static_cast<std::ptrdiff_t>(
+		                                                     record.fills.size() - marketFillLogSize));
 	}
 
 	World.Put<MarketRecord>(MarketId, std::move(record));
@@ -2104,14 +2177,15 @@ bool MarketplaceService::FillPair(
 
 
 bool MarketplaceService::SettleParty(
-    EcsWorld &World, const std::string &CivilisationId, const std::string &ItemId, double Quantity, long long Gross,
-    long long Fee, long long &OrderCredits, bool Buys, std::string &ErrorMessage)
+    EcsWorld &World, const std::string &CivilisationId, const std::string &ItemId, double Quantity,
+    long long Gross, long long Fee, long long &OrderCredits, bool Buys, std::string &ErrorMessage)
 {
 	const EcsWorld::Entity trader = World.Find(CivilisationId);
 
 	if (!World.IsValid(trader))
 	{
-		ErrorMessage = "Marketplace: '" + CivilisationId + "' is not an entity of this world at the fill";
+		ErrorMessage =
+		    "Marketplace: '" + CivilisationId + "' is not an entity of this world at the fill";
 
 		return false;
 	}
@@ -2121,7 +2195,8 @@ bool MarketplaceService::SettleParty(
 
 	if (treasury == nullptr || stock == nullptr)
 	{
-		ErrorMessage = "Marketplace: '" + CivilisationId + "' carries no Treasury and Stockpile, and a fill settles in credits and goods";
+		ErrorMessage = "Marketplace: '" + CivilisationId +
+		               "' carries no Treasury and Stockpile, and a fill settles in credits and goods";
 
 		return false;
 	}

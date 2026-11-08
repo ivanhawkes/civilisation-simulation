@@ -43,9 +43,9 @@ const char *DescribeEffectOrigin(EffectOrigin Origin);
 // Which store the effect lands on.
 enum class EffectDomain
 {
-	Ship, // a ship entity in the ECS world
-	Yard, // a yard: the docks that build, fit and refit hulls
-	Route, // a lane between worlds, and the risk of sailing it
+	Ship,   // a ship entity in the ECS world
+	Yard,   // a yard: the docks that build, fit and refit hulls
+	Route,  // a lane between worlds, and the risk of sailing it
 	Survey, // the survey and the claims it opens
 	Market, // a marketplace at a planet or a satellite
 	Body    // a planet, or a satellite in orbit around one
@@ -168,7 +168,8 @@ struct EffectModifier
 // Applies every modifier of an effect, for a tier count, to a stat table. A stat that
 // is not in the table starts at 0.0, so an effect lands on a store that has never
 // seen it.
-void ApplyEffectModifiers(std::map<EffectStat, double> &Stats, const EffectModifier &Modifier, int Tiers);
+void ApplyEffectModifiers(
+    std::map<EffectStat, double> &Stats, const EffectModifier &Modifier, int Tiers);
 
 // Reads a stat out of a table: 0.0 when the table has never seen it.
 double ReadEffectStat(const std::map<EffectStat, double> &Stats, EffectStat Stat);

@@ -35,7 +35,8 @@ std::pair<std::string, unsigned> NumericSuffix(const std::string &Id)
 	}
 
 	unsigned value = 0;
-	const std::from_chars_result parsed = std::from_chars(tail.data(), tail.data() + tail.size(), value);
+	const std::from_chars_result parsed =
+	    std::from_chars(tail.data(), tail.data() + tail.size(), value);
 
 	if (parsed.ec != std::errc{} || parsed.ptr != tail.data() + tail.size())
 	{
@@ -75,7 +76,8 @@ bool EcsWorld::Create(const std::string &Id, Entity &Created, std::string &Error
 {
 	if (Id.empty())
 	{
-		ErrorMessage = "EcsWorld: the id is empty; every entity carries the id the rest of the core names it by";
+		ErrorMessage =
+		    "EcsWorld: the id is empty; every entity carries the id the rest of the core names it by";
 
 		return false;
 	}

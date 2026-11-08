@@ -7,7 +7,8 @@
 
 namespace CivSimCore
 {
-CivilisationEffectEngine::CivilisationEffectEngine(EffectCatalogue Catalogue) : catalogue(std::move(Catalogue))
+CivilisationEffectEngine::CivilisationEffectEngine(EffectCatalogue Catalogue)
+    : catalogue(std::move(Catalogue))
 {
 }
 
@@ -42,7 +43,8 @@ std::string CivilisationEffectEngine::YardStoreId(const std::string &Civilisatio
 }
 
 
-std::vector<std::string> CivilisationEffectEngine::MarketsOf(const EcsWorld &World, const std::string &CivilisationId) const
+std::vector<std::string> CivilisationEffectEngine::MarketsOf(
+    const EcsWorld &World, const std::string &CivilisationId) const
 {
 	std::vector<std::string> markets;
 
@@ -66,7 +68,8 @@ std::vector<std::string> CivilisationEffectEngine::MarketsOf(const EcsWorld &Wor
 }
 
 
-std::vector<std::string> CivilisationEffectEngine::BodiesOf(const EcsWorld &World, const std::string &CivilisationId) const
+std::vector<std::string> CivilisationEffectEngine::BodiesOf(
+    const EcsWorld &World, const std::string &CivilisationId) const
 {
 	std::vector<std::string> bodies;
 
@@ -91,19 +94,21 @@ std::vector<std::string> CivilisationEffectEngine::BodiesOf(const EcsWorld &Worl
 
 
 bool CivilisationEffectEngine::Apply(
-    EcsWorld &World, const std::string &CivilisationId, const std::string &SkillId, const std::string &EffectId,
-    EffectOrigin Origin, int Tier, std::string &ErrorMessage) const
+    EcsWorld &World, const std::string &CivilisationId, const std::string &SkillId,
+    const std::string &EffectId, EffectOrigin Origin, int Tier, std::string &ErrorMessage) const
 {
 	if (CivilisationId.empty())
 	{
-		ErrorMessage = "CivilisationEffectEngine: the civilisationId is empty; these effects land on a civilisation";
+		ErrorMessage = "CivilisationEffectEngine: the civilisationId is empty; these effects land on a "
+		               "civilisation";
 
 		return false;
 	}
 
 	if (SkillId.empty())
 	{
-		ErrorMessage = "Civilisation '" + CivilisationId + "': the skillId is empty; an effect names the node that bought it";
+		ErrorMessage = "Civilisation '" + CivilisationId +
+		               "': the skillId is empty; an effect names the node that bought it";
 
 		return false;
 	}
@@ -117,8 +122,8 @@ bool CivilisationEffectEngine::Apply(
 
 	if (Tier <= 0)
 	{
-		ErrorMessage = "Civilisation '" + CivilisationId + "': '" + EffectId + "' at tier " + std::to_string(Tier) +
-		               "; a tier is 1 or above";
+		ErrorMessage = "Civilisation '" + CivilisationId + "': '" + EffectId + "' at tier " +
+		               std::to_string(Tier) + "; a tier is 1 or above";
 
 		return false;
 	}
@@ -127,7 +132,8 @@ bool CivilisationEffectEngine::Apply(
 
 	if (definition == nullptr)
 	{
-		ErrorMessage = "Civilisation '" + CivilisationId + "': the catalogue defines no effect '" + EffectId + "'";
+		ErrorMessage =
+		    "Civilisation '" + CivilisationId + "': the catalogue defines no effect '" + EffectId + "'";
 
 		return false;
 	}
@@ -137,9 +143,9 @@ bool CivilisationEffectEngine::Apply(
 	// refusal that names the engine that takes them.
 	if (definition->domain == EffectDomain::Ship)
 	{
-		ErrorMessage =
-		    "Civilisation '" + CivilisationId + "': '" + EffectId + "' is a Ship effect; ShipEffectEngine fits it to "
-		    "a hull, and a civilisation carries no hull";
+		ErrorMessage = "Civilisation '" + CivilisationId + "': '" + EffectId +
+		               "' is a Ship effect; ShipEffectEngine fits it to "
+		               "a hull, and a civilisation carries no hull";
 
 		return false;
 	}
@@ -234,8 +240,9 @@ bool CivilisationEffectEngine::ApplySkill(
 
 	if (definition == nullptr)
 	{
-		ErrorMessage = "Civilisation '" + CivilisationId + "': node '" + Node.skillId + "' asks for effect '" +
-		               Node.targetEffectID + "', which the catalogue does not define";
+		ErrorMessage = "Civilisation '" + CivilisationId + "': node '" + Node.skillId +
+		               "' asks for effect '" + Node.targetEffectID +
+		               "', which the catalogue does not define";
 
 		return false;
 	}
@@ -247,7 +254,8 @@ bool CivilisationEffectEngine::ApplySkill(
 
 	const EffectOrigin origin =
 	    Node.nodeType == NodeType::Tech ? EffectOrigin::Technology : EffectOrigin::Skill;
-	const bool ok = Apply(World, CivilisationId, Node.skillId, Node.targetEffectID, origin, Tier, ErrorMessage);
+	const bool ok =
+	    Apply(World, CivilisationId, Node.skillId, Node.targetEffectID, origin, Tier, ErrorMessage);
 
 	Bought = ok;
 
@@ -256,8 +264,8 @@ bool CivilisationEffectEngine::ApplySkill(
 
 
 bool CivilisationEffectEngine::ApplyProgression(
-    EcsWorld &World, const ProgressionManager &Progression, const std::string &CivilisationId, unsigned &Applied,
-    unsigned &Skipped, std::string &ErrorMessage) const
+    EcsWorld &World, const ProgressionManager &Progression, const std::string &CivilisationId,
+    unsigned &Applied, unsigned &Skipped, std::string &ErrorMessage) const
 {
 	// The walk writes the caller's two columns: they are set, not added to, and a caller
 	// that arrives with a number in hand is told what this walk did, not what the last
@@ -296,7 +304,8 @@ bool CivilisationEffectEngine::ApplyProgression(
 
 		if (!ApplySkill(World, CivilisationId, node, tier, bought, ErrorMessage))
 		{
-			ErrorMessage = "Civilisation '" + CivilisationId + "', node '" + node.skillId + "': " + ErrorMessage;
+			ErrorMessage =
+			    "Civilisation '" + CivilisationId + "', node '" + node.skillId + "': " + ErrorMessage;
 
 			return false;
 		}
@@ -315,7 +324,8 @@ bool CivilisationEffectEngine::ApplyProgression(
 }
 
 
-unsigned CivilisationEffectEngine::UnapplySkill(EcsWorld &World, const std::string &SkillId, std::string &ErrorMessage) const
+unsigned CivilisationEffectEngine::UnapplySkill(
+    EcsWorld &World, const std::string &SkillId, std::string &ErrorMessage) const
 {
 	std::vector<std::string> doomed;
 	std::set<std::pair<EffectDomain, std::string>> touched;
@@ -327,7 +337,8 @@ unsigned CivilisationEffectEngine::UnapplySkill(EcsWorld &World, const std::stri
 		const EffectSource *source = World.Get<EffectSource>(entity);
 		const EffectOn *on = World.Get<EffectOn>(entity);
 
-		if (source == nullptr || on == nullptr || source->skillId != SkillId || on->domain == EffectDomain::Ship)
+		if (source == nullptr || on == nullptr || source->skillId != SkillId ||
+		    on->domain == EffectDomain::Ship)
 		{
 			continue;
 		}
@@ -363,31 +374,36 @@ unsigned CivilisationEffectEngine::UnapplySkill(EcsWorld &World, const std::stri
 }
 
 
-std::map<EffectStat, double> CivilisationEffectEngine::MarketStatsOf(const EcsWorld &World, const std::string &VenueBodyId) const
+std::map<EffectStat, double> CivilisationEffectEngine::MarketStatsOf(
+    const EcsWorld &World, const std::string &VenueBodyId) const
 {
 	return StoreStats<MarketEffects>(World, VenueBodyId);
 }
 
 
-std::map<EffectStat, double> CivilisationEffectEngine::BodyStatsOf(const EcsWorld &World, const std::string &BodyId) const
+std::map<EffectStat, double> CivilisationEffectEngine::BodyStatsOf(
+    const EcsWorld &World, const std::string &BodyId) const
 {
 	return StoreStats<BodyEffects>(World, BodyId);
 }
 
 
-std::map<EffectStat, double> CivilisationEffectEngine::RouteStatsOf(const EcsWorld &World, const std::string &CivilisationId) const
+std::map<EffectStat, double> CivilisationEffectEngine::RouteStatsOf(
+    const EcsWorld &World, const std::string &CivilisationId) const
 {
 	return StoreStats<RouteEffects>(World, LaneStoreId(CivilisationId));
 }
 
 
-std::map<EffectStat, double> CivilisationEffectEngine::SurveyStatsOf(const EcsWorld &World, const std::string &CivilisationId) const
+std::map<EffectStat, double> CivilisationEffectEngine::SurveyStatsOf(
+    const EcsWorld &World, const std::string &CivilisationId) const
 {
 	return StoreStats<SurveyEffects>(World, SurveyStoreId(CivilisationId));
 }
 
 
-std::map<EffectStat, double> CivilisationEffectEngine::YardStatsOf(const EcsWorld &World, const std::string &CivilisationId) const
+std::map<EffectStat, double> CivilisationEffectEngine::YardStatsOf(
+    const EcsWorld &World, const std::string &CivilisationId) const
 {
 	return StoreStats<YardEffects>(World, YardStoreId(CivilisationId));
 }
@@ -404,20 +420,17 @@ double CivilisationEffectEngine::ReadStat(
 	// and 0.0 is the answer a missing store gives.
 	switch (Domain)
 	{
-	case EffectDomain::Market:
-		return ReadEffectStat(StoreStats<MarketEffects>(World, StoreId), Stat);
-	case EffectDomain::Body:
-		return ReadEffectStat(StoreStats<BodyEffects>(World, StoreId), Stat);
-	case EffectDomain::Route:
-		return ReadEffectStat(StoreStats<RouteEffects>(World, StoreId), Stat);
-	case EffectDomain::Survey:
-		return ReadEffectStat(StoreStats<SurveyEffects>(World, StoreId), Stat);
-	case EffectDomain::Yard:
-		return ReadEffectStat(StoreStats<YardEffects>(World, StoreId), Stat);
-	case EffectDomain::Ship:
-		// A ship stat is a hull's, not a civilisation store's, and the hull answers
-		// through ShipEffectEngine::GetStat.
-		return 0.0;
+		case EffectDomain::Market:
+			return ReadEffectStat(StoreStats<MarketEffects>(World, StoreId), Stat);
+		case EffectDomain::Body: return ReadEffectStat(StoreStats<BodyEffects>(World, StoreId), Stat);
+		case EffectDomain::Route: return ReadEffectStat(StoreStats<RouteEffects>(World, StoreId), Stat);
+		case EffectDomain::Survey:
+			return ReadEffectStat(StoreStats<SurveyEffects>(World, StoreId), Stat);
+		case EffectDomain::Yard: return ReadEffectStat(StoreStats<YardEffects>(World, StoreId), Stat);
+		case EffectDomain::Ship:
+			// A ship stat is a hull's, not a civilisation store's, and the hull answers
+			// through ShipEffectEngine::GetStat.
+			return 0.0;
 	}
 
 	return 0.0;
@@ -425,8 +438,8 @@ double CivilisationEffectEngine::ReadStat(
 
 
 std::string CivilisationEffectEngine::DescribeStore(
-    const EcsWorld &World, EffectDomain Domain, const std::string &StoreId, const std::map<EffectStat, double> &Stats,
-    const char *NoEffectsMessage) const
+    const EcsWorld &World, EffectDomain Domain, const std::string &StoreId,
+    const std::map<EffectStat, double> &Stats, const char *NoEffectsMessage) const
 {
 	// The sources keyed by effect id, which is the order the modifiers are applied in,
 	// and so the order the read-out prints them in: a panel that showed the same tree
@@ -455,8 +468,9 @@ std::string CivilisationEffectEngine::DescribeStore(
 		// source of an effect the catalogue has forgotten prints the id, because the store
 		// flies it and the read-out prints what the store flies.
 		const EffectDefinition *definition = catalogue.Find(entry.first);
-		const std::string name =
-		    definition != nullptr && !definition->displayName.empty() ? definition->displayName : entry.first;
+		const std::string name = definition != nullptr && !definition->displayName.empty()
+		                             ? definition->displayName
+		                             : entry.first;
 
 		out << name << " x" << entry.second.tier;
 		first = false;
@@ -476,7 +490,8 @@ std::string CivilisationEffectEngine::DescribeStore(
 }
 
 
-std::string CivilisationEffectEngine::DescribeCivilisation(const EcsWorld &World, const std::string &CivilisationId) const
+std::string CivilisationEffectEngine::DescribeCivilisation(
+    const EcsWorld &World, const std::string &CivilisationId) const
 {
 	const std::vector<std::string> markets = MarketsOf(World, CivilisationId);
 	const std::vector<std::string> bodies = BodiesOf(World, CivilisationId);
@@ -488,8 +503,9 @@ std::string CivilisationEffectEngine::DescribeCivilisation(const EcsWorld &World
 	// made, and the three shared stores it has bought an effect of - a lane, a survey
 	// and a yard store exists because an effect of that domain landed on it, and a
 	// civilisation that has bought no route effect has no lane store.
-	const std::size_t owned = markets.size() + bodies.size() + static_cast<std::size_t>(World.Has(lanes)) +
-	                          static_cast<std::size_t>(World.Has(survey)) + static_cast<std::size_t>(World.Has(yards));
+	const std::size_t owned =
+	    markets.size() + bodies.size() + static_cast<std::size_t>(World.Has(lanes)) +
+	    static_cast<std::size_t>(World.Has(survey)) + static_cast<std::size_t>(World.Has(yards));
 
 	// A civilisation with no store has nothing to read out, and the read-out of a
 	// civilisation the world has never heard of prints nothing: a UI that asks for a
@@ -507,21 +523,26 @@ std::string CivilisationEffectEngine::DescribeCivilisation(const EcsWorld &World
 	for (const auto &venue : markets)
 	{
 		out << "  Market " << venue << ": "
-		    << DescribeStore(World, EffectDomain::Market, venue, MarketStatsOf(World, venue), "no market effects bought")
+		    << DescribeStore(
+		           World, EffectDomain::Market, venue, MarketStatsOf(World, venue),
+		           "no market effects bought")
 		    << "\n";
 	}
 
 	for (const auto &body : bodies)
 	{
 		out << "  Body " << body << ": "
-		    << DescribeStore(World, EffectDomain::Body, body, BodyStatsOf(World, body), "no body effects bought") << "\n";
+		    << DescribeStore(
+		           World, EffectDomain::Body, body, BodyStatsOf(World, body), "no body effects bought")
+		    << "\n";
 	}
 
 	if (World.Has(lanes))
 	{
 		out << "  Lanes " << lanes << ": "
 		    << DescribeStore(
-		           World, EffectDomain::Route, lanes, RouteStatsOf(World, CivilisationId), "no route effects bought")
+		           World, EffectDomain::Route, lanes, RouteStatsOf(World, CivilisationId),
+		           "no route effects bought")
 		    << "\n";
 	}
 
@@ -529,7 +550,8 @@ std::string CivilisationEffectEngine::DescribeCivilisation(const EcsWorld &World
 	{
 		out << "  Survey " << survey << ": "
 		    << DescribeStore(
-		           World, EffectDomain::Survey, survey, SurveyStatsOf(World, CivilisationId), "no survey effects bought")
+		           World, EffectDomain::Survey, survey, SurveyStatsOf(World, CivilisationId),
+		           "no survey effects bought")
 		    << "\n";
 	}
 
@@ -537,7 +559,8 @@ std::string CivilisationEffectEngine::DescribeCivilisation(const EcsWorld &World
 	{
 		out << "  Yards " << yards << ": "
 		    << DescribeStore(
-		           World, EffectDomain::Yard, yards, YardStatsOf(World, CivilisationId), "no yard effects bought")
+		           World, EffectDomain::Yard, yards, YardStatsOf(World, CivilisationId),
+		           "no yard effects bought")
 		    << "\n";
 	}
 
@@ -546,81 +569,83 @@ std::string CivilisationEffectEngine::DescribeCivilisation(const EcsWorld &World
 
 
 bool CivilisationEffectEngine::ResolveStores(
-    EcsWorld &World, EffectDomain Domain, const std::string &CivilisationId, const std::string &EffectId,
-    std::vector<std::string> &Stores, std::string &ErrorMessage) const
+    EcsWorld &World, EffectDomain Domain, const std::string &CivilisationId,
+    const std::string &EffectId, std::vector<std::string> &Stores, std::string &ErrorMessage) const
 {
 	Stores.clear();
 
 	switch (Domain)
 	{
-	case EffectDomain::Market:
-	{
-		Stores = MarketsOf(World, CivilisationId);
-
-		if (Stores.empty())
+		case EffectDomain::Market:
 		{
-			ErrorMessage = "Civilisation '" + CivilisationId + "': '" + EffectId +
-		                   "' is a Market effect and the civilisation owns no market; open a venue first";
+			Stores = MarketsOf(World, CivilisationId);
 
+			if (Stores.empty())
+			{
+				ErrorMessage =
+				    "Civilisation '" + CivilisationId + "': '" + EffectId +
+				    "' is a Market effect and the civilisation owns no market; open a venue first";
+
+				return false;
+			}
+
+			return true;
+		}
+
+		case EffectDomain::Body:
+		{
+			Stores = BodiesOf(World, CivilisationId);
+
+			if (Stores.empty())
+			{
+				ErrorMessage =
+				    "Civilisation '" + CivilisationId + "': '" + EffectId +
+				    "' is a Body effect and the civilisation owns no body; create a world first";
+
+				return false;
+			}
+
+			return true;
+		}
+
+		case EffectDomain::Route:
+		case EffectDomain::Survey:
+		case EffectDomain::Yard:
+		{
+			const std::string store = Domain == EffectDomain::Route    ? LaneStoreId(CivilisationId)
+			                          : Domain == EffectDomain::Survey ? SurveyStoreId(CivilisationId)
+			                                                           : YardStoreId(CivilisationId);
+
+			if (!World.Has(store) && !World.Create(store, ErrorMessage))
+			{
+				return false;
+			}
+
+			// The store is a fact about a civilisation, and the component is the fact: a
+			// civilisation with no route effects has no RouteEffects and the store is an
+			// empty id, not a component of zeroes.
+			if (Domain == EffectDomain::Route)
+			{
+				World.Put<RouteEffects>(store, RouteEffects{});
+			}
+			else if (Domain == EffectDomain::Survey)
+			{
+				World.Put<SurveyEffects>(store, SurveyEffects{});
+			}
+			else
+			{
+				World.Put<YardEffects>(store, YardEffects{});
+			}
+
+			Stores.push_back(store);
+
+			return true;
+		}
+
+		case EffectDomain::Ship:
+			ErrorMessage = "'" + EffectId +
+			               "' is a Ship effect: Apply refuses it, and the caller has the catalogue";
 			return false;
-		}
-
-		return true;
-	}
-
-	case EffectDomain::Body:
-	{
-		Stores = BodiesOf(World, CivilisationId);
-
-		if (Stores.empty())
-		{
-			ErrorMessage = "Civilisation '" + CivilisationId + "': '" + EffectId +
-		                   "' is a Body effect and the civilisation owns no body; create a world first";
-
-			return false;
-		}
-
-		return true;
-	}
-
-	case EffectDomain::Route:
-	case EffectDomain::Survey:
-	case EffectDomain::Yard:
-	{
-		const std::string store =
-		    Domain == EffectDomain::Route ? LaneStoreId(CivilisationId)
-		                                  : Domain == EffectDomain::Survey ? SurveyStoreId(CivilisationId)
-		                                                                   : YardStoreId(CivilisationId);
-
-		if (!World.Has(store) && !World.Create(store, ErrorMessage))
-		{
-			return false;
-		}
-
-		// The store is a fact about a civilisation, and the component is the fact: a
-		// civilisation with no route effects has no RouteEffects and the store is an
-		// empty id, not a component of zeroes.
-		if (Domain == EffectDomain::Route)
-		{
-			World.Put<RouteEffects>(store, RouteEffects{});
-		}
-		else if (Domain == EffectDomain::Survey)
-		{
-			World.Put<SurveyEffects>(store, SurveyEffects{});
-		}
-		else
-		{
-			World.Put<YardEffects>(store, YardEffects{});
-		}
-
-		Stores.push_back(store);
-
-		return true;
-	}
-
-	case EffectDomain::Ship:
-		ErrorMessage = "'" + EffectId + "' is a Ship effect: Apply refuses it, and the caller has the catalogue";
-		return false;
 	}
 
 	ErrorMessage = "'" + EffectId + "' names no store";
@@ -658,7 +683,8 @@ bool CivilisationEffectEngine::WriteStore(
 {
 	if (!World.Has(StoreId))
 	{
-		ErrorMessage = "CivilisationEffectEngine: the store '" + StoreId + "' is not an entity in this world";
+		ErrorMessage =
+		    "CivilisationEffectEngine: the store '" + StoreId + "' is not an entity in this world";
 
 		return false;
 	}
@@ -685,20 +711,19 @@ bool CivilisationEffectEngine::WriteStore(
 
 	switch (Domain)
 	{
-	case EffectDomain::Market:
-		return World.Put<MarketEffects>(StoreId, MarketEffects{stats}) != nullptr;
-	case EffectDomain::Body:
-		return World.Put<BodyEffects>(StoreId, BodyEffects{stats}) != nullptr;
-	case EffectDomain::Route:
-		return World.Put<RouteEffects>(StoreId, RouteEffects{stats}) != nullptr;
-	case EffectDomain::Survey:
-		return World.Put<SurveyEffects>(StoreId, SurveyEffects{stats}) != nullptr;
-	case EffectDomain::Yard:
-		return World.Put<YardEffects>(StoreId, YardEffects{stats}) != nullptr;
-	case EffectDomain::Ship:
-		ErrorMessage = "CivilisationEffectEngine: a Ship store is a hull, and ShipEffectEngine writes it";
+		case EffectDomain::Market:
+			return World.Put<MarketEffects>(StoreId, MarketEffects{stats}) != nullptr;
+		case EffectDomain::Body: return World.Put<BodyEffects>(StoreId, BodyEffects{stats}) != nullptr;
+		case EffectDomain::Route:
+			return World.Put<RouteEffects>(StoreId, RouteEffects{stats}) != nullptr;
+		case EffectDomain::Survey:
+			return World.Put<SurveyEffects>(StoreId, SurveyEffects{stats}) != nullptr;
+		case EffectDomain::Yard: return World.Put<YardEffects>(StoreId, YardEffects{stats}) != nullptr;
+		case EffectDomain::Ship:
+			ErrorMessage =
+			    "CivilisationEffectEngine: a Ship store is a hull, and ShipEffectEngine writes it";
 
-		return false;
+			return false;
 	}
 
 	ErrorMessage = "CivilisationEffectEngine: no store for the domain";

@@ -169,9 +169,19 @@ TEST_CASE(a_view_finds_every_entity_that_carries_the_component)
 		CHECK(world.Create(id, errorMessage));
 	}
 
-	world.Add<ShipInfo>("Ship-01", ShipInfo{"Ship-01", "HullTraderLongHaul", "Long-haul trader", {}, "Civ-01", {}});
-	world.Add<ShipInfo>("Ship-02", ShipInfo{"Ship-02", "HullRaiderFast", "Fast raider", {}, "Civ-02", {}});
-	world.Add<BodyInfo>("Civ-01", BodyInfo{"Civ-01", CivSimCore::BodyKind::Planet, "Abigail Prime", {}, "Abigail Prime", "Civ-01", {}});
+	world.Add<ShipInfo>(
+	    "Ship-01", ShipInfo{"Ship-01", "HullTraderLongHaul", "Long-haul trader", {}, "Civ-01", {}});
+	world.Add<ShipInfo>(
+	    "Ship-02", ShipInfo{"Ship-02", "HullRaiderFast", "Fast raider", {}, "Civ-02", {}});
+	world.Add<BodyInfo>(
+	    "Civ-01", BodyInfo{
+	                  "Civ-01",
+	                  CivSimCore::BodyKind::Planet,
+	                  "Abigail Prime",
+	                  {},
+	                  "Abigail Prime",
+	                  "Civ-01",
+	                  {}});
 
 	CHECK_EQ(world.ComponentCount<ShipInfo>(), 2u);
 	CHECK_EQ(world.ComponentCount<BodyInfo>(), 1u);
@@ -241,7 +251,8 @@ TEST_CASE(the_registry_is_public_because_a_system_wants_a_view_of_several_compon
 	// that is a view over three components, which EcsWorld does not wrap.
 	std::size_t matched = 0;
 
-	for (const CivSimCore::EcsWorld::Entity entity : world.Registry().view<MarketOrderInfo, OrderAt, OrderOwner>())
+	for (const CivSimCore::EcsWorld::Entity entity :
+	     world.Registry().view<MarketOrderInfo, OrderAt, OrderOwner>())
 	{
 		const MarketOrderInfo *order = world.Registry().try_get<MarketOrderInfo>(entity);
 		const OrderAt *at = world.Registry().try_get<OrderAt>(entity);

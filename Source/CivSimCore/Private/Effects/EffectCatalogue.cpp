@@ -58,13 +58,16 @@ std::vector<EffectDefinition> ShipEffectDefinitions()
 	return {
 	    MakeEffect(
 	        "ShieldFront", ship, "Forward Shield Bank",
-	        "The screen that faces the pirate you are running down", {Add(EffectStat::ShieldFront, 60.0)}),
+	        "The screen that faces the pirate you are running down",
+	        {Add(EffectStat::ShieldFront, 60.0)}),
 	    MakeEffect(
 	        "ShieldSide", ship, "Beam Shield Bank",
-	        "The screen that covers the flanks when a raider circles you", {Add(EffectStat::ShieldSide, 45.0)}),
+	        "The screen that covers the flanks when a raider circles you",
+	        {Add(EffectStat::ShieldSide, 45.0)}),
 	    MakeEffect(
 	        "ShieldRear", ship, "Aft Shield Bank",
-	        "The screen that covers the drive when you run for it", {Add(EffectStat::ShieldRear, 35.0)}),
+	        "The screen that covers the drive when you run for it",
+	        {Add(EffectStat::ShieldRear, 35.0)}),
 	    MakeEffect(
 	        "GunFront", ship, "Forward Gun Battery", "The guns that reach what is ahead of you",
 	        {Add(EffectStat::GunFront, 12.0)}),
@@ -81,7 +84,8 @@ std::vector<EffectDefinition> ShipEffectDefinitions()
 	        "EngineThrust", ship, "Drive", "The thrust that makes a jump and outruns a raider",
 	        {Add(EffectStat::DriveThrust, 140.0)}),
 	    MakeEffect(
-	        "ManoeuvringJets", ship, "Manoeuvre Jets", "The working in space: docking, station keeping, berthing",
+	        "ManoeuvringJets", ship, "Manoeuvre Jets",
+	        "The working in space: docking, station keeping, berthing",
 	        {Add(EffectStat::ManoeuvreJets, 24.0)}),
 	    MakeEffect(
 	        "AttitudeControl", ship, "Attitude Thrusters", "Pointing the ship, and the guns with it",
@@ -102,12 +106,14 @@ std::vector<EffectDefinition> ShipEffectDefinitions()
 	        "ComputerTrader", ship, "Trading AI", "The cargo calls that make the haul pay",
 	        {Add(EffectStat::TraderComputer, 1.2)}),
 	    MakeEffect(
-	        "CargoHolds", ship, "Cargo Holds", "The size of a run", {Add(EffectStat::CargoVolume, 300.0)}),
+	        "CargoHolds", ship, "Cargo Holds", "The size of a run",
+	        {Add(EffectStat::CargoVolume, 300.0)}),
 	    MakeEffect(
 	        "FuelBunkers", ship, "Fuel Bunkers", "The range of a run, and the fuel the drive burns",
 	        {Add(EffectStat::FuelCapacity, 18.0)}),
 	    MakeEffect(
-	        "SalvageRig", ship, "Salvage Rig", "Going and bringing back the cargo of a hull that cannot",
+	        "SalvageRig", ship, "Salvage Rig",
+	        "Going and bringing back the cargo of a hull that cannot",
 	        {Add(EffectStat::SalvageCapacity, 10.0)}),
 	    MakeEffect(
 	        "LifeSupport", ship, "Life Support", "The days a crew can be out",
@@ -185,7 +191,8 @@ std::vector<EffectDefinition> SurveyEffectDefinitions()
 
 	return {
 	    MakeEffect(
-	        "DeepSurvey", survey, "Deep Survey", "How far a survey reaches from the world it launches from",
+	        "DeepSurvey", survey, "Deep Survey",
+	        "How far a survey reaches from the world it launches from",
 	        {Add(EffectStat::SurveyRange, 12.0)}),
 	    MakeEffect(
 	        "MiningClaim", survey, "Mining Claim", "The claim a world can work at one time",
@@ -210,13 +217,15 @@ std::vector<EffectDefinition> MarketEffectDefinitions()
 	// what a civilisation has bought on both sides of it.
 	return {
 	    MakeEffect(
-	        "DockingLicence", market, "Docking Licence", "The permit, the berth and the clearance for a ship",
+	        "DockingLicence", market, "Docking Licence",
+	        "The permit, the berth and the clearance for a ship",
 	        {Add(EffectStat::MarketClearance, 20.0), Add(EffectStat::MarketRiskPremium, -5.0)}),
 	    MakeEffect(
 	        "CargoInsurance", market, "Cargo Insurance", "The premium that covers a cargo",
 	        {Add(EffectStat::MarketInsurance, -40.0), Add(EffectStat::MarketRiskPremium, -10.0)}),
 	    MakeEffect(
-	        "FencingNetwork", market, "Fencing Network", "The outlets that buy what is not the seller's to sell",
+	        "FencingNetwork", market, "Fencing Network",
+	        "The outlets that buy what is not the seller's to sell",
 	        {Add(EffectStat::MarketFenceShare, 0.15), Add(EffectStat::MarketRiskPremium, 8.0)}),
 	    MakeEffect(
 	        "AdmiraltyWarrant", market, "Admiralty Warrant", "The commission that makes a ship lawful",
@@ -225,7 +234,8 @@ std::vector<EffectDefinition> MarketEffectDefinitions()
 	        "PiratePardon", market, "Pirate Pardon", "The pardon that buys a raider's standing back",
 	        {Add(EffectStat::MarketRiskPremium, -12.0)}),
 	    MakeEffect(
-	        "PirateStanding", market, "Standing Among The Crews", "The name a ship has where the crews drink",
+	        "PirateStanding", market, "Standing Among The Crews",
+	        "The name a ship has where the crews drink",
 	        {Add(EffectStat::MarketRiskPremium, -6.0), Add(EffectStat::MarketFenceShare, 0.05)}),
 	    MakeEffect(
 	        "TradeTribunal", market, "Trade Tribunal", "The bench that decides what a cargo was worth",
@@ -237,10 +247,12 @@ std::vector<EffectDefinition> MarketEffectDefinitions()
 	        "RaiderHulls", market, "Raider Hulls", "The fast hulls that live off the trade",
 	        {Add(EffectStat::MarketRiskPremium, 22.0)}),
 	    MakeEffect(
-	        "BoardingParties", market, "Boarding Parties", "The crews that take a hull and what is in it",
+	        "BoardingParties", market, "Boarding Parties",
+	        "The crews that take a hull and what is in it",
 	        {Add(EffectStat::MarketRiskPremium, 18.0), Add(EffectStat::MarketFenceShare, 0.1)}),
 	    MakeEffect(
-	        "RansomExchange", market, "Ransom Exchange", "The market that buys a ship back from its captors",
+	        "RansomExchange", market, "Ransom Exchange",
+	        "The market that buys a ship back from its captors",
 	        {Add(EffectStat::MarketInsurance, 25.0), Add(EffectStat::MarketRiskPremium, 6.0)}),
 	};
 }
@@ -255,7 +267,8 @@ std::vector<EffectDefinition> BodyEffectDefinitions()
 	        "HabitatDomes", body, "Habitat Domes", "The people a world or a satellite can hold",
 	        {Multiply(EffectStat::BodyHabitatCapacity, 0.25)}),
 	    MakeEffect(
-	        "ClosedLoop", body, "Closed Loop", "The air and the water a habitat recovers instead of buying",
+	        "ClosedLoop", body, "Closed Loop",
+	        "The air and the water a habitat recovers instead of buying",
 	        {Add(EffectStat::BodyRecyclingLoop, 0.15)}),
 	    MakeEffect(
 	        "TerraformAtmosphere", body, "Terraform Atmosphere", "The air a world breathes on its own",
@@ -284,7 +297,8 @@ bool EffectCatalogue::Register(const EffectDefinition &Definition, std::string &
 
 	if (Definition.modifiers.empty())
 	{
-		ErrorMessage = "Effect '" + Definition.effectId + "': no modifiers; an effect that moves no stat does nothing";
+		ErrorMessage = "Effect '" + Definition.effectId +
+		               "': no modifiers; an effect that moves no stat does nothing";
 
 		return false;
 	}
@@ -293,7 +307,8 @@ bool EffectCatalogue::Register(const EffectDefinition &Definition, std::string &
 	{
 		if (modifier.perTier == 0.0)
 		{
-			ErrorMessage = "Effect '" + Definition.effectId + "': a modifier of " + StatName(modifier.stat) +
+			ErrorMessage = "Effect '" + Definition.effectId + "': a modifier of " +
+			               StatName(modifier.stat) +
 			               " is zero per tier; a tier of an effect has to be worth something";
 
 			return false;
@@ -303,10 +318,10 @@ bool EffectCatalogue::Register(const EffectDefinition &Definition, std::string &
 		// never spoke: a Market effect moving a shield stat is a typo, not a design.
 		if (StatDomain(modifier.stat) != Definition.domain)
 		{
-			ErrorMessage =
-			    "Effect '" + Definition.effectId + "' is a " + DescribeEffectDomain(Definition.domain) +
-			    " effect and moves " + StatName(modifier.stat) + ", a " +
-			    DescribeEffectDomain(StatDomain(modifier.stat)) + " stat";
+			ErrorMessage = "Effect '" + Definition.effectId + "' is a " +
+			               DescribeEffectDomain(Definition.domain) + " effect and moves " +
+			               StatName(modifier.stat) + ", a " +
+			               DescribeEffectDomain(StatDomain(modifier.stat)) + " stat";
 
 			return false;
 		}
@@ -407,8 +422,9 @@ bool EffectCatalogue::Validate(std::string &ErrorMessage) const
 		{
 			if (StatDomain(modifier.stat) != entry.second.domain)
 			{
-				ErrorMessage = "Effect '" + entry.first + "': a " + DescribeEffectDomain(entry.second.domain) +
-				               " effect moves " + StatName(modifier.stat) + ", a " +
+				ErrorMessage = "Effect '" + entry.first + "': a " +
+				               DescribeEffectDomain(entry.second.domain) + " effect moves " +
+				               StatName(modifier.stat) + ", a " +
 				               DescribeEffectDomain(StatDomain(modifier.stat)) + " stat";
 
 				return false;
@@ -501,8 +517,9 @@ EffectCatalogue EffectCatalogue::Default()
 {
 	std::vector<EffectDefinition> definitions;
 
-	for (const auto &group : {ShipEffects(), YardEffects(), RouteEffects(), SurveyEffects(), MarketEffects(),
-	                          BodyEffects()})
+	for (const auto &group :
+	     {ShipEffects(), YardEffects(), RouteEffects(), SurveyEffects(), MarketEffects(),
+	      BodyEffects()})
 	{
 		definitions.insert(definitions.end(), group.begin(), group.end());
 	}
