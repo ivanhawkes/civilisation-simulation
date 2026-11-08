@@ -31,6 +31,25 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(ftxui)
 
+# EnTT: the entity component system the ship, body and marketplace stores are built on.
+# Version 4.0.0, the current release: EnTT v4 needs a C++20 compiler, which this project
+# already asks for, and it is header only - the EnTT::EnTT target carries the include
+# path and cxx_std_20 - and every option of its own build (tests, testbed, benchmarks,
+# docs, install) is OFF by default, so the fetch costs no compile time at all and the
+# project's BUILD_TESTING pulls none of EnTT's googletest tree into the build.
+#
+# EnTT's CMakeLists opens with cmake_minimum_required(VERSION 3.28), so the fetch needs
+# CMake 3.28 at configure time even though this project configures on 3.24: the CI runner
+# ships 3.28 and the development shell ships 4.x. The fetch is of a tagged release, and
+# GIT_SHALLOW keeps it at one commit - 8 MB of headers.
+FetchContent_Declare(
+    entt
+    GIT_REPOSITORY https://github.com/skypjack/entt.git
+    GIT_TAG v4.0.0
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(entt)
+
 set(CIVSIM_CORE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Source/CivSimCore")
 
 # ─── Generated Game Data ───
@@ -127,6 +146,13 @@ add_library(CivSimCore STATIC
     "${CIVSIM_CORE_DIR}/Private/Core/Universe.cpp"
     "${CIVSIM_CORE_DIR}/Private/Core/ProgressionManager.cpp"
     "${CIVSIM_CORE_DIR}/Private/Core/Simulation.cpp"
+    "${CIVSIM_CORE_DIR}/Private/Ecs/EcsWorld.cpp"
+    "${CIVSIM_CORE_DIR}/Private/Ecs/Components.cpp"
+    "${CIVSIM_CORE_DIR}/Private/Effects/EffectTypes.cpp"
+    "${CIVSIM_CORE_DIR}/Private/Effects/EffectCatalogue.cpp"
+    "${CIVSIM_CORE_DIR}/Private/Effects/ShipEffectEngine.cpp"
+    "${CIVSIM_CORE_DIR}/Private/Effects/CivilisationEffects.cpp"
+    "${CIVSIM_CORE_DIR}/Private/Market/Marketplace.cpp"
 )
 
 target_include_directories(CivSimCore
@@ -135,6 +161,11 @@ target_include_directories(CivSimCore
 )
 
 target_link_libraries(CivSimCore
+    PUBLIC
+        # The ECS headers are in the public headers of the store, the effects and the
+        # marketplaces: EcsWorld.h holds an entt::registry by value, so a target that
+        # includes the core includes EnTT and has to be told where it is.
+        EnTT::EnTT
     PRIVATE
         yaml-cpp::yaml-cpp
 )
@@ -181,6 +212,9 @@ if(BUILD_TESTING)
     civsim_add_test(UniverseTests SOURCES Tests/UniverseTests.cpp)
     civsim_add_test(ProgressionTests SOURCES Tests/ProgressionTests.cpp)
     civsim_add_test(SimulationTests SOURCES Tests/SimulationTests.cpp)
+    civsim_add_test(EcsTests SOURCES Tests/EcsTests.cpp)
+    civsim_add_test(EffectTests SOURCES Tests/EffectTests.cpp)
+    civsim_add_test(MarketplaceTests SOURCES Tests/MarketplaceTests.cpp)
 
     if(TARGET CivSimData)
         # The data suite reads the generated documents, the way the game loads them.
