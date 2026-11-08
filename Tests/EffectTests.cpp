@@ -259,7 +259,14 @@ TEST_CASE(the_hull_refuses_a_system_it_has_no_slot_for)
 	// knowledge.
 	CHECK(engine.Fit(world, "Trader", "TechDroneDefense", "DroneDefense", EffectOrigin::Technology, 2, errorMessage));
 	CHECK_NEAR(engine.GetStat(world, "Trader", EffectStat::ShieldFront), 120.0 + 2 * 10.0, 1e-9);
-	CHECK_EQ(engine.SourcesOn(world, "Trader").size(), 1u);
+
+	// The sources on the hull, in sorted effect id order: the rig the hull carries in a
+	// slot and the drone defence the civilisation knows, which the hull flies with no
+	// frame for it. Both move the hull, so both are sources, and the first of them, by
+	// effect id, is the technique - which is knowledge and not a system, so it is not in
+	// the systems the yard lists and refits.
+	CHECK_EQ(engine.SourcesOn(world, "Trader").size(), 2u);
+	CHECK_EQ(engine.SourcesOn(world, "Trader")[0].effectId, std::string("DroneDefense"));
 	CHECK_EQ(engine.SourcesOn(world, "Trader")[0].origin, EffectOrigin::Technology);
 
 	// An effect of another store is not a system at all: the yard, the lane, the claim,
@@ -472,8 +479,11 @@ TEST_CASE(an_effect_reads_the_domain_of_the_store_it_lands_on)
 	CHECK(!civEngine.Apply(world, "Civ-01", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, civError));
 	CHECK_CONTAINS(civError, "ShipEffectEngine");
 
-	CHECK(!shipEngine.Fit(world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, shipError));
-	CHECK(!shipError.empty());
+	// The same effect the civilisation engine refuses is the hull's own, and the hull
+	// has a slot for it: the refusal names the engine, and the engine that owns the
+	// effect lands it.
+	CHECK(shipEngine.Fit(world, "Trader", "SkillShipShieldsFront", "ShieldFront", EffectOrigin::Skill, 2, shipError));
+	CHECK(shipError.empty());
 	CHECK(!shipEngine.Fit(world, "Trader", "SkillLawDockingLicence", "DockingLicence", EffectOrigin::Skill, 1, shipError));
 	CHECK(!shipEngine.Fit(world, "Trader", "SkillShipShipyardsDrydock", "Drydock", EffectOrigin::Skill, 1, shipError));
 
@@ -681,8 +691,11 @@ TEST_CASE(the_civilisation_engine_lands_its_effects_on_the_stores_its_domain_own
 	CHECK_NEAR(engine.ReadStat(world, EffectDomain::Market, "Civ-02", EffectStat::MarketRiskPremium), 0.0, 1e-9);
 
 	// The respec road: taking one skill off takes every source of it off every store it
-	// touched, and the store goes back to what the rest of the tree bought.
-	CHECK_EQ(engine.UnapplySkill(world, "SkillPiracyConvoy", errorMessage), 1u);
+	// touched, and the store goes back to what the rest of the tree bought. The convoy
+	// law is law in every world of the civilisation, so it has a source at the lane
+	// store of each of the two civilisations, and the road takes both of them and says
+	// 2 - the count is the sources, and a law that lands in two worlds is two sources.
+	CHECK_EQ(engine.UnapplySkill(world, "SkillPiracyConvoy", errorMessage), 2u);
 	CHECK_NEAR(
 	    engine.ReadStat(world, EffectDomain::Route, CivilisationEffectEngine::LaneStoreId("Civ-01"),
 	                   EffectStat::RouteRiskPremium),
@@ -746,13 +759,17 @@ TEST_CASE(a_tree_walk_lands_every_effect_the_tree_buys)
 	CHECK_EQ(progression.NodeIds().size(), nodes.size());
 
 	// A tree walked with no tier bought buys nothing anywhere: every store of the
-	// civilisation reads the numbers of a world that has bought none of the tree.
+	// civilisation reads the numbers of a world that has bought none of the tree. Nine
+	// nodes walked, none of them bought, and the walk counts the nine: the two columns
+	// name the nodes of the tree, the ones the walk wrote and the ones it walked past,
+	// and they add to the tree on every walk, here and on a hull.
 	unsigned applied = 99u;
 	unsigned skipped = 99u;
 
 	CHECK(civEngine.ApplyProgression(world, progression, "Civ-01", applied, skipped, errorMessage));
 	CHECK_EQ(applied, 0u);
-	CHECK_EQ(skipped, 0u);
+	CHECK_EQ(skipped, 9u);
+	CHECK_EQ(applied + skipped, static_cast<unsigned>(nodes.size()));
 	CHECK_NEAR(civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 0.0, 1e-9);
 	CHECK_NEAR(civEngine.ReadStat(world, EffectDomain::Body, "Civ-01", EffectStat::MedicineCoverage), 0.0, 1e-9);
 	CHECK_EQ(civEngine.MarketStatsOf(world, "Civ-01").size(), 0u);
@@ -790,13 +807,17 @@ TEST_CASE(a_tree_walk_lands_every_effect_the_tree_buys)
 
 	// The civilisation: every node with an effect and a tier above 0 lands on the store
 	// its domain names, and the nodes that ask for no civilisation effect - the gate,
-	// which buys nothing, and the shield bank, which is the hull's - are the skipped.
+	// which buys nothing, and the shield bank, which is the hull's - are the skipped,
+	// and with them the clinic and the scan, of which the tree has bought no tier: the
+	// tree has nine nodes, the venue bought five of them, and the four it did not buy
+	// are the four the walk counts as walked past.
 	applied = 0u;
 	skipped = 0u;
 
 	CHECK(civEngine.ApplyProgression(world, progression, "Civ-01", applied, skipped, errorMessage));
 	CHECK_EQ(applied, 5u);
-	CHECK_EQ(skipped, 2u);
+	CHECK_EQ(skipped, 4u);
+	CHECK_EQ(applied + skipped, static_cast<unsigned>(nodes.size()));
 	CHECK_NEAR(civEngine.ReadStat(world, EffectDomain::Market, "Civ-01", EffectStat::MarketClearance), 3 * 20.0 + 4 * 5.0,
 	           1e-9);
 	CHECK_NEAR(
@@ -972,7 +993,16 @@ TEST_CASE(an_effect_applies_the_way_its_operator_says)
 
 	ShipEffectEngine engine;
 	EcsWorld world;
-	const ShipClassSpec trader = ShipEffectEngine::LongHaulTrader();
+
+	// The hull of the case is the shipped long-haul trader with a slot added for the one
+	// synthetic system of the catalogue of one below: the slot rule is the shipped rule,
+	// a system needs a frame on the hull to sit in, and the case is about what a tier of
+	// an operator buys, not about which hulls carry which frames. The 25 ship systems of
+	// the tree are the trader's own slots, and the first block fits them by the names the
+	// shipped catalogue gives them.
+	ShipClassSpec trader = ShipEffectEngine::LongHaulTrader();
+
+	trader.fitableEffects.push_back("ScreenShare");
 
 	engine.SetCatalogue(catalogue);
 	CHECK(engine.BuildShip(world, "Trader", trader, "Civ-01", errorMessage));

@@ -87,6 +87,14 @@ class ShipEffectEngine
 	// below 1, when a Skill effect has no slot on that hull, and when the ship is
 	// unknown. Re-fitting the same effect on the same ship replaces the tier, which is
 	// what a refit dock does.
+	//
+	// A Skill effect is written into the hull's ShipSystems as well as into its source:
+	// a system the hull carries is a system a slot was spent on, and the list is what a
+	// yard refits and what a UI lists under "Systems". A Technology effect writes the
+	// source and no system: the hull flies the technique without a frame for it, and a
+	// technique that lands on an effect the hull carries as a system frees the slot the
+	// system spent, because the source is one per effect and the tier that arrives is
+	// the technique's.
 	bool Fit(
 	    EcsWorld &World, const std::string &ShipId, const std::string &SkillId, const std::string &EffectId,
 	    EffectOrigin Origin, int Tier, std::string &ErrorMessage);
@@ -100,15 +108,22 @@ class ShipEffectEngine
 	    EcsWorld &World, const std::string &ShipId, const SkillNode &Node, int Tier, bool &Bought,
 	    std::string &ErrorMessage);
 
-	// Every node of the tree that has an effect and a tier above 0, onto one ship, in
-	// sorted skill order. Applied counts the systems fitted, Skipped the nodes that
-	// asked for no ship effect.
+	// Every node of the tree, onto one ship, in sorted skill order. The two columns add
+	// to the nodes of the tree: Applied counts the systems the hull flies and Skipped
+	// every node the walk did not fit - the laws, the lanes, the yards, the claims and
+	// the habitats, which are the civilisation's stores and not the hull's, the gates,
+	// which buy nothing, and the nodes the tree has bought no tier of, which buy nothing
+	// yet. The walk sets the caller's columns, and a fleet walk writes the columns of the
+	// fleet, which is the sum of the walks of its hulls.
 	bool ApplyProgression(
 	    EcsWorld &World, const ProgressionManager &Progression, const std::string &ShipId, unsigned &Applied,
 	    unsigned &Skipped, std::string &ErrorMessage);
 
 	// The same onto every ship of one operator - the way a technology reaches a fleet.
-	// An empty OperatorId asks for every ship.
+	// An empty OperatorId asks for every ship. The columns of a fleet walk are the
+	// fleet's: the walk writes them with the sum of the walks of the hulls, so a fleet of
+	// two hulls and a tree of nine nodes has eighteen node visits, and two hulls of one
+	// tree fly the same systems.
 	bool ApplyProgressionToWorld(
 	    EcsWorld &World, const ProgressionManager &Progression, const std::string &OperatorId, unsigned &Applied,
 	    unsigned &Skipped, std::string &ErrorMessage);
@@ -118,7 +133,13 @@ class ShipEffectEngine
 	// off, and recomputes every ship it touched.
 	unsigned UnfitSkill(EcsWorld &World, const std::string &SkillId, std::string &ErrorMessage);
 
-	// Takes one effect off one ship.
+	// Takes one effect off one ship, and leaves the base.
+	//
+	// A hull that does not carry the system is a hull already in the state this call
+	// leaves it, and the answer is true: the respec road calls this for every effect of
+	// a skill on every hull the skill reached, and a hull that never carried one of the
+	// systems is not a failure on the road. Taking a system off twice is taking it off
+	// once, and the hull reads the same numbers both times.
 	bool UnfitEffect(EcsWorld &World, const std::string &ShipId, const std::string &EffectId, std::string &ErrorMessage);
 
 	// The base plus every source on the ship, applied in sorted effect id order: the
@@ -129,13 +150,18 @@ class ShipEffectEngine
 	// Every ship in the world. Returns how many were rebuilt.
 	unsigned RecomputeAll(EcsWorld &World, std::string &ErrorMessage);
 
-	// The tier of one system on one ship: 0 when the hull does not carry it.
+	// The tier of one system on one ship: 0 when the hull does not carry it. A
+	// technology is knowledge and not a system, so a hull that flies a technique reads
+	// 0 for it and the source of it shows in SourcesOn.
 	int FittedTier(const EcsWorld &World, const std::string &ShipId, const std::string &EffectId) const;
 
-	// The systems a hull carries, in sorted effect id order.
+	// The systems a hull carries, in sorted effect id order: the systems a slot was
+	// spent on, which are the Skill effects and not the techniques the civilisation
+	// knows.
 	std::vector<std::string> FittedEffects(const EcsWorld &World, const std::string &ShipId) const;
 
-	// The sources on a ship, in sorted effect id order.
+	// The sources on a ship, in sorted effect id order: every effect that moves the
+	// hull, the systems in its slots and the technology of its operator alike.
 	std::vector<EffectSource> SourcesOn(const EcsWorld &World, const std::string &ShipId) const;
 
 	// The stat as the hull flies it: 0.0 when the hull has never had that stat.

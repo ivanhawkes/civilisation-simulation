@@ -142,12 +142,29 @@ class MarketplaceService
 	// and the fills come back best first.
 	std::vector<TradeFill> ExecuteOrder(EcsWorld &World, const OrderRequest &Order, std::string &ErrorMessage);
 
-	// Takes a resting order off the book and its goods and credits back to the trader.
+	// Takes a resting order off the book and gives its goods and its credits back to the
+	// trader. The venue does not refuse a cancel of an order that is not there: the target
+	// state of a cancel is that the order is gone, and the order that expired, the order
+	// that was cancelled and the order that was never posted are all gone, so the cancel
+	// of one of those is a no-op that says the book is clean. An order the book has traded
+	// is not the trader's to withdraw: the promise it kept is in the fill log, the log
+	// names the order by its number, and the venue answers the cancel of such a number
+	// with the number and the reason, because the goods the order reserved left the
+	// stockpile in the fill and a refund would pay the trader the cargo twice. An empty id
+	// names no order at all, which is a caller's error and not an order that is gone.
 	bool CancelOrder(EcsWorld &World, const std::string &OrderId, std::string &ErrorMessage);
 
 	// Trades every crossing pair at one venue, best price first, until no bid meets an
-	// ask. A post crosses its own book, and a cancel that lifts the best ask lets the
-	// asks behind it meet the bids. The fills come back in the order they traded.
+	// ask. A post crosses the book it landed on, and the venue keeps the book crossed
+	// down: a bid that meets an ask is traded at once, so the book's invariant is that
+	// the best bid is under the best ask, and a cancel, which takes an order out of a
+	// book, can only move the best bid down or the best ask up. A cancel that lifts the
+	// best ask therefore lets nothing meet: the pass runs, and the pass finds no pair,
+	// which is why a cancel is the trader's goods and credits back and not a trade. The
+	// pass is here because the invariant is a rule of this venue and not a law of
+	// arithmetic: a book that is opened with orders in it, a book whose fee floor moves,
+	// a book a caller has written by hand, all meet the pass, and the pass is the reason
+	// a caller never reads a book that crosses itself.
 	std::vector<TradeFill> MatchBook(EcsWorld &World, const std::string &MarketId, std::string &ErrorMessage);
 
 	// The book of one good at one venue, on one side, best price first and inside a
@@ -167,7 +184,10 @@ class MarketplaceService
 	// left behind: the last trade, its tick, the volume ever traded.
 	bool RefreshQuotes(EcsWorld &World, const std::string &MarketId, std::string &ErrorMessage);
 
-	// The table as RefreshQuotes left it, one quote per good, sorted by item id.
+	// The table as RefreshQuotes left it, one quote per good, sorted by item id. A good
+	// enters the table when it is first quoted and never leaves it: the venue has seen it,
+	// and its row keeps the numbers of the last trade beside a book that has no orders
+	// left in it, which is what a screen shows beside a good that just traded.
 	std::vector<MarketQuote> Quotes(const EcsWorld &World, const std::string &MarketId) const;
 
 	// One good: null when the venue has no quote table, or none for that good.
@@ -277,8 +297,10 @@ class MarketplaceService
 	    EcsWorld &World, const OrderRequest &Order, const std::string &MarketId, std::string &OrderId,
 	    std::string &ErrorMessage);
 
-	// The crossing pass, writing the fills into the caller's log: a post crosses the
-	// book it landed on and a cancel lets the orders behind a lifted price meet.
+	// The crossing pass, writing the fills into the caller's log: a post crosses the book
+	// it landed on, and the pass runs after a cancel, where it finds a book that is
+	// already crossed down and trades nothing, because taking the top of a side away moves
+	// that side's best price away from the other side, not towards it.
 	bool MatchInto(
 	    EcsWorld &World, const std::string &MarketId, std::vector<TradeFill> &FillLog, std::string &ErrorMessage);
 
@@ -305,15 +327,24 @@ class MarketplaceService
 
 	// One pair of orders meeting: the fill, the settlement, the venue's take, the log.
 	// False, and nothing written, when the pair cannot trade a whole unit. The maker is
-	// the order that was resting, and it sets the price of the fill.
+	// the order that was resting, and it sets the price of the fill. The fill spends the
+	// reservations the venue holds - the cargo out of the seller's order, the money out of
+	// the buyer's pocket - and hands the goods over; what is left of either is what the
+	// order gives back when it leaves the book, so the fill never charges a buyer twice.
 	bool FillPair(
 	    EcsWorld &World, const std::string &MarketId, EcsWorld::Entity Maker, EcsWorld::Entity Taker,
 	    std::vector<TradeFill> &FillLog, std::string &ErrorMessage);
 
-	// A trader's side of the settlement: the money, and the goods.
+	// A trader's side of the settlement: the money, and the goods. The money a buyer pays
+	// comes out of the pocket the venue put it in when the order posted, which is the
+	// order's reservation, and out of the treasury only at a venue that let the order post
+	// without money: the treasury was charged at the post and is credited back what the
+	// fill did not spend, so a fill never charges a buyer twice. The seller is paid its
+	// gross less the fee of its side, and the cargo it promised left its stockpile at the
+	// post and is handed over out of the order.
 	bool SettleParty(
 	    EcsWorld &World, const std::string &CivilisationId, const std::string &ItemId, double Quantity, long long Gross,
-	    long long Fee, bool Buys, std::string &ErrorMessage);
+	    long long Fee, long long &OrderCredits, bool Buys, std::string &ErrorMessage);
 
 	MarketplaceOptions options;
 };

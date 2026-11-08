@@ -48,6 +48,14 @@ class EcsWorld
 
 	// A new entity under "Prefix-n", n counting up from 1 and never reused: an order
 	// keeps the number it was posted with, and a fill names the order it filled.
+	//
+	// The count is the world's, not the prefix's: "Order-1", "Order-2" and then
+	// "Ship-3" is one numbering series, because a fill log that names an entity by its
+	// id reads one clock, not six. A number is spent for the world, and Create spends
+	// the number an id it is given names: a world that has held an "Order-3" never
+	// hands out "Order-3" again, and Clear, which empties the world, leaves the
+	// numbers spent - the id of an order that filled and left the book is the id a
+	// fill log quotes, and a number that came back would quote two orders.
 	std::string NextId(const std::string &Prefix);
 
 	// Destroys an entity and every component on it. Fails when the id is unknown,
@@ -143,8 +151,15 @@ class EcsWorld
 	}
 
   private:
+	// The high water mark of the numbers spent under one prefix, "Order" -> 3. The
+	// count NextId hands out is one clock, and this is the book of numbers a prefix has
+	// already worn, which is what makes an id that arrived through Create a spent number
+	// as much as an id NextId handed out.
+	static void SpendNumericSuffix(std::map<std::string, unsigned> &Spent, const std::string &Id);
+
 	entt::registry registry;
 	std::map<std::string, Entity> entities;
+	std::map<std::string, unsigned> spent;
 	unsigned idCounter{0};
 };
 

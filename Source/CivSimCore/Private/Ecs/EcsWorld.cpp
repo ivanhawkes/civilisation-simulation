@@ -1,12 +1,68 @@
 #include "Ecs/EcsWorld.h"
+#include <charconv>
+#include <cstddef>
 #include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
 
-
 namespace CivSimCore
 {
+namespace
+{
+// The prefix and the number of an id that spells "prefix-number": "Order-7" is the
+// seventh number of the Order prefix, "Station-Civ-01" is the first number of the
+// Station-Civ prefix. An id that spells no number - "Trader:ShieldFront", the source
+// entity of one system on one hull - has no number to spend, and the answer is an
+// empty prefix and no number.
+std::pair<std::string, unsigned> NumericSuffix(const std::string &Id)
+{
+	const std::string::size_type dash = Id.rfind('-');
+
+	if (dash == std::string::npos || dash + 1u >= Id.size() || dash == 0u)
+	{
+		return {};
+	}
+
+	const std::string tail = Id.substr(dash + 1u);
+
+	// The number is every character of the tail, and short enough to count in an
+	// unsigned: "Order-1", "Order-007", "Ship-12", and not "Order-1st", not
+	// "Civ-01:Lanes-Civ-01:Convoy", whose tail carries the id of the store it lands on.
+	if (tail.size() > 9u || tail.find_first_not_of("0123456789") != std::string::npos)
+	{
+		return {};
+	}
+
+	unsigned value = 0;
+	const std::from_chars_result parsed = std::from_chars(tail.data(), tail.data() + tail.size(), value);
+
+	if (parsed.ec != std::errc{} || parsed.ptr != tail.data() + tail.size())
+	{
+		return {};
+	}
+
+	return {Id.substr(0, dash), value};
+}
+} // namespace
+
+
+void EcsWorld::SpendNumericSuffix(std::map<std::string, unsigned> &Spent, const std::string &Id)
+{
+	const auto [prefix, number] = NumericSuffix(Id);
+
+	if (prefix.empty())
+	{
+		return;
+	}
+
+	const auto entry = Spent.find(prefix);
+
+	if (entry == Spent.end() || number > entry->second)
+	{
+		Spent[prefix] = number;
+	}
+}
 bool EcsWorld::Create(const std::string &Id, std::string &ErrorMessage)
 {
 	Entity created = Null;
@@ -34,6 +90,7 @@ bool EcsWorld::Create(const std::string &Id, Entity &Created, std::string &Error
 	Created = registry.create();
 	registry.emplace<EntityId>(Created, EntityId{Id});
 	entities[Id] = Created;
+	SpendNumericSuffix(spent, Id);
 
 	return true;
 }
@@ -46,8 +103,23 @@ std::string EcsWorld::NextId(const std::string &Prefix)
 	// number after the order has filled and left the book. Ids sort as strings, which
 	// puts "Order-10" before "Order-7"; the order of a fill is the tick and the price,
 	// never the id, so the reading is the same and the number stays unique.
+	//
+	// The count is the world's one clock, and it is raised to the numbers this prefix
+	// has already worn, which are the numbers of the orders and the stations the world
+	// was given by name: a world that holds "Order-3" hands out "Order-4", and the
+	// "Civ-01" of a generated solar system spends no order number at all, because the
+	// numbers of a prefix are its own.
+	const auto entry = spent.find(Prefix);
+
+	if (entry != spent.end() && entry->second > idCounter)
+	{
+		idCounter = entry->second;
+	}
+
 	std::ostringstream out;
 	out << Prefix << '-' << ++idCounter;
+
+	spent[Prefix] = idCounter;
 
 	return out.str();
 }

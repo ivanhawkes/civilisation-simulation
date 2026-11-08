@@ -55,15 +55,24 @@ struct CivilisationEffectEngine
 	    EcsWorld &World, const std::string &CivilisationId, const SkillNode &Node, int Tier, bool &Bought,
 	    std::string &ErrorMessage) const;
 
-	// Every node of the tree with a civilisation effect and a tier above 0, in sorted
-	// skill order. Applied counts the effects written, Skipped the locked nodes, the
-	// gates and the ship systems.
+	// Every node of the tree with a civilisation effect, in sorted skill order. The two
+	// columns add to the nodes of the tree: Applied counts the effects the walk wrote and
+	// Skipped every node it did not write - the gate, which buys nothing, the ship
+	// systems, which the ship engine fits, and the nodes the tree has bought no tier of,
+	// which buy nothing yet. A walk that wrote nothing has applied 0 and skipped every
+	// node of the tree, and a walk of the same tiers twice writes the same numbers. The
+	// walk sets the caller's columns, and the ship engine writes them the same way; a
+	// walk of a fleet writes the columns of the fleet, which is the sum of the walks of
+	// its hulls.
 	bool ApplyProgression(
 	    EcsWorld &World, const ProgressionManager &Progression, const std::string &CivilisationId, unsigned &Applied,
 	    unsigned &Skipped, std::string &ErrorMessage) const;
 
 	// Takes every source of one skill off every civilisation store it touched, and
-	// rebuilds the stores: the respec road, half of it.
+	// rebuilds the stores: the respec road, half of it. Returns the sources taken off,
+	// counted as the ship engine counts them: a law that is law in two worlds is two
+	// sources, one at each venue the law lands on, and the road that takes the law off
+	// takes both of them and returns 2.
 	unsigned UnapplySkill(EcsWorld &World, const std::string &SkillId, std::string &ErrorMessage) const;
 
 	// The shared stores, one per civilisation, created on the first effect that needs
@@ -84,10 +93,17 @@ struct CivilisationEffectEngine
 	std::map<EffectStat, double> YardStatsOf(const EcsWorld &World, const std::string &CivilisationId) const;
 
 	// One stat of one store, 0.0 when the store has never seen it: the number a
-	// marketplace prices its fee by.
+	// marketplace prices its fee by. The store is named by its own id - the venue's body
+	// id for a market, a body id for a world, LaneStoreId, SurveyStoreId and YardStoreId
+	// for the three stores a civilisation buys once for itself - and not by the
+	// civilisation, because the venue of a world is the world, and a caller that has the
+	// store in hand has the id of the store, not the id of the civilisation that owns it.
 	double ReadStat(const EcsWorld &World, EffectDomain Domain, const std::string &StoreId, EffectStat Stat) const;
 
-	// The effects a civilisation has bought, as lines for the UI: one per store it owns.
+	// The effects a civilisation has bought, as lines for the UI: one per store it
+	// owns. A civilisation that owns no venue, no world and has never bought a lane, a
+	// survey or a yard has no store to read and no line, and the answer is the empty
+	// string: a read-out of a civilisation the world has never heard of prints nothing.
 	std::string DescribeCivilisation(const EcsWorld &World, const std::string &CivilisationId) const;
 
   private:

@@ -532,3 +532,141 @@ AI will be utilised in research, ideation, writing specifications, requirements 
 I have 45 years of development experience from micro-controllers through to security and devops for highly available high traffic websites. 
 
 At this point in time it would be utterly foolish to create software without support from AI models. In the hands of a skilled and experienced developer it is an incredible force multiplier.
+
+## Marketplace recovery work in progress
+
+Crash checkpoints `39a5a15` and `c52da5f` ("Crashed while adding new ECS parts",
+deliberately broken builds) added EnTT, the ECS layer, the effects engines and the
+marketplace with their tests. The work is being finished in the working tree on
+`feature-scaffold`; nothing is committed yet.
+
+### State at the time of writing
+
+| Test | Status |
+| --- | --- |
+| ConfigTests, UniverseTests, ProgressionTests, SimulationTests, EcsTests, EffectTests, DataTests | passing |
+| MarketplaceTests | 2 cases failing, then a segfault in a later case; `ctest` reports 7/8 |
+
+Working tree (all uncommitted): `Source/CivSimCore/Private/{Ecs/EcsWorld,Effects/CivilisationEffects,Effects/ShipEffectEngine,Market/Marketplace}.cpp`,
+the matching `Public/` headers, `Tests/EffectTests.cpp`, `Tests/MarketplaceTests.cpp`.
+
+Commands used throughout:
+
+```sh
+# build + the marketplace suite in detail (stdbuf is needed: stdout is lost on a segfault)
+cd build && cmake --build . 2>&1 | grep -E "warning:|error" | head
+./MarketplaceTests >/dev/null 2>&1; echo "exit=$?"      # 139 = segfault
+stdbuf -o0 -e0 ./MarketplaceTests 2>&1 | grep -E "FAIL|checks,|cases" | head -20
+
+# the whole suite, then the pre-merge format gate from .config/wt.toml
+ctest --test-dir build --output-on-failure
+find Source Tests \( -name '*.h' -o -name '*.hpp' -o -name '*.cpp' \) -print0 \
+  | xargs -0 -r clang-format --dry-run -Werror
+```
+
+Rules already implemented and validated in this session (do not re-litigate them, they
+are the reason the tests read the way they do now):
+
+- ECS: id numbers are spent facts. `Create` spends numeric suffixes of ids given by
+  name; `NextId` raises the global counter to the per-prefix high-water mark. `Clear`
+  leaves numbers spent, so a fill log can never quote two orders by one number.
+- Progression walks *set* the caller's `Applied`/`Skipped`; a fleet walk is the sum of
+  its hull walks. `tier <= 0` counts in neither column for the civilisation engine.
+- Ship engine: Skill effects are fitted systems, Technology effects are sources only;
+  `UnfitEffect` of a system the hull never carried is a successful no-op.
+- Marketplace: seller goods are reserved into the order at post, buyer credits are
+  reserved at post at the limit price plus fee; a fill spends the order's own pocket
+  first and the treasury only pays the remainder, so no buyer is charged twice.
+- A cancel cannot create a trade: the book's invariant is best bid under best ask, so
+  taking the top bid away moves it further from the ask. A cancel is settled money.
+- `CancelOrder` is idempotent for an order that is gone (expired, cancelled, never
+  posted) and refuses an order named in a venue's fill log, because that cargo already
+  left the stockpile. An empty id is a caller error.
+- Quote rows persist: a good that has entered the quote table never leaves it.
+  `askOrders`/`bidOrders` count orders *at the best price level* (`CountAtLevel`), not
+  the whole side.
+- Venue deck (`DepthUnits`) = `options.depthUnits` plus the market store's
+  `MarketDepth` effect; 0 means no cap.
+- Fees: base listing fee plus venue risk; fee per side, rounded up to whole credits.
+  Test worlds with no effects have risk premium 0, so 40 bps on gross 100 is 1 credit.
+
+### Remaining work
+
+- [ ] `a_market_effect_moves_the_charge_of_the_venue_it_lands_on` (starts
+  `Tests/MarketplaceTests.cpp:1006`). Four checks fail:
+  - [ ] Line 1092 `ReadStat(..., MarketFenceShare) == 0.45` prints "0.45 vs 0.45": a
+    float/double exactness problem. Confirm `MarketFenceShare` accumulates as a `double`
+    (0.15 per tier, not `0.15f`), and switch the test to `CHECK_NEAR(..., 1e-9)` for
+    fractional reads. Check `EffectTypes`/`CivilisationEffects` for any `float` in the
+    accumulation path.
+  - [ ] Lines 1091, 1102, 1122 `RiskPremiumBps`: expected `-92+24 = -68`, got `-118`;
+    then `-68-24 = -92`, got `-142`; then `-92`, got `-142`. The venue is reading 50 bps
+    too much once `FencingNetwork` is applied, and the convoy term is not separating as
+    the test expects. Look at `MarketplaceService::RiskPremiumBps` in
+    `Source/CivSimCore/Private/Market/Marketplace.cpp`: it sums `MarketEffects` market
+    risk and `RouteEffects` route risk via
+    `CivilisationEffectEngine::LaneStoreId(civilisationId)`. Find where the extra 50
+    comes from (fence share priced as bps at 100 per share, most likely) and decide the
+    rule: the test says `MarketFenceShare` is a *fraction of cargo* (0.45), *not* a basis
+    point of the fee, so it must not enter `RiskPremiumBps` at all. Keep the convoy term
+    at -24 and the market term at -60-18-14.
+  - [ ] `InsuranceBps` clamp (line 1070, 1075-1078): the test expects 120 with
+    SafeHarbours applied, 0 after CargoInsurance tier 5 (-200), and 120/40/0 for the
+    un-effect-ed `Civ-02`. Verify these already pass; they were not in the FAIL list, so
+    they are believed good, but re-check them after the fence rule changes.
+  - [ ] Line 1122's neighbours: `SkillShipShieldsFront` must fail with a message
+    containing `ShipEffectEngine`, and `SkillShipShipyardsDrydock` must land on the yard
+    store (`YardDockThroughput == 1.0`). Confirm after the risk change.
+- [ ] `an_order_that_outlives_its_life_leaves_the_book` (starts line 1139). Two checks
+  fail:
+  - [ ] Line 1160 `first->expiresTick == 34`, got `30`, for an order placed at tick 10:
+    the venue order life is 20, the test wants 24. Find the order-life constant next to
+    `MarketplaceOptions`/`MarketplaceInfo` (`Source/CivSimCore/Public/Market/Marketplace.h`)
+    and set it to 24, with the comment "24 ticks, the berths a day needs". Check the
+    expiry tests that already pass (`the_deck_...`, `the_book_...`) for hard-coded
+    expiry ticks that assume 20 before changing it.
+  - [ ] Line 1162 `Credits(world, "Civ-02") == 798`, got `799`: the buy of 20 units at
+    10.0 reserves gross 200 plus the buyer's fee, and the test's 798 implies a 2-credit
+    fee where the code charges 1. Work the fee model through once: 40 bps of 200 = 8
+    credits of risk-free listing fee, rounded up. If the venue charges maker and taker on
+    a spot fill, the taker of a crossing post pays 8 and the maker 8. Reconcile 798 vs
+    799 with the fee rule recorded above (fee per side, rounded up, base 40 bps) and
+    decide which side is wrong; do not adjust the test to the code without checking the
+    arithmetic in the test's own comments.
+  - [ ] Later blocks of the case (AdvanceTick 33, then 34: `OpenOrderCount` 2 then 1,
+    `Credits` 798 then 1000, empty book, `OrdersOf` empty) and the rest of the file after
+    line 1180 have never executed. Expect new failures there on the first clean run.
+- [ ] Cases after line 1180 that have not been reached since the earlier crash:
+  - [ ] `the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue` (1239)
+  - [ ] `a_fill_trades_in_whole_units_of_the_price_and_the_fee` (1323)
+  - [ ] `a_marketplace_loads_the_world_the_generator_built` (1462)
+  - [ ] `the_same_posts_in_the_same_order_give_the_same_fills` (1634)
+  - [ ] The suite still segfaults part way through (`exit=139`) on a case after these
+    two. When it does, use `stdbuf -o0 -e0` to get the case names printed, then locate
+    the crash with ASan and gdb:
+    `clang++ -std=c++20 -g -O1 -fsanitize=address,undefined,leak -fno-sanitize-recover=all -w -ITests -ISource/CivSimCore/Public <includes> -o /tmp/mkt-asan Tests/MarketplaceTests.cpp build/libCivSimCore.a build/_deps/yaml-cpp-build/libyaml-cppd.a`
+    then `ASAN_OPTIONS=handle_segv=0 gdb -batch -ex run -ex 'bt 20' --args /tmp/mkt-asan`.
+    `python3` is not available; `perl` is. The historic crash at
+    `fills[2].makerOrderId` was an out-of-range read after a test expected a fill that
+    the book invariant forbids - suspect an out-of-range `fills[n]` first.
+- [ ] Re-run the suites that are believed green, because the source files they exercise
+  have all changed since: `EcsTests` (9 cases, 83 checks), `EffectTests` (8 cases, 933
+  checks), full `ctest` (8 targets).
+- [ ] Run the format gate last, after the code and test churn:
+  `clang-format --dry-run -Werror` over `*.h`, `*.hpp`, `*.cpp` in `Source` and `Tests`.
+  CI runs build, `ctest --test-dir build --output-on-failure` and format on
+  `ubuntu-24.04` (`.github/workflows/ci.yml`, `.config/wt.toml`); a merge needs all three.
+- [ ] Then commit. The two checkpoints are deliberately broken, so the recovery lands as
+  new commits on top of them; do not amend them.
+- [ ] Optional cleanups noted in passing, not required for green:
+  - [ ] `python3` is absent from this shell; `perl -0pi -e 's{...}{...}' file` is the
+    working tool for exact multi-line replacement of tab-indented C++ string literals
+    (`cat -A` shows the tabs). The `edit` tool matches fine when the tabs are copied
+    exactly, and `edits` must be a real JSON array of objects.
+  - [ ] `find build -name 'effect-catalogue.gen.h'` found nothing; confirm the generated
+    effect-catalogue header path in `CMakeLists.txt` is what the tests include.
+  - [ ] Delete scratch probes when done: `/tmp/walk-probe.cpp`, `/tmp/walk-probe2.cpp`,
+    `/tmp/probe.cpp`, `/tmp/dbg/`, `/tmp/scratch/`. They are outside the repo.
+  - [ ] `Tests/MarketplaceTests.cpp`'s `AddWorld` helper is now
+    `AddWorld(world, civ, planet, credits, cargo)` (24 call sites); the old
+    `service` parameter is gone - keep that shape.

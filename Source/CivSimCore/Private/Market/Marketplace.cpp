@@ -38,6 +38,27 @@ bool RestsFirst(const MarketOrderInfo &Left, const MarketOrderInfo &Right)
 
 // The units at the best price of one side of a book: the depth a quoter sees, which is
 // the size a marketable order can take before the price moves.
+// The units resting at the best price, and the number of the orders that quote it: the
+// screen that shows a price shows the size of the pile at it in units and in orders, and
+// the orders in the whole book are the pile below the best price, which is a number a
+// screen has no use for.
+unsigned CountAtLevel(const EcsWorld &World, const std::vector<EcsWorld::Entity> &Orders, double Price)
+{
+	unsigned count = 0;
+
+	for (const EcsWorld::Entity entity : Orders)
+	{
+		const MarketOrderInfo *info = World.Get<MarketOrderInfo>(entity);
+
+		if (info != nullptr && std::abs(info->limitPrice - Price) <= quantityEpsilon)
+		{
+			++count;
+		}
+	}
+
+	return count;
+}
+
 double DepthAtLevel(const EcsWorld &World, const std::vector<EcsWorld::Entity> &Orders, double Price)
 {
 	double depth = 0.0;
@@ -292,7 +313,16 @@ bool MarketplaceService::PostOrder(
 		return false;
 	}
 
-	if (Order.limitPrice <= 0.0)
+	if (Order.limitPrice < 0.0)
+	{
+		ErrorMessage = "Marketplace '" + Order.marketId + "': a limit price is never negative: a trader that would "
+		               "pay negative for a good, or be paid negative to part with one, has a venue's problem and not "
+		               "this book's";
+
+		return false;
+	}
+
+	if (Order.limitPrice == 0.0)
 	{
 		ErrorMessage = "Marketplace '" + Order.marketId + "': a resting order has to state a limit price; the order "
 		               "that walks the book is ExecuteOrder, and it names no price";
@@ -482,11 +512,58 @@ std::vector<TradeFill> MarketplaceService::ExecuteOrder(EcsWorld &World, const O
 
 bool MarketplaceService::CancelOrder(EcsWorld &World, const std::string &OrderId, std::string &ErrorMessage)
 {
+	// An empty id names no order at all, which is a caller's error and not an order that
+	// is gone: the venue answers it with a message, because a cancel posted with no id is
+	// a call that has nothing to take off the book.
+	if (OrderId.empty())
+	{
+		ErrorMessage = "Marketplace: the orderId is empty; a cancel is answered by the id of the "
+		               "order, and an id of nothing names no order";
+
+		return false;
+	}
+
 	const MarketOrderInfo *info = RequireOrder(World, OrderId, ErrorMessage);
 
 	if (info == nullptr)
 	{
-		return false;
+		// The order is not on the book. The venues keep the trades they have made in
+		// their records, oldest first and capped to a window, and a number that a log
+		// names is a number a book has traded: the promise the order kept is in the log,
+		// the goods it reserved left the stockpile in the fill, and a refund would pay
+		// the trader the cargo twice, so the venue refuses and names the number. A number
+		// the venues have never seen, or one that expired or was cancelled, is gone,
+		// which is the target state of a cancel, and the venue answers that with the
+		// answer that the book is clean.
+		for (const EcsWorld::Entity venueEntity : World.View<MarketRecord>())
+		{
+			const MarketRecord *record = World.Get<MarketRecord>(venueEntity);
+
+			if (record == nullptr)
+			{
+				continue;
+			}
+
+			for (const TradeFill &fill : record->fills)
+			{
+				if (fill.makerOrderId == OrderId || fill.takerOrderId == OrderId)
+				{
+					ErrorMessage =
+					    "Marketplace: the order '" + OrderId + "' is in the fill log of venue '" + fill.marketId + "': the order traded, its promise is in the log, its reserved goods left the stockpile in the fill, and a withdraw would pay the trader the cargo twice";
+
+					return false;
+				}
+			}
+		}
+
+		// The target state of a cancel is that the order is gone, and an order that
+		// expired, was cancelled, or was never posted is gone. A cancel that reports
+		// failure for an order that is already gone leaves the caller with a book it
+		// cannot clean, and the books of a tick are cleaned by cancelling what the venue
+		// listed.
+		ErrorMessage.clear();
+
+		return true;
 	}
 
 	const OrderAt *at = World.Get<OrderAt>(OrderId);
@@ -893,9 +970,25 @@ bool MarketplaceService::RefreshQuotes(EcsWorld &World, const std::string &Marke
 		record = *existing;
 	}
 
-	record.quotes.clear();
-
+	// The goods of the table the venue published keep their rows, traded or not: the
+	// venue has seen them, and the row of a good whose last order left the book is the row
+	// a screen shows beside a good nobody is quoting, at zero depth and with the numbers
+	// of the last trade beside it, which is what a market's list of goods is. A good whose
+	// last trade is in the record keeps its row even when the venue published no quote for
+	// it, because the price of the last trade is the number the UI prints beside it.
 	std::set<std::string> items;
+
+	for (const auto &entry : record.quotes)
+	{
+		items.insert(entry.first);
+	}
+
+	for (const auto &entry : record.volume)
+	{
+		items.insert(entry.first);
+	}
+
+	record.quotes.clear();
 
 	const auto view = World.View<MarketOrderInfo, OrderAt>();
 
@@ -908,14 +1001,6 @@ bool MarketplaceService::RefreshQuotes(EcsWorld &World, const std::string &Marke
 		{
 			items.insert(info->itemId);
 		}
-	}
-
-	for (const auto &entry : record.volume)
-	{
-		// A good whose last order left the book keeps its quote, at zero depth: the
-		// price of the last trade is the number the UI prints beside a good nobody is
-		// quoting, and a table that dropped it would print nothing.
-		items.insert(entry.first);
 	}
 
 	for (const auto &itemId : items)
@@ -931,7 +1016,7 @@ bool MarketplaceService::RefreshQuotes(EcsWorld &World, const std::string &Marke
 			const MarketOrderInfo *best = World.Get<MarketOrderInfo>(asks.front());
 
 			quote.bestAsk = best != nullptr ? best->limitPrice : 0.0;
-			quote.askOrders = static_cast<unsigned>(asks.size());
+			quote.askOrders = CountAtLevel(World, asks, quote.bestAsk);
 			quote.askDepth = DepthAtLevel(World, asks, quote.bestAsk);
 		}
 
@@ -940,7 +1025,7 @@ bool MarketplaceService::RefreshQuotes(EcsWorld &World, const std::string &Marke
 			const MarketOrderInfo *best = World.Get<MarketOrderInfo>(bids.front());
 
 			quote.bestBid = best != nullptr ? best->limitPrice : 0.0;
-			quote.bidOrders = static_cast<unsigned>(bids.size());
+			quote.bidOrders = CountAtLevel(World, bids, quote.bestBid);
 			quote.bidDepth = DepthAtLevel(World, bids, quote.bestBid);
 		}
 
@@ -1357,7 +1442,8 @@ std::string MarketplaceService::DescribeOrder(const EcsWorld &World, const std::
 
 	if (info == nullptr)
 	{
-		return "Order '" + OrderId + "': the world holds no such order - it filled, expired, was cancelled, or was never posted";
+		return "Order '" + OrderId + "': no order in the world by that name - it filled, expired, was cancelled, or "
+		       "was never posted";
 	}
 
 	const OrderAt *at = World.Get<OrderAt>(OrderId);
@@ -1504,7 +1590,8 @@ bool MarketplaceService::AddSatellite(
 	{
 		ErrorMessage = "MarketplaceService: the satellite '" + SatelliteId + "' orbits " +
 		               DescribeBodyKind(planet->kind) + " '" + PlanetBodyId +
-		               "'; only a planet has a market at the bottom of its well for a station to serve";
+		               "'; the station trade is the trade of the ships that come up a planet's gravity well, and a "
+		               "star has no market at the bottom of its";
 
 		return false;
 	}
@@ -1882,14 +1969,20 @@ bool MarketplaceService::FillPair(
 	// Each side pays the fee of its own side of the trade: the resting trader pays the
 	// maker's, the trader that came looking pays the taker's, and the venue is paid by
 	// both, because the berth and the deck are the venue's.
-	if (!SettleParty(World, buyerId, itemId, quantity, gross, buyerId == makerOwner->civilisationId ? makerFee : takerFee,
-	                 true, ErrorMessage))
+	// Each side pays the fee of its own side of the trade: the resting trader pays the
+	// maker's, the trader that came looking pays the taker's, and the venue is paid by
+	// both, because the berth and the deck are the venue's. The buyer's money comes out
+	// of the pocket its order holds, and the seller's proceeds go to its treasury.
+	if (!SettleParty(
+	    World, buyerId, itemId, quantity, gross, buyerId == makerOwner->civilisationId ? makerFee : takerFee,
+	    buyOrder->reservedCredits, true, ErrorMessage))
 	{
 		return false;
 	}
 
-	if (!SettleParty(World, sellerId, itemId, quantity, gross, sellerId == makerOwner->civilisationId ? makerFee : takerFee,
-	                 false, ErrorMessage))
+	if (!SettleParty(
+	    World, sellerId, itemId, quantity, gross, sellerId == makerOwner->civilisationId ? makerFee : takerFee,
+	    sellOrder->reservedCredits, false, ErrorMessage))
 	{
 		return false;
 	}
@@ -1907,9 +2000,10 @@ bool MarketplaceService::FillPair(
 	sellOrder->reservedGoods = std::max(0.0, sellOrder->reservedGoods - quantity);
 	sellOrder->filled += quantity;
 
-	const long long spent = gross + (buyerId == makerOwner->civilisationId ? makerFee : takerFee);
-
-	buyOrder->reservedCredits = std::max<long long>(0, buyOrder->reservedCredits - spent);
+	// The buyer's pocket was spent by the settlement, at the price the fill traded at,
+	// which is never worse than the limit the pocket was priced at; the cargo left the
+	// seller's order the same way, and what is left of either is what the order gives
+	// back to its trader when it leaves the book.
 	buyOrder->filled += quantity;
 
 	venue->venueTake += makerFee + takerFee;
@@ -1987,7 +2081,7 @@ bool MarketplaceService::FillPair(
 
 bool MarketplaceService::SettleParty(
     EcsWorld &World, const std::string &CivilisationId, const std::string &ItemId, double Quantity, long long Gross,
-    long long Fee, bool Buys, std::string &ErrorMessage)
+    long long Fee, long long &OrderCredits, bool Buys, std::string &ErrorMessage)
 {
 	const EcsWorld::Entity trader = World.Find(CivilisationId);
 
@@ -2010,11 +2104,25 @@ bool MarketplaceService::SettleParty(
 
 	if (Buys)
 	{
-		treasury->credits -= Gross + Fee;
+		const long long bill = Gross + Fee;
+
+		// The money a buy pays is the money the venue took out of the treasury when the
+		// order posted and put in the order, at the worst price the limit allows: the fill
+		// spends that pocket, and the treasury pays only what the pocket does not cover,
+		// which is nothing at a venue that requires funds. What is left of the pocket goes
+		// back to the treasury when the order leaves the book, and a trader that paid at
+		// the post is never charged a second time at the fill.
+		const long long fromOrder = bill < OrderCredits ? bill : OrderCredits;
+
+		OrderCredits -= fromOrder;
+		treasury->credits -= bill - fromOrder;
 		stock->units[ItemId] += Quantity;
 	}
 	else
 	{
+		// The seller's cargo left its stockpile at the post and is handed over out of the
+		// order it was posted in, and the proceeds of the sale arrive at its treasury,
+		// less the fee of its own side of the trade.
 		treasury->credits += Gross - Fee;
 	}
 

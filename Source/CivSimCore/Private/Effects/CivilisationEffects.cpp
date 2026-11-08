@@ -259,6 +259,13 @@ bool CivilisationEffectEngine::ApplyProgression(
     EcsWorld &World, const ProgressionManager &Progression, const std::string &CivilisationId, unsigned &Applied,
     unsigned &Skipped, std::string &ErrorMessage) const
 {
+	// The walk writes the caller's two columns: they are set, not added to, and a caller
+	// that arrives with a number in hand is told what this walk did, not what the last
+	// walk did. The ship engine writes the same way, and a walk of a fleet writes the
+	// columns of the fleet, which is the sum of the walks of its hulls.
+	Applied = 0;
+	Skipped = 0;
+
 	if (CivilisationId.empty())
 	{
 		ErrorMessage = "CivilisationEffectEngine: the civilisationId is empty";
@@ -271,6 +278,13 @@ bool CivilisationEffectEngine::ApplyProgression(
 		const SkillNode &node = entry.second;
 		const int tier = Progression.GetCurrentTier(node.skillId);
 
+		// A node the tree has bought no tier of buys nothing, and the walk walked past
+		// it: the node is of the tree, the store flies no effect for it, and the count of
+		// the nodes the walk did not write counts it. The two columns add to the nodes of
+		// the tree, on a hull and in a civilisation store alike, which is the reading a UI
+		// shows: the tree has nine nodes, the venue bought five of them, and the four it
+		// did not are the gate, the system of the hull and the two nodes no tier has
+		// reached.
 		if (tier <= 0)
 		{
 			++Skipped;
@@ -351,59 +365,55 @@ unsigned CivilisationEffectEngine::UnapplySkill(EcsWorld &World, const std::stri
 
 std::map<EffectStat, double> CivilisationEffectEngine::MarketStatsOf(const EcsWorld &World, const std::string &VenueBodyId) const
 {
-	const MarketEffects *effects = World.Get<MarketEffects>(VenueBodyId);
-
-	return effects != nullptr ? effects->values : std::map<EffectStat, double>{};
+	return StoreStats<MarketEffects>(World, VenueBodyId);
 }
 
 
 std::map<EffectStat, double> CivilisationEffectEngine::BodyStatsOf(const EcsWorld &World, const std::string &BodyId) const
 {
-	const BodyEffects *effects = World.Get<BodyEffects>(BodyId);
-
-	return effects != nullptr ? effects->values : std::map<EffectStat, double>{};
+	return StoreStats<BodyEffects>(World, BodyId);
 }
 
 
 std::map<EffectStat, double> CivilisationEffectEngine::RouteStatsOf(const EcsWorld &World, const std::string &CivilisationId) const
 {
-	const RouteEffects *effects = World.Get<RouteEffects>(LaneStoreId(CivilisationId));
-
-	return effects != nullptr ? effects->values : std::map<EffectStat, double>{};
+	return StoreStats<RouteEffects>(World, LaneStoreId(CivilisationId));
 }
 
 
 std::map<EffectStat, double> CivilisationEffectEngine::SurveyStatsOf(const EcsWorld &World, const std::string &CivilisationId) const
 {
-	const SurveyEffects *effects = World.Get<SurveyEffects>(SurveyStoreId(CivilisationId));
-
-	return effects != nullptr ? effects->values : std::map<EffectStat, double>{};
+	return StoreStats<SurveyEffects>(World, SurveyStoreId(CivilisationId));
 }
 
 
 std::map<EffectStat, double> CivilisationEffectEngine::YardStatsOf(const EcsWorld &World, const std::string &CivilisationId) const
 {
-	const YardEffects *effects = World.Get<YardEffects>(YardStoreId(CivilisationId));
-
-	return effects != nullptr ? effects->values : std::map<EffectStat, double>{};
+	return StoreStats<YardEffects>(World, YardStoreId(CivilisationId));
 }
 
 
 double CivilisationEffectEngine::ReadStat(
     const EcsWorld &World, EffectDomain Domain, const std::string &StoreId, EffectStat Stat) const
 {
+	// The store named by its own id, read as the store's component: the three shared
+	// stores are read through the StatsOf helpers, which spell the store id from the
+	// civilisation, and a caller that arrives with the store id in hand - a marketplace
+	// pricing the fee of its own venue - has the store, not the civilisation, and reads
+	// it directly. Spelling the store id twice would read a store that does not exist,
+	// and 0.0 is the answer a missing store gives.
 	switch (Domain)
 	{
 	case EffectDomain::Market:
-		return ReadEffectStat(MarketStatsOf(World, StoreId), Stat);
+		return ReadEffectStat(StoreStats<MarketEffects>(World, StoreId), Stat);
 	case EffectDomain::Body:
-		return ReadEffectStat(BodyStatsOf(World, StoreId), Stat);
+		return ReadEffectStat(StoreStats<BodyEffects>(World, StoreId), Stat);
 	case EffectDomain::Route:
-		return ReadEffectStat(RouteStatsOf(World, StoreId), Stat);
+		return ReadEffectStat(StoreStats<RouteEffects>(World, StoreId), Stat);
 	case EffectDomain::Survey:
-		return ReadEffectStat(SurveyStatsOf(World, StoreId), Stat);
+		return ReadEffectStat(StoreStats<SurveyEffects>(World, StoreId), Stat);
 	case EffectDomain::Yard:
-		return ReadEffectStat(YardStatsOf(World, StoreId), Stat);
+		return ReadEffectStat(StoreStats<YardEffects>(World, StoreId), Stat);
 	case EffectDomain::Ship:
 		// A ship stat is a hull's, not a civilisation store's, and the hull answers
 		// through ShipEffectEngine::GetStat.
@@ -416,37 +426,66 @@ double CivilisationEffectEngine::ReadStat(
 
 std::string CivilisationEffectEngine::DescribeCivilisation(const EcsWorld &World, const std::string &CivilisationId) const
 {
+	const std::vector<std::string> markets = MarketsOf(World, CivilisationId);
+	const std::vector<std::string> bodies = BodiesOf(World, CivilisationId);
+	const std::string lanes = LaneStoreId(CivilisationId);
+	const std::string survey = SurveyStoreId(CivilisationId);
+	const std::string yards = YardStoreId(CivilisationId);
+
+	// The stores the civilisation owns: the venues it has opened and the worlds it has
+	// made, and the three shared stores it has bought an effect of - a lane, a survey
+	// and a yard store exists because an effect of that domain landed on it, and a
+	// civilisation that has bought no route effect has no lane store.
+	const std::size_t owned = markets.size() + bodies.size() + static_cast<std::size_t>(World.Has(lanes)) +
+	                          static_cast<std::size_t>(World.Has(survey)) + static_cast<std::size_t>(World.Has(yards));
+
+	// A civilisation with no store has nothing to read out, and the read-out of a
+	// civilisation the world has never heard of prints nothing: a UI that asks for a
+	// world that is not there is shown an empty panel, not a panel that says "no route
+	// effects bought" three times.
+	if (owned == 0u)
+	{
+		return {};
+	}
+
 	std::ostringstream out;
 
 	out << "Civilisation " << CivilisationId << "\n";
 
-	for (const auto &venue : MarketsOf(World, CivilisationId))
+	for (const auto &venue : markets)
 	{
 		const std::string stats = DescribeEffectStats(MarketStatsOf(World, venue));
 
 		out << "  Market " << venue << ": " << (stats.empty() ? "no market effects bought" : stats) << "\n";
 	}
 
-	for (const auto &body : BodiesOf(World, CivilisationId))
+	for (const auto &body : bodies)
 	{
 		const std::string stats = DescribeEffectStats(BodyStatsOf(World, body));
 
 		out << "  Body " << body << ": " << (stats.empty() ? "no body effects bought" : stats) << "\n";
 	}
 
-	const std::string lanes = DescribeEffectStats(RouteStatsOf(World, CivilisationId));
+	if (World.Has(lanes))
+	{
+		const std::string stats = DescribeEffectStats(RouteStatsOf(World, CivilisationId));
 
-	out << "  Lanes " << LaneStoreId(CivilisationId) << ": " << (lanes.empty() ? "no route effects bought" : lanes)
-	    << "\n";
+		out << "  Lanes " << lanes << ": " << (stats.empty() ? "no route effects bought" : stats) << "\n";
+	}
 
-	const std::string survey = DescribeEffectStats(SurveyStatsOf(World, CivilisationId));
+	if (World.Has(survey))
+	{
+		const std::string stats = DescribeEffectStats(SurveyStatsOf(World, CivilisationId));
 
-	out << "  Survey " << SurveyStoreId(CivilisationId) << ": "
-	    << (survey.empty() ? "no survey effects bought" : survey) << "\n";
+		out << "  Survey " << survey << ": " << (stats.empty() ? "no survey effects bought" : stats) << "\n";
+	}
 
-	const std::string yards = DescribeEffectStats(YardStatsOf(World, CivilisationId));
+	if (World.Has(yards))
+	{
+		const std::string stats = DescribeEffectStats(YardStatsOf(World, CivilisationId));
 
-	out << "  Yards " << YardStoreId(CivilisationId) << ": " << (yards.empty() ? "no yard effects bought" : yards);
+		out << "  Yards " << yards << ": " << (stats.empty() ? "no yard effects bought" : stats) << "\n";
+	}
 
 	return out.str();
 }

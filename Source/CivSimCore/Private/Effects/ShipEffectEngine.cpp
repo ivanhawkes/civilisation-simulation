@@ -292,13 +292,26 @@ bool ShipEffectEngine::Fit(
 		}
 	}
 
-	FittedSystem fitted;
-	fitted.skillId = SkillId;
-	fitted.displayName = definition->displayName;
-	fitted.origin = Origin;
-	fitted.tier = Tier;
+	// The systems a hull carries are the systems a slot was spent on. A technology is
+	// knowledge, and the hull flies a technique it has no frame for, so the technique
+	// never enters the list a yard refits and a UI prints under "Systems" - and a
+	// technique that lands on an effect the hull has fitted as a system takes the system
+	// off: the source is one per effect, the tier of it is now the technique's, and the
+	// slot the system spent is the hull's to spend again.
+	if (Origin == EffectOrigin::Skill)
+	{
+		FittedSystem fitted;
+		fitted.skillId = SkillId;
+		fitted.displayName = definition->displayName;
+		fitted.origin = Origin;
+		fitted.tier = Tier;
 
-	systems->fitted[EffectId] = fitted;
+		systems->fitted[EffectId] = fitted;
+	}
+	else
+	{
+		systems->fitted.erase(EffectId);
+	}
 
 	return Recompute(World, ShipId, ErrorMessage);
 }
@@ -358,6 +371,13 @@ bool ShipEffectEngine::ApplyProgression(
     EcsWorld &World, const ProgressionManager &Progression, const std::string &ShipId, unsigned &Applied,
     unsigned &Skipped, std::string &ErrorMessage)
 {
+	// The walk writes the caller's two columns: they are set, not added to, and a caller
+	// that arrives with a number in hand is told what this walk did, not what the last
+	// walk did. The fleet walk is the exception a fleet needs: a fleet is walked hull by
+	// hull, and the counts of the hulls are the count of the fleet.
+	Applied = 0;
+	Skipped = 0;
+
 	if (!HasShip(World, ShipId))
 	{
 		ErrorMessage = "ShipEffectEngine: '" + ShipId + "' is not a ship in this world";
@@ -372,6 +392,12 @@ bool ShipEffectEngine::ApplyProgression(
 		const SkillNode &node = entry.second;
 		const int tier = Progression.GetCurrentTier(node.skillId);
 
+		// A node the tree has bought no tier of buys nothing, and the walk walked past
+		// it: the node is of the tree, the hull flies no system for it, and the count of
+		// the nodes the walk did not fit counts it. The two columns add to the nodes of
+		// the tree, on a hull and in a civilisation store alike, which is the reading a UI
+		// shows: the tree has nine nodes, the hull flies one system, and the eight it does
+		// not are the eight the hull has no use for.
 		if (tier <= 0)
 		{
 			++Skipped;
@@ -418,10 +444,20 @@ bool ShipEffectEngine::ApplyProgressionToWorld(
 
 	for (const auto &shipId : ships)
 	{
-		if (!ApplyProgression(World, Progression, shipId, Applied, Skipped, ErrorMessage))
+		// The hull's walk writes the hull's numbers, and the fleet's columns add them up:
+		// a fleet of two hulls and a tree of nine nodes is eighteen node visits, the two
+		// hulls read the same tree and fly the same systems, and the reading a UI shows is
+		// one walk of the fleet, not a walk of the last hull of it.
+		unsigned hullApplied = 0u;
+		unsigned hullSkipped = 0u;
+
+		if (!ApplyProgression(World, Progression, shipId, hullApplied, hullSkipped, ErrorMessage))
 		{
 			return false;
 		}
+
+		Applied += hullApplied;
+		Skipped += hullSkipped;
 	}
 
 	return true;
@@ -513,14 +549,13 @@ bool ShipEffectEngine::UnfitEffect(
 
 	const std::string sourceId = SourceIdFor(ShipId, EffectId);
 
-	if (!World.Has(sourceId))
-	{
-		ErrorMessage = "Ship '" + ShipId + "': carries no system '" + EffectId + "' to take off";
-
-		return false;
-	}
-
-	if (!World.Destroy(sourceId, ErrorMessage))
+	// A system the hull does not carry is a system already off the hull, and taking it
+	// off again is a clean no-op: the respec road calls this for every effect of the
+	// skill, on every hull the skill reached, and a hull that never fitted one of its
+	// systems is no failure on the road. The rebuild runs either way, so the hull that
+	// carried the system and the hull that never did both read the base and what is left
+	// of the rest.
+	if (World.Has(sourceId) && !World.Destroy(sourceId, ErrorMessage))
 	{
 		return false;
 	}
