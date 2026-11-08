@@ -1905,8 +1905,16 @@ bool MarketplaceService::FillPair(
 	const std::string &sellerId = makerSells ? makerOwner->civilisationId : takerOwner->civilisationId;
 	const std::string &buyerId = makerSells ? takerOwner->civilisationId : makerOwner->civilisationId;
 
-	const EcsWorld::Entity sellerEntity = makerSells ? Maker : Taker;
-	const EcsWorld::Entity buyerEntity = makerSells ? Taker : Maker;
+	// The cargo and the money live on the trader, not on the order: a fill of a venue
+	// that requires neither stock nor funds - the game of promises, off by default -
+	// draws the stockpile of the seller and the treasury of the buyer, and it reads
+	// them where they are, through the ids the orders name, as SettleParty and
+	// RetireOrder read them. An order entity carries no Stockpile and no Treasury, so
+	// a lookup on the order answers null for both, and both branches below then set
+	// the quantity to nothing: the pair trades nothing and says nothing, at a venue
+	// that requires funds and stock never noticed, because the reservations cover it.
+	const EcsWorld::Entity sellerTrader = World.Find(sellerId);
+	const EcsWorld::Entity buyerTrader = World.Find(buyerId);
 
 	MarketOrderInfo *sellOrder = makerSells ? maker : taker;
 	MarketOrderInfo *buyOrder = makerSells ? taker : maker;
@@ -1935,7 +1943,7 @@ bool MarketplaceService::FillPair(
 	{
 		quantity = std::min(quantity, sellOrder->reservedGoods);
 	}
-	else if (const Stockpile *stock = World.Get<Stockpile>(sellerEntity))
+	else if (const Stockpile *stock = World.Get<Stockpile>(sellerTrader))
 	{
 		const auto holding = stock->units.find(itemId);
 		const double available = holding != stock->units.end() ? holding->second : 0.0;
@@ -1944,7 +1952,10 @@ bool MarketplaceService::FillPair(
 	}
 	else
 	{
-		quantity = 0.0;
+		ErrorMessage = "Marketplace '" + MarketId + "': the sell order '" + sellOrder->orderId +
+		               "' names '" + sellerId + "', which carries no Stockpile to spend on a fill";
+
+		return false;
 	}
 
 	// The credits: a buy order that posted under a venue that requires funds has the
@@ -1956,13 +1967,16 @@ bool MarketplaceService::FillPair(
 	{
 		quantity = std::min(quantity, AffordableQuantity(price, feeBps, buyOrder->reservedCredits));
 	}
-	else if (const Treasury *treasury = World.Get<Treasury>(buyerEntity))
+	else if (const Treasury *treasury = World.Get<Treasury>(buyerTrader))
 	{
 		quantity = std::min(quantity, AffordableQuantity(price, feeBps, treasury->credits));
 	}
 	else
 	{
-		quantity = 0.0;
+		ErrorMessage = "Marketplace '" + MarketId + "': the buy order '" + buyOrder->orderId +
+		               "' names '" + buyerId + "', which carries no Treasury to spend on a fill";
+
+		return false;
 	}
 
 	if (quantity <= quantityEpsilon)
@@ -2001,7 +2015,7 @@ bool MarketplaceService::FillPair(
 	// promises venue, and the goods are taken from where they are.
 	if (sellOrder->reservedGoods <= quantityEpsilon)
 	{
-		if (Stockpile *stock = World.Get<Stockpile>(sellerEntity))
+		if (Stockpile *stock = World.Get<Stockpile>(sellerTrader))
 		{
 			stock->units[itemId] -= quantity;
 		}

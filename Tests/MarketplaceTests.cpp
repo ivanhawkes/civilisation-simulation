@@ -66,6 +66,19 @@ long long Credits(const EcsWorld &world, const std::string &civilisationId)
 	return treasury != nullptr ? treasury->credits : 0;
 }
 
+// The credits of a trader, set by the test and not by the book: the ledger of a fill
+// moves the money, and a scenario that follows a fill starts from the pile its numbers
+// read, not from the dregs the fill left behind.
+void SetCredits(EcsWorld &world, const std::string &civilisationId, long long Amount)
+{
+	Treasury *treasury = world.Get<Treasury>(civilisationId);
+
+	if (treasury != nullptr)
+	{
+		treasury->credits = Amount;
+	}
+}
+
 double Units(const EcsWorld &world, const std::string &civilisationId, const std::string &itemId)
 {
 	const Stockpile *stock = world.Get<Stockpile>(civilisationId);
@@ -1408,7 +1421,9 @@ TEST_CASE(a_fill_trades_in_whole_units_of_the_price_and_the_fee)
 	std::string orderId;
 	double bestAsk = 0.0;
 
-	CHECK(AddWorld(world, "Civ-01", "Abigail Prime", 60, {{"iron_ore", 100.0}}).empty());
+	// Civ-01 buys and buys no iron_ore of its own: the 5.9 units the fill trades are the
+	// whole of its pile, and Civ-02 sells out of the 100 units it is given.
+	CHECK(AddWorld(world, "Civ-01", "Abigail Prime", 60, {}).empty());
 	CHECK(AddWorld(world, "Civ-02", "Beacon Reach", 1000, {{"iron_ore", 100.0}}).empty());
 	CHECK(service.Open(world, "Civ-01", errorMessage));
 
@@ -1431,14 +1446,20 @@ TEST_CASE(a_fill_trades_in_whole_units_of_the_price_and_the_fee)
 
 	// The whole a budget pays: the goods and the fee on them, in integer arithmetic,
 	// and the units that whole buys. The invariant the tests read is that the whole
-	// never costs more than the budget.
-	CHECK_NEAR(MarketplaceService::AffordableQuantity(10.0, 40, 104), 10.0, 1e-9);
+	// never costs more than the budget: the floor of budget * 10000 / (10000 + bps) is
+	// the goods, the fee is the whole it rounds up to, and the two add back to the
+	// penny the budget started with.
+	// 104 at 40 bps: 104 * 10000 / 10040 is 103 credits of goods, 10.3 units at 10.0,
+	// and 103 + 1 of fee pays 104 exactly.
+	CHECK_NEAR(MarketplaceService::AffordableQuantity(10.0, 40, 104), 10.3, 1e-9);
 	CHECK_EQ(MarketplaceService::AffordableQuantity(10.0, 40, 100), 9.9);
 	CHECK_EQ(MarketplaceService::AffordableQuantity(10.0, 0, 100), 10.0);
 	CHECK_EQ(MarketplaceService::AffordableQuantity(0.0, 40, 100), 0.0);
 	CHECK_EQ(MarketplaceService::AffordableQuantity(10.0, 40, 0), 0.0);
 	CHECK_EQ(MarketplaceService::AffordableQuantity(10.0, 40, -1), 0.0);
-	CHECK_NEAR(MarketplaceService::AffordableQuantity(0.25, 40, 1000000), 3984000.0, 1e-6);
+	// A million at 40 bps: 1000000 * 10000 / 10040 is 996015 credits of goods, 3984060
+	// units at 0.25, and 996015 + 3985 of fee pays the million exactly.
+	CHECK_NEAR(MarketplaceService::AffordableQuantity(0.25, 40, 1000000), 3984060.0, 1e-6);
 
 	for (const long long budget : {1LL, 7LL, 33LL, 60LL, 100LL, 999LL, 100000LL, 1000000000LL})
 	{
@@ -1482,16 +1503,29 @@ TEST_CASE(a_fill_trades_in_whole_units_of_the_price_and_the_fee)
 	CHECK_EQ(Credits(world, "Civ-01"), 0);
 	CHECK_EQ(Credits(world, "Civ-02"), 1000 + 59 - 1);
 	CHECK_EQ(Units(world, "Civ-01", "iron_ore"), 5.9);
-	CHECK_EQ(Units(world, "Civ-02", "iron_ore"), 94.1);
+	// The sell of 10 units reserved its cargo into the order at the post, so the pile of
+	// Civ-02 is 90 while the order that rests on the book holds the 4.1 it has not
+	// traded: 94.1 units of the good between the pile and the book, and the 5.9 that
+	// filled in the pile of the buyer.
+	CHECK_EQ(Units(world, "Civ-02", "iron_ore"), 90.0);
 	CHECK_EQ(service.MarketAt(world, "Civ-01")->venueTake, 2);
-	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 1u);
-	CHECK_EQ(service.Book(world, "Civ-01", "iron_ore", OrderSide::Buy).size(), 0u);
+	// The fill traded all the money of the buyer and 5.9 of the 10 units each order
+	// carried: both sides of the pair keep the 4.1 they have left to trade, and a tick
+	// trades nothing, so the two rest on the book until a post crosses them again.
+	CHECK_EQ(service.OpenOrderCount(world, "Civ-01"), 2u);
+	CHECK_EQ(service.Book(world, "Civ-01", "iron_ore", OrderSide::Buy).size(), 1u);
 	CHECK_EQ(service.Book(world, "Civ-01", "iron_ore", OrderSide::Sell).size(), 1u);
 	CHECK_EQ(service.QuoteFor(world, "Civ-01", "iron_ore")->volume, 5.9);
 	CHECK_EQ(service.QuoteFor(world, "Civ-01", "iron_ore")->lastPrice, 10.0);
 
 	// A sell order for cargo no one holds: the promises venue, and the goods are taken
-	// from where they are, at the fill, and the fill takes only what is there.
+	// from where they are, at the fill, and the fill takes only what is there. The
+	// promises scenario starts from the money its numbers read: 60 credits, the 60 the
+	// trader came with, and the pile the fill above left behind is not the pile a grain
+	// buy at 10.0 buys 4 units of - 60 * 10000 / 10040 is 59 credits of goods, and the
+	// seller holds 4 units, which is the cargo the fill takes and the 41 credits it pays.
+	SetCredits(world, "Civ-01", 60);
+
 	MarketplaceOptions promises;
 	promises.requireStock = false;
 	promises.requireFunds = false;

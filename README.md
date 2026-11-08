@@ -545,8 +545,8 @@ left as they are; the checkpoint commits are never amended.
 
 | Test | Status |
 | --- | --- |
-| ConfigTests, UniverseTests, ProgressionTests, SimulationTests, EcsTests, EffectTests, DataTests | passing (all 8 suites' other cases, 10 of 12 cases of `MarketplaceTests`) |
-| MarketplaceTests | 10 of 12 cases pass. `the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue` fails 2 checks, `a_fill_trades_in_whole_units_of_the_price_and_the_fee` fails 3 checks and then **segfaults** (`exit=139`); AddressSanitizer measures the crash at 1476's `fills[0]` read of the empty log and finds **no memory error of the library**; `ctest` reports 7/8 |
+| ConfigTests, UniverseTests, ProgressionTests, SimulationTests, EcsTests, EffectTests, DataTests | passing (the seven suites that are not `MarketplaceTests`, all their cases) |
+| MarketplaceTests | 11 of 12 cases pass: `1499 checks, 2 failures`, and **the suite no longer segfaults** (`exit=1`). `the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue` fails 2 checks; `ctest` reports 7/8 |
 
 The ECS, effects and marketplace code is committed on the branch at `35e3812`, which
 repaired the broken build of the checkpoints `39a5a15` and `c52da5f`. The venue-charge case
@@ -558,8 +558,9 @@ feature: `Source/CivSimCore/Private/{Ecs/EcsWorld,Effects/CivilisationEffects,Ef
 the matching `Public/` headers, `Tests/EffectTests.cpp`, `Tests/MarketplaceTests.cpp`.
 
 The line numbers the checklist quotes are as of `35e3812`. The venue-charge fix added 21
-lines to `Tests/MarketplaceTests.cpp`, the order-life case is 33 lines longer. The cases
-now start at 1160, 1316, 1400, 1539 and 1711, and the file is 1833 lines.
+lines to `Tests/MarketplaceTests.cpp`, the order-life case is 33 lines longer, the fill
+fix 34 more (the `SetCredits` helper and the ledger comments the moved lines need). The
+cases now start at 1173, 1329, 1413, 1573 and 1745, and the file is 1867 lines.
 
 Commands used throughout:
 
@@ -709,53 +710,72 @@ are the reason the tests read the way they do now):
     asserts that `Close` leaves `MarketEffects` where the tree put it, takes
     `MarketRecord` with it, and leaves the reopened venue reading its world's tree: base
     40 bps, charge 0.
-- [ ] Cases after line 1316 that have not been reached since the earlier crash:
-  - [ ] `the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue` (1316)
+- [ ] Cases after line 1329 that the crashes left unreached: three of the four are
+  green, and the one that fails is the first of them.
+  - [ ] `the_marketplace_reads_the_tree_of_the_civilisation_that_owns_the_venue` (1329)
     fails 2 checks, and they look like one cause: `InsuranceBps(world, "Civ-02")` is 0
-    where the case expects the 120 base (1365), and `DescribeCivilisation(world,
-    "Civ-01")` names no `CargoInsurance` (1396). `InsuranceBps` takes its base from the
+    where the case expects the 120 base (1378), and `DescribeCivilisation(world,
+    "Civ-01")` names no `CargoInsurance` (1409). `InsuranceBps` takes its base from the
     venue record - `venue != nullptr ? options.insuranceBps : 0` - so the venue of
     "Civ-02" is not open when the case reads it; and `DescribeCivilisation` prints the
     stores a civilisation owns, so read the order of `Open` and `Apply` in the case
     before touching the code. The sums the case asserts are the sums the venue-charge case
     now asserts, so read the two together.
-  - [ ] `a_fill_trades_in_whole_units_of_the_price_and_the_fee` (1400) fails 3 checks
-    (1435, 1441, 1476) and **segfaults** on the `fills[0]` read after `fills.size() == 1u`
-    came back 0: the historic pattern, an out-of-range read of an empty log, measured by
-    AddressSanitizer in the item below, so there is no memory bug to hunt for until the fill is
-    made to happen. The cause, in `FillPair`, is the next line; it is one cause, and it opens
-    the promises-venue case with it.
-    - `fills.size() == 1u` at 1476: **the cause is found, and it is in the code.** The case
-      opens its venue `requireFunds = false`, so a buy order posts with an empty pocket (the
-      case checks `reservedCredits == 0` and passes), and the fill is then meant to pay out
-      of the treasury - README: "a fill draws the money from the buyer's treasury and the
-      cargo from the seller's stockpile when the order has no reservation". In `FillPair`
-      the two lookups go to the **order entity**: `World.Get<Treasury>(buyerEntity)` and
-      `World.Get<Stockpile>(sellerEntity)`, where the entities are `Maker` and `Taker`, the
-      orders, named `Order-1` - so both return null, both branches set the quantity to
-      nothing, and the pair returns false with **no message**: the one return of `FillPair`
-      that leaves `ErrorMessage` untouched, which is how a probe read it. A venue that
-      requires funds and stock never notices, because the reservations cover it - which is
-      why every other fill case passes. The fix: both lookups go through `World.Find(buyerId)
-      ` and `World.Find(sellerId)`, as `SettleParty` and `RetireOrder` already do, in the
-      goods branch, the credits branch, and the promises tail a few lines below; and
-      `a_sell_order_that_demands_cargo_no_one_holds` (the promises venue, off by default) is
-      the second case this opens. The case's own numbers stand: `AffordableQuantity(10.0, 40,
-      60)` is `59 / 10.0` = **5.9** units, gross 59, 1 credit a side, the buyer's 60 credits
-      paid to nothing, `venueTake` 2 - the fill the case expects. Do not move the case's
-      lines for the fill; move the two round-number checks below, and take the segfault read
-      of `fills[0]` as read, not to fix.
-    - The two `AffordableQuantity` reads are round-number guesses in the test, and the
-      loop under them asserts only that the whole never costs more than the budget, which
-      the code's answers pass to the credit: at a budget of 104 the floor of
-      `Budget * 10000 / (10000 + bps)` is 103 credits of goods, **10.3** units at 10.0,
-      and 103 + 1 fee pays 104 exactly; at a budget of 1000000 it is 996015 credits of
-      goods, **3984060** units at 0.25, and 996015 + 3985 pays the million exactly. The
-      case says 10.0 and 3984000. The `CHECK_EQ(AffordableQuantity(10.0, 40, 100), 9.9)`
-      that passes is the same arithmetic (1000000/10040 = 99, 9.9 units), so do the
-      division on the two that fail and expect the test to move.
-  - [ ] `a_marketplace_loads_the_world_the_generator_built` (1539)
-  - [ ] `the_same_posts_in_the_same_order_give_the_same_fills` (1711)
+  - [x] `a_fill_trades_in_whole_units_of_the_price_and_the_fee` (`Tests/MarketplaceTests.cpp:1413`)
+    passes, and the segfault goes with it: the suite reports `12 cases`, `1499 checks,
+    2 failures` and `exit=1`, the 2 failures being the venue-tree case above. The cause the
+    list found in `FillPair` is the whole of the case, and it opens the promises block and
+    the water block after it.
+    - The code moved where the diagnosis put it. In `FillPair` the two lookups go through
+      `World.Find(buyerId)` and `World.Find(sellerId)` - `buyerTrader` and `sellerTrader`
+      now, with `sellerEntity` and `buyerEntity` gone and the comment that says why an
+      order answers null for a `Treasury` and a `Stockpile` - in the goods branch, the
+      credits branch and the promises tail, as `SettleParty` and `RetireOrder` already do.
+      A promises venue therefore draws the money of the buyer and the cargo of the seller
+      from the traders the orders name.
+    - The two `quantity = 0.0` `else` branches of those reads become a refusal with a
+      message - *the sell order 'Order-1' names 'Civ-03', which carries no Stockpile to
+      spend on a fill* - and the silent `return false` that left `ErrorMessage` untouched,
+      which is how the probe had to read it, is gone. A world whose trader carries no
+      component a fill settles in is a broken world and is answered as one; a trader that
+      has run out of the money the price is paid in is not that, `AffordableQuantity`
+      answers 0 for it, and the quantity test below still returns false in the book's own
+      reading.
+    - The fill's own numbers passed as written, exactly as the list said: 5.9 units
+      (`59 / 10.0`) at 10.0, gross 59, 1 credit a side, `venueTake` 2, the buyer's 60
+      credits paid to nothing, Civ-02 at `1000 + 59 - 1`.
+    - Three ledger lines of the block that had never run read a pile the case never gave
+      anyone, and they move; the fill's lines do not, and neither does the read of
+      `fills[0]`, which is the case's assertion of the fill and is not guarded:
+      - Civ-01 is the buyer, and `AddWorld` gave it 100 units of iron_ore, so the 5.9 the
+        fill trades read 105.9. The buyer of this case buys and holds nothing: its cargo is
+        `{}`, and the fill's 5.9 units is the whole of its pile.
+      - Civ-02 is at 90.0 and not 94.1: the sell reserved its 10 units into the order at
+        the post, the pile is 90, the order that rests holds the 4.1 it has not traded, and
+        94.1 is the good counted across the two, which is what the comment now says.
+      - `OpenOrderCount("Civ-01")` is 2 and the **buy** book is 1 row, not the 1 order and
+        0 rows the case guessed: the fill spent the buyer's whole 60 credits on 5.9 units,
+        each order of the pair keeps the 4.1 of the 10 it has left to trade, neither is
+        fulfilled, and a tick trades nothing, so both rest until a post crosses them again.
+    - The promises block and the water block run for the first time and their numbers are
+      the case's own, to the credit: 4 units of grain at 10.0, gross 40, 1 credit a side,
+      Civ-03 at `1000 + 40 - 1`, Civ-01 at `60 - 40 - 1` = 19, the promises seller's pile
+      taken to nothing and its order resting with 96 units to sell, and the water sell of a
+      seller who holds no water trading nothing at all, with the ask the quoter still reads
+      at 10.0. The block reads Civ-01 at 60 credits, and the iron_ore fill had left it at
+      nothing, so the case sets the treasury its numbers read, with a `SetCredits` helper
+      beside `Credits` and the comment that says why: a scenario that follows a fill starts
+      from the pile it names, not from the dregs the fill left behind.
+    - The two round-number `AffordableQuantity` guesses move to the division, as the list
+      said they would: **10.3** units at a budget of 104, and **3984060** units at a
+      million, each paying its budget exactly (103 goods + 1 fee; 996015 goods + 3985 fee),
+      which is the invariant the loop under them asserts: 8 budgets, 6 fee rates and 5
+      prices, 240 walks, and none of them needed a reading. The 9.9 that passed is the
+      same arithmetic.
+  - [x] `a_marketplace_loads_the_world_the_generator_built` (`Tests/MarketplaceTests.cpp:1573`)
+    and `the_same_posts_in_the_same_order_give_the_same_fills` (`Tests/MarketplaceTests.cpp:1745`)
+    pass. They were never reached after the fill case died, and they needed nothing: the
+    fill fix opened them and they were green the first time they ran.
   - [x] The suite's **segfault is located: it is the test's out-of-range read at the fill
     case, and the library is clean.** Built with AddressSanitizer alone, `MarketplaceTests`
     prints `MarketplaceTests: 12 cases`, runs, fails `Tests/MarketplaceTests.cpp:1476:
@@ -765,6 +785,8 @@ are the reason the tests read the way they do now):
     which is `fills[0]` on an empty log, the historic pattern, measured. No heap-buffer-overflow,
     no use-after-free, no leak report anywhere in the run. The crash therefore joins the fill
     case above and goes with its fix, and there is no memory bug of the library to hunt. The
+    **measured diagnosis was the whole of it: with the fill made to happen the suite exits 1,
+    not 139, and no guard was written for a read of a log the case asserts is not empty.** The
     recipe that measures it is worth keeping:
 
     ```sh
