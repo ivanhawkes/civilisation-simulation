@@ -17,15 +17,14 @@
     ninja
     pkg-config
 
-    # YAML
-    yq-go
-
     # Debugging
     llvmPackages_21.lldb
     gdb
     
-    # Coding agents
+    # Pi Coding Agent - simple, light, customise for the project.
     pi-coding-agent
+
+    # Bring worktrunk into the project.
     worktrunk
 
     # Clipboard
@@ -43,8 +42,11 @@
     ruff
     black
     mypy
-    python312Packages.pytest
-    python312Packages.ipython
+    python314Packages.pytest
+    python314Packages.ipython
+
+    # YAML
+    yq-go
   ];
 
   delta.enable = true;
@@ -53,7 +55,7 @@
 
   languages.python = {
     enable = true;
-    package = pkgs.python312;
+    package = pkgs.python314;
     venv.enable = true;
   };
 
