@@ -1,3 +1,6 @@
+# Keep environment files out.
+.env
+
 # CMake
 /build/
 /cmake-build-*/
