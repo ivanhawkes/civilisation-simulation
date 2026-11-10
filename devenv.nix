@@ -91,9 +91,4 @@
 
     wt step copy-ignored
   '';
-
-  tasks."project:init" = {
-    exec = "${pkgs.pnpm}/bin/pnpm install";
-    before = [ "devenv:enterShell" ];
-  };
 }

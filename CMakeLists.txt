@@ -142,22 +142,22 @@ endmacro()
 
 # ─── Core Library Definition ───
 add_library(CivSimCore STATIC
-    "${CIVSIM_CORE_DIR}/Private/Core/SimulationConfig.cpp"
-    "${CIVSIM_CORE_DIR}/Private/Core/Universe.cpp"
-    "${CIVSIM_CORE_DIR}/Private/Core/ProgressionManager.cpp"
-    "${CIVSIM_CORE_DIR}/Private/Core/Simulation.cpp"
-    "${CIVSIM_CORE_DIR}/Private/Ecs/EcsWorld.cpp"
-    "${CIVSIM_CORE_DIR}/Private/Ecs/Components.cpp"
-    "${CIVSIM_CORE_DIR}/Private/Effects/EffectTypes.cpp"
-    "${CIVSIM_CORE_DIR}/Private/Effects/EffectCatalogue.cpp"
-    "${CIVSIM_CORE_DIR}/Private/Effects/ShipEffectEngine.cpp"
-    "${CIVSIM_CORE_DIR}/Private/Effects/CivilisationEffects.cpp"
-    "${CIVSIM_CORE_DIR}/Private/Market/Marketplace.cpp"
+    "${CIVSIM_CORE_DIR}/src/Core/SimulationConfig.cpp"
+    "${CIVSIM_CORE_DIR}/src/Core/Universe.cpp"
+    "${CIVSIM_CORE_DIR}/src/Core/ProgressionManager.cpp"
+    "${CIVSIM_CORE_DIR}/src/Core/Simulation.cpp"
+    "${CIVSIM_CORE_DIR}/src/Ecs/EcsWorld.cpp"
+    "${CIVSIM_CORE_DIR}/src/Ecs/Components.cpp"
+    "${CIVSIM_CORE_DIR}/src/Effects/EffectTypes.cpp"
+    "${CIVSIM_CORE_DIR}/src/Effects/EffectCatalogue.cpp"
+    "${CIVSIM_CORE_DIR}/src/Effects/ShipEffectEngine.cpp"
+    "${CIVSIM_CORE_DIR}/src/Effects/CivilisationEffects.cpp"
+    "${CIVSIM_CORE_DIR}/src/Market/Marketplace.cpp"
 )
 
 target_include_directories(CivSimCore
     PUBLIC
-        "${CIVSIM_CORE_DIR}/Public"
+        "${CIVSIM_CORE_DIR}/include"
 )
 
 target_link_libraries(CivSimCore
@@ -175,8 +175,8 @@ apply_project_compiler_flags(CivSimCore)
 
 # ─── TUI Executable Definition ───
 add_executable(CivSimCoreTui
-    "${CIVSIM_CORE_DIR}/Private/Tui/CivSimTui.cpp"
-    "${CIVSIM_CORE_DIR}/Public/Tui/CivSimTui.h"
+    "${CIVSIM_CORE_DIR}/src/Tui/CivSimTui.cpp"
+    "${CIVSIM_CORE_DIR}/include/Tui/CivSimTui.h"
 )
 
 target_link_libraries(CivSimCoreTui 

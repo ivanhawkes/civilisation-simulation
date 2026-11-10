@@ -7,6 +7,17 @@ goods, needs the rest, and trades against the others through prices that follow 
 The design target is the trading element of games built on the
 [Space Truckers](https://github.com/ivanhawkes/space-truckers) framework.
 
+The engine is assembled primarily from open source libraries, each selected for fitness for
+purpose. The criteria are:
+
+- elegance
+- efficiency
+- modern C++ usage
+- interoperability
+- maintenance
+
+All attempts will be made to observe best practice.
+
 ## Goal
 
 A satisfying space trading element: worlds whose economies differ enough that a player
@@ -15,6 +26,52 @@ and a data set big enough to explore. The scope today is the core model and its
 configuration pipeline, the ECS store the universe is kept in, the two effects engines
 that land the skill tree on hulls and on civilisations, the marketplace that trades the
 goods of that universe, and a terminal front-end that drives the economy.
+
+## Cloning
+
+```
+git clone git@github.com:ivanhawkes/civilisation-simulation.git
+```
+
+## Building
+
+The provided `devenv.nix` supplies the toolchain: Clang, CMake 3.28+, Ninja, the Vulkan SDK
+pieces, `glslc` and the Wayland libraries.
+
+```bash
+cmake --preset clang-debug
+cmake --build --preset clang-debug
+
+# Run from the root folder.
+build/clang-debug/source/test/render_test
+```
+
+## Building
+
+The provided `devenv.nix` supplies the toolchain: Clang, CMake 3.28+, Ninja, the Vulkan SDK
+pieces, `glslc` and the Wayland libraries.
+
+```bash
+cmake --preset clang-debug
+cmake --build --preset clang-debug
+
+# Run from the root folder.
+build/clang-debug/source/test/render_test
+
+# The full gate: format, builds, tidy, headless render test on software Vulkan.
+./scripts/ci.sh --llvmpipe --werror
+```
+## Documentation
+
+Everything else is in [`docs/`](docs/README.md):
+
+- [Scope](docs/scope.md): what is in and out, and why
+- [Architecture](docs/architecture.md): layout, module dependencies, the simulation split,
+  coordinate frames
+- [Roadmap](docs/roadmap.md): the phases and a brief for every system
+- [Coding standards](docs/coding-standards.md)
+- [Build and gates](docs/build-and-gates.md)
+- [History](docs/history.md)
 
 ## Architecture
 
