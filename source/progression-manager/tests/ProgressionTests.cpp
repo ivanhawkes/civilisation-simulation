@@ -7,14 +7,14 @@
 
 namespace
 {
-CivSimCore::SkillNode MakeSkill(
+ManifestCore::SkillNode MakeSkill(
     const std::string &id, int maxTiers = 1, int cost = 1, const std::string &exclusive = {},
-    std::vector<CivSimCore::Prerequisite> prerequisites = {})
+    std::vector<ManifestCore::Prerequisite> prerequisites = {})
 {
-	CivSimCore::SkillNode node;
+	ManifestCore::SkillNode node;
 	node.skillId = id;
 	node.displayName = id;
-	node.nodeType = CivSimCore::NodeType::Skill;
+	node.nodeType = ManifestCore::NodeType::Skill;
 	node.maxTiers = maxTiers;
 	node.resourceCostPerTier = cost;
 	node.exclusiveGroupId = exclusive;
@@ -23,9 +23,9 @@ CivSimCore::SkillNode MakeSkill(
 	return node;
 }
 
-CivSimCore::Prerequisite Needs(const std::string &id, int tier = 1)
+ManifestCore::Prerequisite Needs(const std::string &id, int tier = 1)
 {
-	CivSimCore::Prerequisite prerequisite;
+	ManifestCore::Prerequisite prerequisite;
 	prerequisite.nodeId = id;
 	prerequisite.requiredTier = tier;
 
@@ -36,7 +36,7 @@ CivSimCore::Prerequisite Needs(const std::string &id, int tier = 1)
 
 TEST_CASE(register_rejects_broken_nodes)
 {
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
 	CHECK(!progression.RegisterNode(MakeSkill(""), errorMessage));
@@ -63,7 +63,7 @@ TEST_CASE(register_rejects_broken_nodes)
 
 TEST_CASE(build_reports_unknown_prerequisite)
 {
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
 	CHECK(
@@ -74,10 +74,10 @@ TEST_CASE(build_reports_unknown_prerequisite)
 
 TEST_CASE(build_detects_a_prerequisite_cycle)
 {
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
-	const CivSimCore::Skills nodes = {
+	const ManifestCore::Skills nodes = {
 	    MakeSkill("SkillSmelting", 3, 1, {}, {Needs("SkillMetalworking")}),
 	    MakeSkill("SkillMetalworking", 3, 1, {}, {Needs("SkillSmelting")}),
 	};
@@ -92,11 +92,11 @@ TEST_CASE(build_detects_a_prerequisite_cycle)
 
 TEST_CASE(build_rejects_a_tier_that_cannot_be_reached)
 {
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
 	// Smelting asks for tier 4 of Mining, which only reaches tier 2.
-	const CivSimCore::Skills nodes = {
+	const ManifestCore::Skills nodes = {
 	    MakeSkill("SkillMining", 2),
 	    MakeSkill("SkillSmelting", 3, 1, {}, {Needs("SkillMining", 4)}),
 	};
@@ -107,12 +107,12 @@ TEST_CASE(build_rejects_a_tier_that_cannot_be_reached)
 
 TEST_CASE(build_rejects_a_prerequisite_that_competes_with_its_node)
 {
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
 	// Pharmaceuticals requires Herbalism and competes with it in MedicinePath, so the
 	// branch can never be researched.
-	const CivSimCore::Skills nodes = {
+	const ManifestCore::Skills nodes = {
 	    MakeSkill("SkillHerbalism", 4, 1, "MedicinePath"),
 	    MakeSkill("SkillPharmaceuticals", 3, 1, "MedicinePath", {Needs("SkillHerbalism", 2)}),
 	};
@@ -124,30 +124,30 @@ TEST_CASE(build_rejects_a_prerequisite_that_competes_with_its_node)
 
 TEST_CASE(tiers_stop_at_maxTiers)
 {
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
 	CHECK(progression.Build({MakeSkill("SkillMining", 2, 1)}, errorMessage));
 	progression.SetResources(100);
 
 	CHECK_EQ(progression.GetCurrentTier("SkillMining"), 0);
-	CHECK_EQ(progression.TryUpgrade("SkillMining"), CivSimCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillMining"), ManifestCore::UpgradeResult::Success);
 	CHECK_EQ(progression.GetCurrentTier("SkillMining"), 1);
-	CHECK_EQ(progression.TryUpgrade("SkillMining"), CivSimCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillMining"), ManifestCore::UpgradeResult::Success);
 	CHECK_EQ(progression.GetCurrentTier("SkillMining"), 2);
-	CHECK_EQ(progression.TryUpgrade("SkillMining"), CivSimCore::UpgradeResult::MaxTier);
+	CHECK_EQ(progression.TryUpgrade("SkillMining"), ManifestCore::UpgradeResult::MaxTier);
 	CHECK_EQ(progression.GetCurrentTier("SkillMining"), 2);
 	CHECK_EQ(progression.GetMaxTiers("SkillMining"), 2);
 	CHECK_EQ(progression.GetMaxTiers("Nope"), 0);
-	CHECK_EQ(progression.TryUpgrade("Nope"), CivSimCore::UpgradeResult::UnknownNode);
+	CHECK_EQ(progression.TryUpgrade("Nope"), ManifestCore::UpgradeResult::UnknownNode);
 }
 
 TEST_CASE(prerequisites_gate_the_upgrade)
 {
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
-	const CivSimCore::Skills nodes = {
+	const ManifestCore::Skills nodes = {
 	    MakeSkill("SkillMining", 5, 1),
 	    MakeSkill("SkillSmelting", 4, 1, {}, {Needs("SkillMining", 2)}),
 	};
@@ -155,23 +155,23 @@ TEST_CASE(prerequisites_gate_the_upgrade)
 	CHECK(progression.Build(nodes, errorMessage));
 	progression.SetResources(100);
 
-	CHECK_EQ(progression.TryUpgrade("SkillSmelting"), CivSimCore::UpgradeResult::Prerequisites);
+	CHECK_EQ(progression.TryUpgrade("SkillSmelting"), ManifestCore::UpgradeResult::Prerequisites);
 	CHECK_CONTAINS(progression.UpgradeBlockReason("SkillSmelting"), "requires tier 2 of 'SkillMining'");
 
-	CHECK_EQ(progression.TryUpgrade("SkillMining"), CivSimCore::UpgradeResult::Success);
-	CHECK_EQ(progression.TryUpgrade("SkillSmelting"), CivSimCore::UpgradeResult::Prerequisites);
+	CHECK_EQ(progression.TryUpgrade("SkillMining"), ManifestCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillSmelting"), ManifestCore::UpgradeResult::Prerequisites);
 
-	CHECK_EQ(progression.TryUpgrade("SkillMining"), CivSimCore::UpgradeResult::Success);
-	CHECK_EQ(progression.TryUpgrade("SkillSmelting"), CivSimCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillMining"), ManifestCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillSmelting"), ManifestCore::UpgradeResult::Success);
 	CHECK_EQ(progression.GetCurrentTier("SkillSmelting"), 1);
 }
 
 TEST_CASE(exclusive_group_locks_out_the_rivals)
 {
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
-	const CivSimCore::Skills nodes = {
+	const ManifestCore::Skills nodes = {
 	    MakeSkill("SkillAgriculture", 5, 1),
 	    MakeSkill("SkillAnimalHusbandry", 4, 1, "FoodSourcePath", {Needs("SkillAgriculture")}),
 	    MakeSkill("SkillFoodProcessing", 4, 1, "FoodSourcePath", {Needs("SkillAgriculture")}),
@@ -180,34 +180,34 @@ TEST_CASE(exclusive_group_locks_out_the_rivals)
 	CHECK(progression.Build(nodes, errorMessage));
 	progression.SetResources(100);
 
-	CHECK_EQ(progression.TryUpgrade("SkillAgriculture"), CivSimCore::UpgradeResult::Success);
-	CHECK_EQ(progression.TryUpgrade("SkillAnimalHusbandry"), CivSimCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillAgriculture"), ManifestCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillAnimalHusbandry"), ManifestCore::UpgradeResult::Success);
 
 	CHECK(progression.IsGroupLocked("FoodSourcePath"));
 	CHECK(progression.IsNodeLockedOut("SkillFoodProcessing"));
-	CHECK_EQ(progression.TryUpgrade("SkillFoodProcessing"), CivSimCore::UpgradeResult::ExclusiveLock);
+	CHECK_EQ(progression.TryUpgrade("SkillFoodProcessing"), ManifestCore::UpgradeResult::ExclusiveLock);
 	CHECK_CONTAINS(progression.UpgradeBlockReason("SkillFoodProcessing"), "locked out");
 
 	// A node already unlocked keeps upgrading: only the first tier of a rival is blocked.
-	CHECK_EQ(progression.TryUpgrade("SkillAnimalHusbandry"), CivSimCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillAnimalHusbandry"), ManifestCore::UpgradeResult::Success);
 	CHECK_EQ(progression.GetCurrentTier("SkillAnimalHusbandry"), 2);
 	CHECK_EQ(progression.GetCurrentTier("SkillFoodProcessing"), 0);
 }
 
 TEST_CASE(resources_are_spent_and_needed)
 {
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
 	CHECK(progression.Build({MakeSkill("SkillMining", 5, 3)}, errorMessage));
 
 	progression.SetResources(2);
-	CHECK_EQ(progression.TryUpgrade("SkillMining"), CivSimCore::UpgradeResult::InsufficientResources);
+	CHECK_EQ(progression.TryUpgrade("SkillMining"), ManifestCore::UpgradeResult::InsufficientResources);
 	CHECK_EQ(progression.GetResources(), 2);
 	CHECK_CONTAINS(progression.UpgradeBlockReason("SkillMining"), "costs 3 resources");
 
 	progression.SetResources(7);
-	CHECK_EQ(progression.TryUpgrade("SkillMining"), CivSimCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillMining"), ManifestCore::UpgradeResult::Success);
 	CHECK_EQ(progression.GetResources(), 4);
 
 	progression.AddResources(1);
@@ -221,10 +221,10 @@ TEST_CASE(resources_are_spent_and_needed)
 
 TEST_CASE(a_failed_upgrade_leaves_the_state_alone)
 {
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
-	const CivSimCore::Skills nodes = {
+	const ManifestCore::Skills nodes = {
 	    MakeSkill("SkillMining", 5, 2),
 	    MakeSkill("SkillSmelting", 4, 2, {}, {Needs("SkillMining", 3)}),
 	};
@@ -243,12 +243,12 @@ TEST_CASE(a_failed_upgrade_leaves_the_state_alone)
 
 TEST_CASE(build_replaces_the_previous_tree)
 {
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
 	CHECK(progression.Build({MakeSkill("SkillMining", 5, 1)}, errorMessage));
 	progression.SetResources(10);
-	CHECK_EQ(progression.TryUpgrade("SkillMining"), CivSimCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillMining"), ManifestCore::UpgradeResult::Success);
 
 	CHECK(progression.Build({MakeSkill("SkillLumber", 5, 1)}, errorMessage));
 	CHECK_EQ(progression.GetCurrentTier("SkillMining"), 0);
@@ -260,10 +260,10 @@ TEST_CASE(build_replaces_the_previous_tree)
 
 TEST_CASE(iteration_order_is_sorted)
 {
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
-	const CivSimCore::Skills nodes = {
+	const ManifestCore::Skills nodes = {
 	    MakeSkill("SkillResearch", 5, 1),
 	    MakeSkill("SkillAgriculture", 5, 1),
 	    MakeSkill("SkillMining", 5, 1),
@@ -280,17 +280,17 @@ TEST_CASE(iteration_order_is_sorted)
 
 TEST_CASE(text_for_the_user_interface)
 {
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
-	const CivSimCore::Skills nodes = {
+	const ManifestCore::Skills nodes = {
 	    MakeSkill("SkillMining", 5, 1),
 	    MakeSkill("SkillSmelting", 4, 2, "CraftsPath", {Needs("SkillMining", 2)}),
 	};
 
 	CHECK(progression.Build(nodes, errorMessage));
 	progression.SetResources(9);
-	CHECK_EQ(progression.TryUpgrade("SkillMining"), CivSimCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillMining"), ManifestCore::UpgradeResult::Success);
 
 	CHECK_CONTAINS(progression.Describe("SkillSmelting"), "SkillSmelting tier 0/4");
 	CHECK_CONTAINS(progression.Describe("SkillSmelting"), "requires SkillMining 2");
@@ -303,7 +303,7 @@ TEST_CASE(text_for_the_user_interface)
 
 	CHECK_CONTAINS(
 	    std::string(
-	        CivSimCore::DescribeUpgradeResult(CivSimCore::UpgradeResult::InsufficientResources)),
+	        ManifestCore::DescribeUpgradeResult(ManifestCore::UpgradeResult::InsufficientResources)),
 	    "not enough resources");
 }
 
@@ -326,25 +326,25 @@ skills:
 	const civtest::TempFile file(yaml);
 
 	std::string errorMessage;
-	CivSimCore::GameModeNode gameMode;
-	CHECK(CivSimCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
+	ManifestCore::GameModeNode gameMode;
+	CHECK(ManifestCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
 	CHECK_EQ(gameMode.skills[0].maxTiers, 3);
 
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	CHECK(progression.Build(gameMode.skills, errorMessage));
 	progression.SetResources(100);
 
 	CHECK_EQ(progression.GetMaxTiers("SkillMining"), 3);
-	CHECK_EQ(progression.TryUpgrade("SkillSmelting"), CivSimCore::UpgradeResult::Prerequisites);
-	CHECK_EQ(progression.TryUpgrade("SkillMining"), CivSimCore::UpgradeResult::Success);
-	CHECK_EQ(progression.TryUpgrade("SkillMining"), CivSimCore::UpgradeResult::Success);
-	CHECK_EQ(progression.TryUpgrade("SkillMining"), CivSimCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillSmelting"), ManifestCore::UpgradeResult::Prerequisites);
+	CHECK_EQ(progression.TryUpgrade("SkillMining"), ManifestCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillMining"), ManifestCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillMining"), ManifestCore::UpgradeResult::Success);
 	CHECK_EQ(progression.GetCurrentTier("SkillMining"), 3);
-	CHECK_EQ(progression.TryUpgrade("SkillSmelting"), CivSimCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillSmelting"), ManifestCore::UpgradeResult::Success);
 	CHECK_EQ(progression.GetCurrentTier("SkillSmelting"), 1);
 
 	// Mining stops at the maxTiers the data gives it.
-	CHECK_EQ(progression.TryUpgrade("SkillMining"), CivSimCore::UpgradeResult::MaxTier);
+	CHECK_EQ(progression.TryUpgrade("SkillMining"), ManifestCore::UpgradeResult::MaxTier);
 }
 
 int main()

@@ -8,7 +8,7 @@
 #include <utility>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 namespace
 {
@@ -749,4 +749,4 @@ std::string Simulation::DescribeCivilisation(const std::string &IdOrName) const
 
 	return line.str();
 }
-} // namespace CivSimCore
+} // namespace ManifestCore

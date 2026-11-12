@@ -7,7 +7,7 @@
 #include <vector>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 namespace
 {
@@ -867,4 +867,4 @@ bool ShipEffectEngine::ResolveShipEffect(
 
 	return true;
 }
-} // namespace CivSimCore
+} // namespace ManifestCore

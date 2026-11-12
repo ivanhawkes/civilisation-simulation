@@ -1,4 +1,4 @@
-# CivSim
+# Manifest
 
 A simulation of civilisations and their trade needs. Each civilisation is a planet or
 satellite in a solar system that is generated at run time, produces some of the trade
@@ -30,7 +30,7 @@ goods of that universe, and a terminal front-end that drives the economy.
 ## Cloning
 
 ```
-git clone git@github.com:ivanhawkes/civilisation-simulation.git
+git clone git@github.com:ivanhawkes/manifest.git
 ```
 
 ## Building
@@ -77,8 +77,8 @@ Everything else is in [`docs/`](docs/README.md):
 
 | Target | What it is |
 | --- | --- |
-| `CivSimCore` | The plain C++20 core: configuration loading, universe names, the skill tree, the economy, the ECS store, the two effects engines and the marketplace. No game engine, no terminal library. |
-| `CivSimCoreTui` | FTXUI terminal front-end used to drive the core during development. |
+| `ManifestCore` | The plain C++20 core: configuration loading, universe names, the skill tree, the economy, the ECS store, the two effects engines and the marketplace. No game engine, no terminal library. |
+| `ManifestCoreTui` | FTXUI terminal front-end used to drive the core during development. |
 | `ConfigTests`, `UniverseTests`, `ProgressionTests`, `SimulationTests`, `EcsTests`, `EffectTests`, `MarketplaceTests` | The seven unit suites: 77 cases and 3486 checks. Each writes the documents and the worlds it needs, so they test the code and not the shipped data. |
 | `DataTests` | Loads the generated documents and asserts they are a playable universe: 14 cases and 2673 checks over the merged ages, categories, goods, skill tree and name pools. |
 
@@ -158,7 +158,7 @@ process.
   and EnTT v4.0.0. EnTT's own `CMakeLists.txt` opens with `cmake_minimum_required(VERSION
   3.28)`, so the fetch needs CMake 3.28 even though this project configures on 3.24: CI
   ships 3.28, and the development shell 4.4.
-- The ECS, effects and marketplace subsystems are in `CivSimCore` and are public
+- The ECS, effects and marketplace subsystems are in `ManifestCore` and are public
   headers: the core is one target, and `EcsTests`, `EffectTests` and `MarketplaceTests`
   link it the way the other suites do.
 
@@ -209,7 +209,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-`cmake --build build` runs the `CivSimData` target, which is `data/build.sh`: it merges
+`cmake --build build` runs the `ManifestData` target, which is `data/build.sh`: it merges
 the source YAML into `data/core-config`, so a clean clone builds and tests with no
 manual data step. Eight suites then run: the seven unit suites on the documents and the
 worlds they write themselves - 77 cases, 3486 checks - and `DataTests` against the
@@ -232,7 +232,7 @@ stay the same command.
 ## 3. Run the terminal front-end
 
 ```bash
-./build/CivSimCoreTui
+./build/ManifestCoreTui
 ```
 
 It loads `data/core-config` on startup, so the first command can be `generate 8 7`.
@@ -272,25 +272,25 @@ its command set: the marketplace is driven from the core API and by
 #include "Core/SimulationConfig.h"
 #include "Core/Universe.h"
 
-CivSimCore::Ages ages;
-CivSimCore::Categories categories;
-CivSimCore::GameModeNode gameMode;
-CivSimCore::UniverseNamePools names;
+ManifestCore::Ages ages;
+ManifestCore::Categories categories;
+ManifestCore::GameModeNode gameMode;
+ManifestCore::UniverseNamePools names;
 std::string error;
 
-if (!CivSimCore::LoadConfigAges("data/core-config/ages.yaml", ages, error) ||
-    !CivSimCore::LoadConfigCategories("data/core-config/categories.yaml", categories, error) ||
-    !CivSimCore::LoadConfigGameMode("data/core-config/full.yaml", gameMode, error) ||
-    !CivSimCore::LoadUniverseNamePools("data/universe/solar-system-names.yaml", names, error))
+if (!ManifestCore::LoadConfigAges("data/core-config/ages.yaml", ages, error) ||
+    !ManifestCore::LoadConfigCategories("data/core-config/categories.yaml", categories, error) ||
+    !ManifestCore::LoadConfigGameMode("data/core-config/full.yaml", gameMode, error) ||
+    !ManifestCore::LoadUniverseNamePools("data/universe/solar-system-names.yaml", names, error))
 {
     // The message names the file, the entry and the field.
 }
 
-CivSimCore::GenerateOptions options;
+ManifestCore::GenerateOptions options;
 options.civilisationCount = 8;
 options.seed = 7;
 
-CivSimCore::Simulation simulation;
+ManifestCore::Simulation simulation;
 if (!simulation.Generate(ages, categories, gameMode.items, names, options, error))
 {
     // Handle error.
@@ -298,14 +298,14 @@ if (!simulation.Generate(ages, categories, gameMode.items, names, options, error
 
 // The trade the player is looking for: buy where the good is cheap, sell where it is
 // scarce, and the route has to pay for its own freight.
-for (const CivSimCore::TradeRoute &route : simulation.PlanTrade(10))
+for (const ManifestCore::TradeRoute &route : simulation.PlanTrade(10))
 {
     // route.itemId, route.sellerId, route.buyerId, route.quantity, route.profit
 }
 
 simulation.AdvanceTick(error);
 
-CivSimCore::ProgressionManager progression;
+ManifestCore::ProgressionManager progression;
 progression.SetResources(20);
 
 if (!progression.Build(gameMode.skills, error))
@@ -324,25 +324,25 @@ order on the book and the quote table the quoters read:
 #include "Ecs/EcsWorld.h"
 #include "Market/Marketplace.h"
 
-CivSimCore::EcsWorld world;
+ManifestCore::EcsWorld world;
 std::size_t venuesOpened = 0;
 
 // The generated worlds, their treasuries, stockpiles, production decks and demand,
 // and a marketplace at every world that may host one.
-if (!CivSimCore::MarketplaceService::LoadSimulation(
-        world, simulation, CivSimCore::MarketplaceOptions{}, venuesOpened, error))
+if (!ManifestCore::MarketplaceService::LoadSimulation(
+        world, simulation, ManifestCore::MarketplaceOptions{}, venuesOpened, error))
 {
     // The message names the world and the field. Fails on a world that is not empty,
     // because the ids of a second load collide with the first.
 }
 
-CivSimCore::MarketplaceService market; // the default options: 40 bps, 120 bps, 24 ticks
+ManifestCore::MarketplaceService market; // the default options: 40 bps, 120 bps, 24 ticks
 
-CivSimCore::OrderRequest order;
+ManifestCore::OrderRequest order;
 order.marketId = "Civ-01"; // the venue's body id, which is the market's id
 order.civilisationId = "Civ-01";
 order.itemId = "ItemCopper";
-order.side = CivSimCore::OrderSide::Sell;
+order.side = ManifestCore::OrderSide::Sell;
 order.quantity = 40.0;
 order.limitPrice = 12.0;
 
@@ -386,7 +386,7 @@ From the **/data** directory:
 ./build.sh
 ```
 
-`cmake --build build` runs the same script through its `CivSimData` target, so you only
+`cmake --build build` runs the same script through its `ManifestData` target, so you only
 need to run it by hand when you want the documents without a build.
 
 This writes the game-ready documents to **/data/core-config**, which is generated and

@@ -5,7 +5,7 @@
 #include <utility>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 namespace
 {
@@ -506,4 +506,4 @@ const std::map<std::string, SkillNode> &ProgressionManager::GetRegistry() const
 {
 	return registry;
 }
-} // namespace CivSimCore
+} // namespace ManifestCore

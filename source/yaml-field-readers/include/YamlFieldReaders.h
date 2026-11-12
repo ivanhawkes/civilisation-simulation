@@ -18,7 +18,7 @@
 // All the lookups go through FindValue: indexing a non-mapping throws, and a
 // default-constructed YAML::Node is invalid and throws on any use, so this file
 // creates neither.
-namespace CivSimCore::YamlRead
+namespace ManifestCore::YamlRead
 {
 // The text yaml-cpp gives a null scalar, before it is mistaken for a value.
 inline bool IsNullText(const std::string &Text)
@@ -267,4 +267,4 @@ inline std::string Context(
 {
 	return Field + "[" + std::to_string(Index) + "]." + Child + "[" + std::to_string(ChildIndex) + "]";
 }
-} // namespace CivSimCore::YamlRead
+} // namespace ManifestCore::YamlRead

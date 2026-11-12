@@ -6,7 +6,7 @@
 #include <vector>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 // What a tier of a skill or a technology is worth.
 //
@@ -182,4 +182,4 @@ std::string DescribeEffectModifier(const EffectModifier &Modifier);
 
 // Number formatting for a stat: three significant digits, no trailing zeros.
 std::string FormatEffectStatValue(double Value);
-} // namespace CivSimCore
+} // namespace ManifestCore

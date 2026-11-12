@@ -7,20 +7,20 @@
 
 namespace YAML
 {
-template <> struct convert<CivSimCore::NodeType>
+template <> struct convert<ManifestCore::NodeType>
 {
-	static Node encode(const CivSimCore::NodeType &nodeType)
+	static Node encode(const ManifestCore::NodeType &nodeType)
 	{
 		switch (nodeType)
 		{
-			case CivSimCore::NodeType::Tech: return Node("Tech");
-			case CivSimCore::NodeType::Skill: return Node("Skill");
+			case ManifestCore::NodeType::Tech: return Node("Tech");
+			case ManifestCore::NodeType::Skill: return Node("Skill");
 		}
 
 		return Node();
 	}
 
-	static bool decode(const Node &node, CivSimCore::NodeType &nodeType)
+	static bool decode(const Node &node, ManifestCore::NodeType &nodeType)
 	{
 		if (!node.IsScalar())
 		{
@@ -30,12 +30,12 @@ template <> struct convert<CivSimCore::NodeType>
 		const std::string value = node.as<std::string>();
 		if (value == "Tech")
 		{
-			nodeType = CivSimCore::NodeType::Tech;
+			nodeType = ManifestCore::NodeType::Tech;
 			return true;
 		}
 		if (value == "Skill")
 		{
-			nodeType = CivSimCore::NodeType::Skill;
+			nodeType = ManifestCore::NodeType::Skill;
 			return true;
 		}
 
@@ -45,7 +45,7 @@ template <> struct convert<CivSimCore::NodeType>
 } // namespace YAML
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 namespace
 {
@@ -75,7 +75,7 @@ bool LoadFile(const std::string &FilePath, YAML::Node &Root, std::string &ErrorM
 
 
 bool MarshallAges(
-    const YAML::Node &Root, const std::string &FilePath, CivSimCore::Ages &Ages,
+    const YAML::Node &Root, const std::string &FilePath, ManifestCore::Ages &Ages,
     std::string &ErrorMessage)
 {
 	const YAML::Node agesNode = ReadSequence(Root, "ages", ErrorMessage);
@@ -116,7 +116,7 @@ bool MarshallAges(
 
 
 bool MarshallCategories(
-    const YAML::Node &Root, const std::string &FilePath, CivSimCore::Categories &Categories,
+    const YAML::Node &Root, const std::string &FilePath, ManifestCore::Categories &Categories,
     std::string &ErrorMessage)
 {
 	const YAML::Node categoriesNode = ReadSequence(Root, "categories", ErrorMessage);
@@ -168,7 +168,7 @@ bool MarshallCategories(
 
 
 bool MarshallItems(
-    const YAML::Node &Root, const std::string &FilePath, CivSimCore::Items &Items,
+    const YAML::Node &Root, const std::string &FilePath, ManifestCore::Items &Items,
     std::string &ErrorMessage)
 {
 	const YAML::Node itemsNode = ReadSequence(Root, "items", ErrorMessage);
@@ -216,7 +216,7 @@ bool MarshallItems(
 
 
 bool MarshallSkills(
-    const YAML::Node &Root, const std::string &FilePath, CivSimCore::Skills &Skills,
+    const YAML::Node &Root, const std::string &FilePath, ManifestCore::Skills &Skills,
     std::string &ErrorMessage)
 {
 	const YAML::Node skillsNode = ReadSequence(Root, "skills", ErrorMessage);
@@ -444,4 +444,4 @@ bool LoadConfigGameMode(
 		return false;
 	}
 }
-} // namespace CivSimCore
+} // namespace ManifestCore

@@ -6,7 +6,7 @@
 #include <utility>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 namespace
 {
@@ -2227,4 +2227,4 @@ bool MarketplaceService::SettleParty(
 
 	return true;
 }
-} // namespace CivSimCore
+} // namespace ManifestCore

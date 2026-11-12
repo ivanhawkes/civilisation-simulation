@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-namespace CivSimCore
+namespace ManifestCore
 {
 namespace
 {
@@ -256,4 +256,4 @@ const entt::registry &EcsWorld::Registry() const
 {
 	return registry;
 }
-} // namespace CivSimCore
+} // namespace ManifestCore

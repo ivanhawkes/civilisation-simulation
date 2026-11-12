@@ -6,7 +6,7 @@
 #include <yaml-cpp/yaml.h>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 void UniverseNamePools::AddPool(const std::string &PoolName, std::vector<std::string> Names)
 {
@@ -137,4 +137,4 @@ bool LoadUniverseNamePools(
 
 	return true;
 }
-} // namespace CivSimCore
+} // namespace ManifestCore

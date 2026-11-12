@@ -14,7 +14,7 @@
 
 namespace
 {
-using namespace CivSimCore;
+using namespace ManifestCore;
 
 // A world of the scaffold's own making: the credits and the cargo a market settles
 // against, in the components the market reads.

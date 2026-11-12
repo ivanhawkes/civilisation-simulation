@@ -15,9 +15,9 @@ latin:
 )YAML");
 
 	std::string errorMessage;
-	CivSimCore::UniverseNamePools pools;
+	ManifestCore::UniverseNamePools pools;
 
-	CHECK(CivSimCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
+	CHECK(ManifestCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
 	CHECK_EQ(pools.PoolCount(), std::size_t(2));
 	CHECK_EQ(pools.NameCount(), std::size_t(4));
 	CHECK(!pools.Empty());
@@ -43,10 +43,10 @@ latin:
 )YAML");
 
 	std::string errorMessage;
-	CivSimCore::UniverseNamePools pools;
+	ManifestCore::UniverseNamePools pools;
 
-	CHECK(CivSimCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
-	CHECK(CivSimCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
+	CHECK(ManifestCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
+	CHECK(ManifestCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
 	CHECK_EQ(pools.NameCount(), std::size_t(2));
 }
 
@@ -59,9 +59,9 @@ latin:
 )YAML");
 
 	std::string errorMessage;
-	CivSimCore::UniverseNamePools pools;
+	ManifestCore::UniverseNamePools pools;
 
-	CHECK(!CivSimCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
+	CHECK(!ManifestCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
 	CHECK_CONTAINS(errorMessage, "latin");
 	CHECK_CONTAINS(errorMessage, "[1]");
 }
@@ -73,9 +73,9 @@ latin: []
 )YAML");
 
 	std::string errorMessage;
-	CivSimCore::UniverseNamePools pools;
+	ManifestCore::UniverseNamePools pools;
 
-	CHECK(!CivSimCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
+	CHECK(!ManifestCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
 	CHECK_CONTAINS(errorMessage, "holds no names");
 }
 
@@ -86,9 +86,9 @@ latin: Aaron
 )YAML");
 
 	std::string errorMessage;
-	CivSimCore::UniverseNamePools pools;
+	ManifestCore::UniverseNamePools pools;
 
-	CHECK(!CivSimCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
+	CHECK(!ManifestCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
 	CHECK_CONTAINS(errorMessage, "must be a YAML sequence");
 }
 
@@ -100,9 +100,9 @@ TEST_CASE(root_must_be_a_mapping)
 )YAML");
 
 	std::string errorMessage;
-	CivSimCore::UniverseNamePools pools;
+	ManifestCore::UniverseNamePools pools;
 
-	CHECK(!CivSimCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
+	CHECK(!ManifestCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
 	CHECK_CONTAINS(errorMessage, "mapping of pool name");
 }
 
@@ -111,18 +111,18 @@ TEST_CASE(no_pools_is_rejected)
 	const civtest::TempFile file("{}\n");
 
 	std::string errorMessage;
-	CivSimCore::UniverseNamePools pools;
+	ManifestCore::UniverseNamePools pools;
 
-	CHECK(!CivSimCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
+	CHECK(!ManifestCore::LoadUniverseNamePools(file.Path(), pools, errorMessage));
 	CHECK_CONTAINS(errorMessage, "no name pools");
 }
 
 TEST_CASE(unreadable_file_names_the_path)
 {
 	std::string errorMessage;
-	CivSimCore::UniverseNamePools pools;
+	ManifestCore::UniverseNamePools pools;
 
-	CHECK(!CivSimCore::LoadUniverseNamePools("data/nope.yaml", pools, errorMessage));
+	CHECK(!ManifestCore::LoadUniverseNamePools("data/nope.yaml", pools, errorMessage));
 	CHECK_CONTAINS(errorMessage, "data/nope.yaml");
 }
 

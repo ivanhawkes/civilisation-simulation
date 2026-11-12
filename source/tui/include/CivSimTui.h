@@ -18,17 +18,17 @@
 //
 // The command handling is separate from the rendering, so the behaviour can be used
 // from a script and the front-end stays a thin shell.
-class CivSimTui
+class ManifestTui
 {
   public:
-	CivSimTui();
+	ManifestTui();
 
 	// Joins the refresh thread: the thread must never outlive this object, and a
 	// std::thread destroyed while joinable calls std::terminate.
-	~CivSimTui();
+	~ManifestTui();
 
-	CivSimTui(const CivSimTui &) = delete;
-	CivSimTui &operator=(const CivSimTui &) = delete;
+	ManifestTui(const ManifestTui &) = delete;
+	ManifestTui &operator=(const ManifestTui &) = delete;
 
 	void Run();
 
@@ -82,12 +82,12 @@ class CivSimTui
 
 	std::vector<std::string> commands;
 
-	CivSimCore::Ages ages;
-	CivSimCore::Categories categories;
-	CivSimCore::GameModeNode gameMode;
-	CivSimCore::UniverseNamePools names;
-	CivSimCore::Simulation simulation;
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::Ages ages;
+	ManifestCore::Categories categories;
+	ManifestCore::GameModeNode gameMode;
+	ManifestCore::UniverseNamePools names;
+	ManifestCore::Simulation simulation;
+	ManifestCore::ProgressionManager progression;
 
 	std::string dataDirectory{"data/core-config"};
 	std::string universeFile{"data/universe/solar-system-names.yaml"};

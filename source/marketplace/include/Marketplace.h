@@ -12,7 +12,7 @@
 #include <vector>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 // What a marketplace is: what it charges for a fill, and how long it keeps an order.
 //
@@ -378,4 +378,4 @@ class MarketplaceService
 
 	MarketplaceOptions options;
 };
-} // namespace CivSimCore
+} // namespace ManifestCore

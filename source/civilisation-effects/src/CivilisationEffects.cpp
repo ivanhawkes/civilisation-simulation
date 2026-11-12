@@ -5,7 +5,7 @@
 #include <utility>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 CivilisationEffectEngine::CivilisationEffectEngine(EffectCatalogue Catalogue)
     : catalogue(std::move(Catalogue))
@@ -730,4 +730,4 @@ bool CivilisationEffectEngine::WriteStore(
 
 	return false;
 }
-} // namespace CivSimCore
+} // namespace ManifestCore

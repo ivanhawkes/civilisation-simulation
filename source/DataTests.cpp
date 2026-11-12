@@ -19,7 +19,7 @@ std::string fullPath;
 std::string simplePath;
 std::string universePath;
 
-std::vector<std::string> Ids(const CivSimCore::Items &items)
+std::vector<std::string> Ids(const ManifestCore::Items &items)
 {
 	std::vector<std::string> ids;
 
@@ -65,29 +65,29 @@ std::string TreeLabel(const std::string &NodeId)
 	return treeEnd == std::string::npos ? rest : rest.substr(0, treeEnd);
 }
 
-CivSimCore::Ages LoadAges()
+ManifestCore::Ages LoadAges()
 {
 	std::string errorMessage;
-	CivSimCore::Ages ages;
-	CHECK(CivSimCore::LoadConfigAges(agesPath, ages, errorMessage));
+	ManifestCore::Ages ages;
+	CHECK(ManifestCore::LoadConfigAges(agesPath, ages, errorMessage));
 
 	return ages;
 }
 
-CivSimCore::Categories LoadCategories()
+ManifestCore::Categories LoadCategories()
 {
 	std::string errorMessage;
-	CivSimCore::Categories categories;
-	CHECK(CivSimCore::LoadConfigCategories(categoriesPath, categories, errorMessage));
+	ManifestCore::Categories categories;
+	CHECK(ManifestCore::LoadConfigCategories(categoriesPath, categories, errorMessage));
 
 	return categories;
 }
 
-CivSimCore::GameModeNode LoadGameMode(const std::string &path)
+ManifestCore::GameModeNode LoadGameMode(const std::string &path)
 {
 	std::string errorMessage;
-	CivSimCore::GameModeNode gameMode;
-	CHECK(CivSimCore::LoadConfigGameMode(path, gameMode, errorMessage));
+	ManifestCore::GameModeNode gameMode;
+	CHECK(ManifestCore::LoadConfigGameMode(path, gameMode, errorMessage));
 
 	return gameMode;
 }
@@ -96,7 +96,7 @@ CivSimCore::GameModeNode LoadGameMode(const std::string &path)
 
 TEST_CASE(ages_load_from_the_generated_document)
 {
-	const CivSimCore::Ages ages = LoadAges();
+	const ManifestCore::Ages ages = LoadAges();
 
 	// A merge that quietly truncates is the failure mode of the pipeline: the external
 	// tool is yq, and an upstream change to how it folds the stream of source files, or a
@@ -118,7 +118,7 @@ TEST_CASE(ages_load_from_the_generated_document)
 
 TEST_CASE(categories_load_from_the_generated_document)
 {
-	const CivSimCore::Categories categories = LoadCategories();
+	const ManifestCore::Categories categories = LoadCategories();
 
 	CHECK(categories.size() >= 40);
 
@@ -137,7 +137,7 @@ TEST_CASE(categories_load_from_the_generated_document)
 
 TEST_CASE(every_item_in_the_full_game_mode_has_a_price)
 {
-	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
+	const ManifestCore::GameModeNode full = LoadGameMode(fullPath);
 
 	CHECK(full.items.size() >= 80);
 
@@ -154,7 +154,7 @@ TEST_CASE(every_item_in_the_full_game_mode_has_a_price)
 		// the field has to be a number: it does not have to be positive.
 		static const std::regex numberPattern(R"( *[0-9]+(\.[0-9]+)? *)");
 		CHECK(std::regex_match(item.basePrice, numberPattern));
-		CHECK(CivSimCore::Simulation::BasePrice(item) >= 0.0);
+		CHECK(ManifestCore::Simulation::BasePrice(item) >= 0.0);
 	}
 }
 
@@ -166,9 +166,9 @@ TEST_CASE(every_item_carries_its_age_and_category_link)
 	// trade-items/categories.yaml - and the merge carries them into the shipped document:
 	// an item that lost them leaves every world a producer of every good, and a universe
 	// with no shortages is a universe with no trade.
-	const CivSimCore::Ages ages = LoadAges();
-	const CivSimCore::Categories categories = LoadCategories();
-	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
+	const ManifestCore::Ages ages = LoadAges();
+	const ManifestCore::Categories categories = LoadCategories();
+	const ManifestCore::GameModeNode full = LoadGameMode(fullPath);
 
 	std::vector<std::string> ageIds;
 	for (const auto &age : ages)
@@ -202,9 +202,9 @@ TEST_CASE(the_id_of_a_definition_names_the_kind_of_thing_it_is)
 	// into, and one word can name a craft and a shelf of goods at once without the two
 	// tables colliding. The ages drop the old Age postfix for the prefix, so no id ends
 	// with the word it starts with.
-	const CivSimCore::Ages ages = LoadAges();
-	const CivSimCore::Categories categories = LoadCategories();
-	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
+	const ManifestCore::Ages ages = LoadAges();
+	const ManifestCore::Categories categories = LoadCategories();
+	const ManifestCore::GameModeNode full = LoadGameMode(fullPath);
 
 	std::vector<std::string> ageIds;
 	for (const auto &age : ages)
@@ -274,7 +274,7 @@ TEST_CASE(nulls_in_the_skill_data_never_arrive_as_the_word_null)
 	// yaml-cpp renders a null as the scalar text "null". If that ever reaches the
 	// skill tree, every skill lands in an exclusive group named "null" and buying one
 	// skill locks out all the others.
-	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
+	const ManifestCore::GameModeNode full = LoadGameMode(fullPath);
 
 	CHECK(full.skills.size() >= 85);
 
@@ -297,7 +297,7 @@ TEST_CASE(nulls_in_the_skill_data_never_arrive_as_the_word_null)
 		// tree with nothing to research, so the depth is asserted here. The one-tier
 		// nodes are the Tech gates: an age gate has one tier by design, so the check on
 		// depth is a check on the Skill nodes, the crafts and the ship systems.
-		if (skill.nodeType == CivSimCore::NodeType::Tech)
+		if (skill.nodeType == ManifestCore::NodeType::Tech)
 		{
 			CHECK_EQ(skill.maxTiers, 1);
 		}
@@ -315,13 +315,13 @@ TEST_CASE(the_age_gates_are_the_ages)
 	// Every age has one gate, the gate carries the age's own ageId as its skillId, and the gates
 	// form the age ladder: each gate requires the gate of the age before it, and the
 	// first gate in age order is the only one with nothing under it.
-	const CivSimCore::Ages ages = LoadAges();
-	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
+	const ManifestCore::Ages ages = LoadAges();
+	const ManifestCore::GameModeNode full = LoadGameMode(fullPath);
 
-	std::map<std::string, CivSimCore::SkillNode> gates;
+	std::map<std::string, ManifestCore::SkillNode> gates;
 	for (const auto &skill : full.skills)
 	{
-		if (skill.nodeType == CivSimCore::NodeType::Tech)
+		if (skill.nodeType == ManifestCore::NodeType::Tech)
 		{
 			gates[skill.skillId] = skill;
 		}
@@ -330,7 +330,7 @@ TEST_CASE(the_age_gates_are_the_ages)
 	CHECK_EQ(gates.size(), ages.size());
 
 	int gatesWithNoPrerequisite = 0;
-	for (const CivSimCore::AgeNode &age : ages)
+	for (const ManifestCore::AgeNode &age : ages)
 	{
 		const auto gate = gates.find(age.ageId);
 		CHECK(gate != gates.end());
@@ -369,7 +369,7 @@ TEST_CASE(the_ship_systems_are_worth_the_trip)
 	// better repair party can always fit more of it, and none of them is in an exclusive
 	// group: a trader who can afford a forward and an aft screen fits both, and the tree
 	// has to say so.
-	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
+	const ManifestCore::GameModeNode full = LoadGameMode(fullPath);
 
 	const std::vector<std::string> shipSystems = {
 	    "SkillShipShieldsFront",    "SkillShipShieldsSide",        "SkillShipShieldsRear",
@@ -383,7 +383,7 @@ TEST_CASE(the_ship_systems_are_worth_the_trip)
 	    "SkillShipSparesLockers",
 	};
 
-	std::map<std::string, CivSimCore::SkillNode> ship;
+	std::map<std::string, ManifestCore::SkillNode> ship;
 	for (const auto &skill : full.skills)
 	{
 		if (skill.skillId.rfind("SkillShip", 0) == 0)
@@ -405,7 +405,7 @@ TEST_CASE(the_ship_systems_are_worth_the_trip)
 		}
 
 		CHECK_EQ(system->second.maxTiers, 3);
-		CHECK_EQ(system->second.nodeType, CivSimCore::NodeType::Skill);
+		CHECK_EQ(system->second.nodeType, ManifestCore::NodeType::Skill);
 		CHECK(system->second.exclusiveGroupId.empty());
 		CHECK(!system->second.targetEffectID.empty());
 		CHECK(system->second.resourceCostPerTier >= 1);
@@ -421,7 +421,7 @@ TEST_CASE(the_standing_trees_are_in_the_game)
 	// node the tree has, and the links that cross trees - the refinery on the Smelting
 	// craft, the biosphere on the Agriculture craft, the insurance on the tribunal - are
 	// the point of the whole shape: a tree that stands alone is a list, not a tree.
-	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
+	const ManifestCore::GameModeNode full = LoadGameMode(fullPath);
 
 	const std::vector<std::string> standingTrees = {
 	    "SkillYardDrydock",           "SkillYardOutfitting",     "SkillYardModularHulls",
@@ -436,7 +436,7 @@ TEST_CASE(the_standing_trees_are_in_the_game)
 	    "SkillServicePublicMedicine", "SkillServiceEducation",
 	};
 
-	std::map<std::string, CivSimCore::SkillNode> nodes;
+	std::map<std::string, ManifestCore::SkillNode> nodes;
 	for (const auto &skill : full.skills)
 	{
 		nodes[skill.skillId] = skill;
@@ -455,7 +455,7 @@ TEST_CASE(the_standing_trees_are_in_the_game)
 		}
 
 		CHECK_EQ(node->second.maxTiers, 3);
-		CHECK_EQ(node->second.nodeType, CivSimCore::NodeType::Skill);
+		CHECK_EQ(node->second.nodeType, ManifestCore::NodeType::Skill);
 		CHECK(!node->second.targetEffectID.empty());
 		CHECK(node->second.resourceCostPerTier >= 1);
 
@@ -491,7 +491,7 @@ TEST_CASE(one_clean_choice_locks_the_rest_of_the_standing)
 	// reason the mechanic exists: an admiralty warrant, a standing among the crews and
 	// a fence are one reputation, spent three ways. Buy one and the other two are shut,
 	// so the tree has to be built, bought from a pool, and read back.
-	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
+	const ManifestCore::GameModeNode full = LoadGameMode(fullPath);
 
 	const std::vector<std::string> members = {
 	    "SkillLawAdmiraltyWarrant",
@@ -499,7 +499,7 @@ TEST_CASE(one_clean_choice_locks_the_rest_of_the_standing)
 	    "SkillTradeFencingNetwork",
 	};
 
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 	CHECK(progression.Build(full.skills, errorMessage));
 
@@ -528,25 +528,25 @@ TEST_CASE(one_clean_choice_locks_the_rest_of_the_standing)
 
 	progression.SetResources(30);
 
-	CHECK_EQ(progression.TryUpgrade("SkillLawAdmiraltyWarrant"), CivSimCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillLawAdmiraltyWarrant"), ManifestCore::UpgradeResult::Success);
 	CHECK(progression.IsGroupLocked("CleanStanding"));
 	CHECK(progression.IsNodeLockedOut("SkillLawPirateStanding"));
 	CHECK(progression.IsNodeLockedOut("SkillTradeFencingNetwork"));
 	CHECK_EQ(
-	    progression.TryUpgrade("SkillLawPirateStanding"), CivSimCore::UpgradeResult::ExclusiveLock);
+	    progression.TryUpgrade("SkillLawPirateStanding"), ManifestCore::UpgradeResult::ExclusiveLock);
 
 	// The warrant is the root the tribunal hangs off, and the tribunal is not in the
 	// group: the choice shuts the rivals out, it does not pull the branch under them.
 	CHECK(!progression.IsNodeLockedOut("SkillLawTribunal"));
-	CHECK_EQ(progression.TryUpgrade("SkillLawTribunal"), CivSimCore::UpgradeResult::Success);
+	CHECK_EQ(progression.TryUpgrade("SkillLawTribunal"), ManifestCore::UpgradeResult::Success);
 	CHECK(progression.GetCurrentTier("SkillLawTribunal") >= 1);
 }
 
 TEST_CASE(the_skill_tree_is_a_valid_graph)
 {
-	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
+	const ManifestCore::GameModeNode full = LoadGameMode(fullPath);
 
-	CivSimCore::ProgressionManager progression;
+	ManifestCore::ProgressionManager progression;
 	std::string errorMessage;
 
 	// The whole tree must register and validate: known prerequisites, no cycles, no
@@ -566,7 +566,7 @@ TEST_CASE(the_skill_tree_is_a_valid_graph)
 		const int tiers = progression.GetMaxTiers(skill.skillId);
 		tierCapacity += tiers;
 
-		if (skill.nodeType == CivSimCore::NodeType::Tech)
+		if (skill.nodeType == ManifestCore::NodeType::Tech)
 		{
 			++gates;
 			continue;
@@ -588,8 +588,8 @@ TEST_CASE(the_skill_tree_is_a_valid_graph)
 
 TEST_CASE(the_simple_game_mode_is_a_smaller_subset_of_the_full_one)
 {
-	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
-	const CivSimCore::GameModeNode simple = LoadGameMode(simplePath);
+	const ManifestCore::GameModeNode full = LoadGameMode(fullPath);
+	const ManifestCore::GameModeNode simple = LoadGameMode(simplePath);
 
 	CHECK(simple.items.size() >= 12);
 	CHECK(simple.items.size() < full.items.size());
@@ -625,9 +625,9 @@ TEST_CASE(the_simple_game_mode_is_a_smaller_subset_of_the_full_one)
 TEST_CASE(the_universe_names_load)
 {
 	std::string errorMessage;
-	CivSimCore::UniverseNamePools pools;
+	ManifestCore::UniverseNamePools pools;
 
-	CHECK(CivSimCore::LoadUniverseNamePools(universePath, pools, errorMessage));
+	CHECK(ManifestCore::LoadUniverseNamePools(universePath, pools, errorMessage));
 	CHECK(pools.PoolCount() > std::size_t(0));
 	CHECK(pools.NameCount() > std::size_t(100));
 
@@ -641,26 +641,26 @@ TEST_CASE(the_generated_data_drives_a_universe)
 {
 	// The end to end path the front-end uses: generated documents in, a trading
 	// universe out.
-	const CivSimCore::Ages ages = LoadAges();
-	const CivSimCore::Categories categories = LoadCategories();
-	const CivSimCore::GameModeNode full = LoadGameMode(fullPath);
+	const ManifestCore::Ages ages = LoadAges();
+	const ManifestCore::Categories categories = LoadCategories();
+	const ManifestCore::GameModeNode full = LoadGameMode(fullPath);
 
 	std::string errorMessage;
-	CivSimCore::UniverseNamePools pools;
-	CHECK(CivSimCore::LoadUniverseNamePools(universePath, pools, errorMessage));
+	ManifestCore::UniverseNamePools pools;
+	CHECK(ManifestCore::LoadUniverseNamePools(universePath, pools, errorMessage));
 
-	CivSimCore::GenerateOptions options;
+	ManifestCore::GenerateOptions options;
 	options.civilisationCount = 8;
 	options.seed = 1;
 
-	CivSimCore::Simulation simulation;
+	ManifestCore::Simulation simulation;
 	CHECK(simulation.Generate(ages, categories, full.items, pools, options, errorMessage));
 
 	CHECK_EQ(simulation.GetCivilisations().size(), std::size_t(8));
 	CHECK(simulation.AdvanceTick(errorMessage));
 	CHECK_EQ(simulation.GetTick(), 1LL);
 
-	const std::vector<CivSimCore::TradeRoute> routes = simulation.PlanTrade(5);
+	const std::vector<ManifestCore::TradeRoute> routes = simulation.PlanTrade(5);
 	for (const auto &route : routes)
 	{
 		CHECK(route.profit > 0.0);
@@ -676,7 +676,7 @@ int main(int argc, char **argv)
 		std::cout << "Usage: " << argv[0]
 		          << " <ages.yaml> <categories.yaml> <full.yaml> <simple.yaml> "
 		             "<solar-system-names.yaml>\n"
-		             "Build them with the CivSimData target: cmake --build <build-dir>\n";
+		             "Build them with the ManifestData target: cmake --build <build-dir>\n";
 
 		return 2;
 	}

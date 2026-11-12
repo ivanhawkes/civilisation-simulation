@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(CivSimLibrary
+project(ManifestLibrary
     VERSION 0.0.1
     DESCRIPTION "Civilisation trade simulation"
     LANGUAGES CXX
@@ -50,7 +50,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(entt)
 
-set(CIVSIM_CORE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Source/CivSimCore")
+set(CIVSIM_CORE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Source/ManifestCore")
 
 # ─── Generated Game Data ───
 # The YAML is edited as separate files under data/ and merged into the monolithic
@@ -126,7 +126,7 @@ if(YQ_EXECUTABLE)
         VERBATIM
     )
 
-    add_custom_target(CivSimData DEPENDS ${CIVSIM_DATA_OUTPUTS})
+    add_custom_target(ManifestData DEPENDS ${CIVSIM_DATA_OUTPUTS})
 endif()
 
 # ─── Macro for Shared Compiler Configuration ───
@@ -141,7 +141,7 @@ macro(apply_project_compiler_flags TARGET_NAME)
 endmacro()
 
 # ─── Core Library Definition ───
-add_library(CivSimCore STATIC
+add_library(ManifestCore STATIC
     "${CIVSIM_CORE_DIR}/src/Core/SimulationConfig.cpp"
     "${CIVSIM_CORE_DIR}/src/Core/Universe.cpp"
     "${CIVSIM_CORE_DIR}/src/Core/ProgressionManager.cpp"
@@ -155,12 +155,12 @@ add_library(CivSimCore STATIC
     "${CIVSIM_CORE_DIR}/src/Market/Marketplace.cpp"
 )
 
-target_include_directories(CivSimCore
+target_include_directories(ManifestCore
     PUBLIC
         "${CIVSIM_CORE_DIR}/include"
 )
 
-target_link_libraries(CivSimCore
+target_link_libraries(ManifestCore
     PUBLIC
         # The ECS headers are in the public headers of the store, the effects and the
         # marketplaces: EcsWorld.h holds an entt::registry by value, so a target that
@@ -171,23 +171,23 @@ target_link_libraries(CivSimCore
 )
 
 # Apply configuration to the static library target
-apply_project_compiler_flags(CivSimCore)
+apply_project_compiler_flags(ManifestCore)
 
 # ─── TUI Executable Definition ───
-add_executable(CivSimCoreTui
-    "${CIVSIM_CORE_DIR}/src/Tui/CivSimTui.cpp"
-    "${CIVSIM_CORE_DIR}/include/Tui/CivSimTui.h"
+add_executable(ManifestCoreTui
+    "${CIVSIM_CORE_DIR}/src/Tui/ManifestTui.cpp"
+    "${CIVSIM_CORE_DIR}/include/Tui/ManifestTui.h"
 )
 
-target_link_libraries(CivSimCoreTui 
-    PRIVATE CivSimCore ftxui::screen ftxui::component ftxui::dom)
+target_link_libraries(ManifestCoreTui 
+    PRIVATE ManifestCore ftxui::screen ftxui::component ftxui::dom)
 
-apply_project_compiler_flags(CivSimCoreTui)
+apply_project_compiler_flags(ManifestCoreTui)
 
 # ─── Test Suite Generation ───
 # The unit suites feed the loaders temporary documents they write themselves, so they
 # need no data step. The data suite reads the generated documents and depends on the
-# CivSimData target.
+# ManifestData target.
 if(BUILD_TESTING)
     # Each suite is its own executable, with its own ctest entry.
     function(civsim_add_test SUITE_NAME)
@@ -195,7 +195,7 @@ if(BUILD_TESTING)
 
         add_executable(${SUITE_NAME} ${TEST_SOURCES})
 
-        target_link_libraries(${SUITE_NAME} PRIVATE CivSimCore)
+        target_link_libraries(${SUITE_NAME} PRIVATE ManifestCore)
 
         # Apply configuration to the test binary executable target so GDB can parse its breakpoints!
         apply_project_compiler_flags(${SUITE_NAME})
@@ -216,7 +216,7 @@ if(BUILD_TESTING)
     civsim_add_test(EffectTests SOURCES Tests/EffectTests.cpp)
     civsim_add_test(MarketplaceTests SOURCES Tests/MarketplaceTests.cpp)
 
-    if(TARGET CivSimData)
+    if(TARGET ManifestData)
         # The data suite reads the generated documents, the way the game loads them.
         civsim_add_test(DataTests
             SOURCES Tests/DataTests.cpp
@@ -228,6 +228,6 @@ if(BUILD_TESTING)
                 "${CIVSIM_DATA_SOURCE_DIR}/universe/solar-system-names.yaml"
         )
 
-        add_dependencies(DataTests CivSimData)
+        add_dependencies(DataTests ManifestData)
     endif()
 endif()

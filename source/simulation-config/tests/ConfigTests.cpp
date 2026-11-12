@@ -77,19 +77,19 @@ TEST_CASE(ages_load_and_replace)
 	const civtest::TempFile file(agesYaml);
 
 	std::string errorMessage;
-	CivSimCore::Ages ages;
+	ManifestCore::Ages ages;
 
-	CHECK(CivSimCore::LoadConfigAges(file.Path(), ages, errorMessage));
+	CHECK(ManifestCore::LoadConfigAges(file.Path(), ages, errorMessage));
 	CHECK_EQ(errorMessage, std::string());
 	CHECK_EQ(ages.size(), std::size_t(2));
 	CHECK_EQ(ages[0].ageId, std::string("AgeStone"));
 	CHECK_EQ(ages[1].description, std::string("Copper Age"));
 
 	// The loader replaces the container: loading twice must not double the entries.
-	CHECK(CivSimCore::LoadConfigAges(file.Path(), ages, errorMessage));
+	CHECK(ManifestCore::LoadConfigAges(file.Path(), ages, errorMessage));
 	CHECK_EQ(ages.size(), std::size_t(2));
 
-	CHECK(CivSimCore::LoadConfigAges(file.Path(), ages, errorMessage));
+	CHECK(ManifestCore::LoadConfigAges(file.Path(), ages, errorMessage));
 	CHECK_EQ(ages.size(), std::size_t(2));
 }
 
@@ -98,9 +98,9 @@ TEST_CASE(categories_load_and_replace)
 	const civtest::TempFile file(categoriesYaml);
 
 	std::string errorMessage;
-	CivSimCore::Categories categories;
+	ManifestCore::Categories categories;
 
-	CHECK(CivSimCore::LoadConfigCategories(file.Path(), categories, errorMessage));
+	CHECK(ManifestCore::LoadConfigCategories(file.Path(), categories, errorMessage));
 	CHECK_EQ(categories.size(), std::size_t(2));
 	CHECK_EQ(categories[0].type, std::string("Metal"));
 	CHECK_EQ(categories[0].description, std::string("Metal goods"));
@@ -110,7 +110,7 @@ TEST_CASE(categories_load_and_replace)
 	CHECK_EQ(categories[1].type, std::string("CategoryUnknown"));
 	CHECK_EQ(categories[1].description, std::string("Unknown"));
 
-	CHECK(CivSimCore::LoadConfigCategories(file.Path(), categories, errorMessage));
+	CHECK(ManifestCore::LoadConfigCategories(file.Path(), categories, errorMessage));
 	CHECK_EQ(categories.size(), std::size_t(2));
 }
 
@@ -119,9 +119,9 @@ TEST_CASE(game_mode_loads_items_and_skills)
 	const civtest::TempFile file(gameModeYaml);
 
 	std::string errorMessage;
-	CivSimCore::GameModeNode gameMode;
+	ManifestCore::GameModeNode gameMode;
 
-	CHECK(CivSimCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
+	CHECK(ManifestCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
 	CHECK_EQ(gameMode.items.size(), std::size_t(1));
 	CHECK_EQ(gameMode.skills.size(), std::size_t(2));
 
@@ -130,8 +130,8 @@ TEST_CASE(game_mode_loads_items_and_skills)
 	CHECK_EQ(gameMode.items[0].basePrice, std::string("5.6312"));
 
 	CHECK_EQ(gameMode.skills[0].maxTiers, 5);
-	CHECK_EQ(gameMode.skills[0].nodeType, CivSimCore::NodeType::Skill);
-	CHECK_EQ(gameMode.skills[1].nodeType, CivSimCore::NodeType::Tech);
+	CHECK_EQ(gameMode.skills[0].nodeType, ManifestCore::NodeType::Skill);
+	CHECK_EQ(gameMode.skills[1].nodeType, ManifestCore::NodeType::Tech);
 	CHECK_EQ(gameMode.skills[1].requiredSkills.size(), std::size_t(1));
 	CHECK_EQ(gameMode.skills[1].requiredSkills[0].nodeId, std::string("SkillMining"));
 	CHECK_EQ(gameMode.skills[1].requiredSkills[0].requiredTier, 2);
@@ -139,7 +139,7 @@ TEST_CASE(game_mode_loads_items_and_skills)
 	CHECK_NEAR(gameMode.skills[1].gridX, 1.0f, 0.001f);
 
 	// Loading twice replaces, never appends.
-	CHECK(CivSimCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
+	CHECK(ManifestCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
 	CHECK_EQ(gameMode.items.size(), std::size_t(1));
 	CHECK_EQ(gameMode.skills.size(), std::size_t(2));
 }
@@ -177,9 +177,9 @@ items: []
 	const civtest::TempFile file(yaml);
 
 	std::string errorMessage;
-	CivSimCore::GameModeNode gameMode;
+	ManifestCore::GameModeNode gameMode;
 
-	CHECK(CivSimCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
+	CHECK(ManifestCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
 	CHECK_EQ(gameMode.skills.size(), std::size_t(5));
 
 	for (const auto &skill : gameMode.skills)
@@ -206,9 +206,9 @@ ages:
 	const civtest::TempFile file(yaml);
 
 	std::string errorMessage;
-	CivSimCore::Ages ages;
+	ManifestCore::Ages ages;
 
-	CHECK(!CivSimCore::LoadConfigAges(file.Path(), ages, errorMessage));
+	CHECK(!ManifestCore::LoadConfigAges(file.Path(), ages, errorMessage));
 	CHECK_CONTAINS(errorMessage, "ages[1]");
 	CHECK_CONTAINS(errorMessage, "displayName");
 
@@ -229,9 +229,9 @@ items: []
 	const civtest::TempFile file(yaml);
 
 	std::string errorMessage;
-	CivSimCore::GameModeNode gameMode;
+	ManifestCore::GameModeNode gameMode;
 
-	CHECK(!CivSimCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
+	CHECK(!ManifestCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
 	CHECK_CONTAINS(errorMessage, "skills[0]");
 	CHECK_CONTAINS(errorMessage, "maxTiers");
 	CHECK_CONTAINS(errorMessage, "three");
@@ -248,9 +248,9 @@ items:
 	const civtest::TempFile file(yaml);
 
 	std::string errorMessage;
-	CivSimCore::GameModeNode gameMode;
+	ManifestCore::GameModeNode gameMode;
 
-	CHECK(!CivSimCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
+	CHECK(!ManifestCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
 	CHECK_CONTAINS(errorMessage, "items[0]");
 	CHECK_CONTAINS(errorMessage, "item");
 }
@@ -260,16 +260,16 @@ TEST_CASE(missing_sequence_is_reported)
 	const civtest::TempFile file("nothing: here\n");
 
 	std::string errorMessage;
-	CivSimCore::Ages ages;
-	CHECK(!CivSimCore::LoadConfigAges(file.Path(), ages, errorMessage));
+	ManifestCore::Ages ages;
+	CHECK(!ManifestCore::LoadConfigAges(file.Path(), ages, errorMessage));
 	CHECK_CONTAINS(errorMessage, "ages");
 
-	CivSimCore::Categories categories;
-	CHECK(!CivSimCore::LoadConfigCategories(file.Path(), categories, errorMessage));
+	ManifestCore::Categories categories;
+	CHECK(!ManifestCore::LoadConfigCategories(file.Path(), categories, errorMessage));
 	CHECK_CONTAINS(errorMessage, "categories");
 
-	CivSimCore::GameModeNode gameMode;
-	CHECK(!CivSimCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
+	ManifestCore::GameModeNode gameMode;
+	CHECK(!ManifestCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
 	CHECK_CONTAINS(errorMessage, "items");
 }
 
@@ -278,18 +278,18 @@ TEST_CASE(empty_sequence_loads_nothing)
 	const civtest::TempFile file("ages: []\n");
 
 	std::string errorMessage;
-	CivSimCore::Ages ages;
+	ManifestCore::Ages ages;
 
-	CHECK(CivSimCore::LoadConfigAges(file.Path(), ages, errorMessage));
+	CHECK(ManifestCore::LoadConfigAges(file.Path(), ages, errorMessage));
 	CHECK_EQ(ages.size(), std::size_t(0));
 }
 
 TEST_CASE(unreadable_file_names_the_path)
 {
 	std::string errorMessage;
-	CivSimCore::Ages ages;
+	ManifestCore::Ages ages;
 
-	CHECK(!CivSimCore::LoadConfigAges("data/does-not-exist/ages.yaml", ages, errorMessage));
+	CHECK(!ManifestCore::LoadConfigAges("data/does-not-exist/ages.yaml", ages, errorMessage));
 	CHECK_CONTAINS(errorMessage, "data/does-not-exist/ages.yaml");
 }
 
@@ -309,9 +309,9 @@ skills: []
 	const civtest::TempFile file(withoutLinks);
 
 	std::string errorMessage;
-	CivSimCore::GameModeNode gameMode;
+	ManifestCore::GameModeNode gameMode;
 
-	CHECK(CivSimCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
+	CHECK(ManifestCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
 	CHECK_EQ(gameMode.items.size(), std::size_t(1));
 	CHECK_EQ(gameMode.items[0].categoryId, std::string());
 	CHECK_EQ(gameMode.items[0].ageId, std::string());
@@ -332,9 +332,9 @@ skills: []
 	const civtest::TempFile file(yaml);
 
 	std::string errorMessage;
-	CivSimCore::GameModeNode gameMode;
+	ManifestCore::GameModeNode gameMode;
 
-	CHECK(!CivSimCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
+	CHECK(!ManifestCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
 	CHECK_CONTAINS(errorMessage, "items[0]");
 	CHECK_CONTAINS(errorMessage, "itemId");
 }
@@ -352,9 +352,9 @@ items: []
 	const civtest::TempFile file(yaml);
 
 	std::string errorMessage;
-	CivSimCore::GameModeNode gameMode;
+	ManifestCore::GameModeNode gameMode;
 
-	CHECK(!CivSimCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
+	CHECK(!ManifestCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
 	CHECK_CONTAINS(errorMessage, "nodeType");
 	CHECK_CONTAINS(errorMessage, "Magic");
 }
@@ -372,9 +372,9 @@ items: []
 	const civtest::TempFile file(yaml);
 
 	std::string errorMessage;
-	CivSimCore::GameModeNode gameMode;
+	ManifestCore::GameModeNode gameMode;
 
-	CHECK(!CivSimCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
+	CHECK(!ManifestCore::LoadConfigGameMode(file.Path(), gameMode, errorMessage));
 	CHECK_CONTAINS(errorMessage, "skills[0]");
 	CHECK_CONTAINS(errorMessage, "requires");
 }

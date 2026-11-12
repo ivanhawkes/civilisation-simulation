@@ -8,7 +8,7 @@
 #include <vector>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 // A generated planet civilisation. Each civilisation is a world in a generated solar
 // system that produces some of the trade goods and needs the rest.
@@ -164,4 +164,4 @@ class Simulation
 // Number formatting for the UI: two decimals, thousands separators are left to the
 // front-end.
 std::string FormatNumber(double Value);
-} // namespace CivSimCore
+} // namespace ManifestCore

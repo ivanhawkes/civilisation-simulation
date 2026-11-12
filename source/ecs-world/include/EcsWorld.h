@@ -8,7 +8,7 @@
 #include <vector>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 // The component an entity carries for its own string id, added by Create and never
 // removed. It is what makes the registry self describing: a view over any component
@@ -256,4 +256,4 @@ template <typename... Type> bool EcsWorld::HasComponent(Entity Target) const
 {
 	return IsValid(Target) && registry.all_of<Type...>(Target);
 }
-} // namespace CivSimCore
+} // namespace ManifestCore

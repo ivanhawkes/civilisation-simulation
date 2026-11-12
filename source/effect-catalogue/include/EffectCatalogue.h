@@ -8,7 +8,7 @@
 #include <vector>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 // One effect: what a tier of it is worth, and which store it lands on.
 struct EffectDefinition
@@ -97,4 +97,4 @@ class EffectCatalogue
 	// Keyed by effect id, so the registry iterates in sorted order on every platform.
 	std::map<std::string, EffectDefinition> registry;
 };
-} // namespace CivSimCore
+} // namespace ManifestCore

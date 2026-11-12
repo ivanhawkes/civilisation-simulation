@@ -4,7 +4,7 @@
 #include <string>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 namespace
 {
@@ -271,4 +271,4 @@ std::string DescribeEffectModifier(const EffectModifier &Modifier)
 
 	return out.str();
 }
-} // namespace CivSimCore
+} // namespace ManifestCore

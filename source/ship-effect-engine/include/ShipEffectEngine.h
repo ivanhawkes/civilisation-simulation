@@ -11,7 +11,7 @@
 #include <vector>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 // A class of hull: the stats every ship of it starts with, and the systems it has a
 // slot for.
@@ -191,4 +191,4 @@ class ShipEffectEngine
 
 	EffectCatalogue catalogue;
 };
-} // namespace CivSimCore
+} // namespace ManifestCore

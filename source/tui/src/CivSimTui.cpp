@@ -1,4 +1,4 @@
-#include <Tui/CivSimTui.h>
+#include <Tui/ManifestTui.h>
 #include <algorithm>
 #include <cctype>
 #include <ftxui/component/component.hpp>
@@ -10,7 +10,7 @@
 
 
 using namespace ftxui;
-namespace sim = CivSimCore;
+namespace sim = ManifestCore;
 
 
 namespace
@@ -106,14 +106,14 @@ const auto BaseBg = bgcolor(Color::RGB(30, 30, 46));
 
 int main()
 {
-	CivSimTui repl;
+	ManifestTui repl;
 	repl.Run();
 
 	return 0;
 }
 
 
-CivSimTui::CivSimTui() : logFile_(OpenSessionLog())
+ManifestTui::ManifestTui() : logFile_(OpenSessionLog())
 {
 	commands = {
 	    "help",   "status", "version", "load",   "generate", "list",  "show",
@@ -124,7 +124,7 @@ CivSimTui::CivSimTui() : logFile_(OpenSessionLog())
 }
 
 
-std::ofstream CivSimTui::OpenSessionLog()
+std::ofstream ManifestTui::OpenSessionLog()
 {
 	// Relative to the working tree, so tail -f build/tui-session.log follows a running
 	// session from another pane. A working tree without a build directory logs to the
@@ -135,7 +135,7 @@ std::ofstream CivSimTui::OpenSessionLog()
 }
 
 
-void CivSimTui::AppendSessionLog(const std::string &text)
+void ManifestTui::AppendSessionLog(const std::string &text)
 {
 	if (!logFile_.is_open())
 	{
@@ -147,13 +147,13 @@ void CivSimTui::AppendSessionLog(const std::string &text)
 }
 
 
-CivSimTui::~CivSimTui()
+ManifestTui::~ManifestTui()
 {
 	StopRefreshThread();
 }
 
 
-void CivSimTui::StopRefreshThread()
+void ManifestTui::StopRefreshThread()
 {
 	runThread = false;
 
@@ -164,7 +164,7 @@ void CivSimTui::StopRefreshThread()
 }
 
 
-unsigned CivSimTui::ParseCount(const std::string &text, unsigned fallback, unsigned maximum)
+unsigned ManifestTui::ParseCount(const std::string &text, unsigned fallback, unsigned maximum)
 {
 	if (text.empty())
 	{
@@ -189,7 +189,7 @@ unsigned CivSimTui::ParseCount(const std::string &text, unsigned fallback, unsig
 }
 
 
-bool CivSimTui::LoadConfiguration(const std::string &directory, std::string &errorMessage)
+bool ManifestTui::LoadConfiguration(const std::string &directory, std::string &errorMessage)
 {
 	if (!sim::LoadConfigAges(directory + "/ages.yaml", ages, errorMessage))
 	{
@@ -226,7 +226,7 @@ bool CivSimTui::LoadConfiguration(const std::string &directory, std::string &err
 }
 
 
-std::string CivSimTui::Evaluate(const std::string &line)
+std::string ManifestTui::Evaluate(const std::string &line)
 {
 	const auto space = line.find_first_of(" \t");
 	const std::string command = Trim(space == std::string::npos ? line : line.substr(0, space));
@@ -304,7 +304,7 @@ std::string CivSimTui::Evaluate(const std::string &line)
 }
 
 
-std::string CivSimTui::CommandHelp()
+std::string ManifestTui::CommandHelp()
 {
 	return "Commands:\n"
 	       "  help            this list\n"
@@ -325,16 +325,16 @@ std::string CivSimTui::CommandHelp()
 }
 
 
-std::string CivSimTui::CommandVersion()
+std::string ManifestTui::CommandVersion()
 {
 	std::ostringstream line;
-	line << "CivSim core development front-end, C++" << __cplusplus / 100;
+	line << "Manifest core development front-end, C++" << __cplusplus / 100;
 
 	return line.str();
 }
 
 
-std::string CivSimTui::CommandStatus()
+std::string ManifestTui::CommandStatus()
 {
 	std::ostringstream status;
 	status << "data " << dataDirectory << (configLoaded ? " (loaded)" : " (not loaded)") << "\n"
@@ -349,7 +349,7 @@ std::string CivSimTui::CommandStatus()
 }
 
 
-std::string CivSimTui::CommandLoad(const std::string &directory)
+std::string ManifestTui::CommandLoad(const std::string &directory)
 {
 	const std::string target = directory.empty() ? dataDirectory : directory;
 
@@ -368,7 +368,7 @@ std::string CivSimTui::CommandLoad(const std::string &directory)
 }
 
 
-std::string CivSimTui::CommandGenerate(const std::string &argument)
+std::string ManifestTui::CommandGenerate(const std::string &argument)
 {
 	if (!configLoaded)
 	{
@@ -399,7 +399,7 @@ std::string CivSimTui::CommandGenerate(const std::string &argument)
 }
 
 
-std::string CivSimTui::CommandList()
+std::string ManifestTui::CommandList()
 {
 	if (!simulation.IsGenerated())
 	{
@@ -423,7 +423,7 @@ std::string CivSimTui::CommandList()
 }
 
 
-std::string CivSimTui::CommandShow(const std::string &argument)
+std::string ManifestTui::CommandShow(const std::string &argument)
 {
 	if (argument.empty())
 	{
@@ -439,7 +439,7 @@ std::string CivSimTui::CommandShow(const std::string &argument)
 }
 
 
-std::string CivSimTui::CommandPrices(const std::string &argument)
+std::string ManifestTui::CommandPrices(const std::string &argument)
 {
 	if (!simulation.IsGenerated())
 	{
@@ -512,7 +512,7 @@ std::string CivSimTui::CommandPrices(const std::string &argument)
 }
 
 
-std::string CivSimTui::CommandPlan(const std::string &argument)
+std::string ManifestTui::CommandPlan(const std::string &argument)
 {
 	if (!simulation.IsGenerated())
 	{
@@ -546,7 +546,7 @@ std::string CivSimTui::CommandPlan(const std::string &argument)
 }
 
 
-std::string CivSimTui::CommandTick(const std::string &argument)
+std::string ManifestTui::CommandTick(const std::string &argument)
 {
 	if (!simulation.IsGenerated())
 	{
@@ -572,7 +572,7 @@ std::string CivSimTui::CommandTick(const std::string &argument)
 }
 
 
-std::string CivSimTui::CommandSkills()
+std::string ManifestTui::CommandSkills()
 {
 	if (!configLoaded)
 	{
@@ -590,7 +590,7 @@ std::string CivSimTui::CommandSkills()
 }
 
 
-std::string CivSimTui::CommandUpgrade(const std::string &argument)
+std::string ManifestTui::CommandUpgrade(const std::string &argument)
 {
 	if (argument.empty())
 	{
@@ -609,13 +609,13 @@ std::string CivSimTui::CommandUpgrade(const std::string &argument)
 }
 
 
-void CivSimTui::Run()
+void ManifestTui::Run()
 {
 	ScreenInteractive screen = ScreenInteractive::Fullscreen();
 
 	std::string inputData;
 	std::vector<std::string> historyLog = {
-	    "CivSim development front-end.", "Type help, then load, then generate 8.",
+	    "Manifest development front-end.", "Type help, then load, then generate 8.",
 	    "Press [Tab] to complete, [Up/Down] for history, [PageUp/PageDown] to read the log."};
 
 	logFocusIndex = static_cast<int>(historyLog.size()) - 1;

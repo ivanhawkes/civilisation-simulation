@@ -7,7 +7,7 @@
 #include <vector>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 // The components of the entity store: what a body, a ship, a market and an order
 // *are*, as data.
@@ -357,4 +357,4 @@ struct MarketRecord
 
 // How many fills a venue remembers.
 inline constexpr std::size_t marketFillLogSize = 64;
-} // namespace CivSimCore
+} // namespace ManifestCore

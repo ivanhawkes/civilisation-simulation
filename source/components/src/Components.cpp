@@ -1,7 +1,7 @@
 #include "Ecs/Components.h"
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 const char *DescribeBodyKind(BodyKind Kind)
 {
@@ -40,4 +40,4 @@ const char *DescribeOrderStatus(OrderStatus Status)
 
 	return "Unknown";
 }
-} // namespace CivSimCore
+} // namespace ManifestCore

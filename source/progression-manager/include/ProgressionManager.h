@@ -7,7 +7,7 @@
 #include <vector>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 enum class UpgradeResult
 {
@@ -93,4 +93,4 @@ class ProgressionManager
 	std::set<std::string> lockedExclusiveGroups;
 	int resources{0};
 };
-} // namespace CivSimCore
+} // namespace ManifestCore

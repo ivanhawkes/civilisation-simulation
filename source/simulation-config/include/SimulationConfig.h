@@ -4,7 +4,7 @@
 #include <vector>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 enum class NodeType
 {
@@ -154,4 +154,4 @@ bool LoadConfigCategories(
 // Loads the items and skills of a game mode from a YAML file into a GameModeNode.
 bool LoadConfigGameMode(
     const std::string &FilePath, GameModeNode &GameModeConfig, std::string &ErrorMessage);
-} // namespace CivSimCore
+} // namespace ManifestCore

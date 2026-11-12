@@ -10,7 +10,7 @@
 #include <vector>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 // The effects a civilisation buys for itself, as against the systems it fits to a hull.
 //
@@ -151,4 +151,4 @@ struct CivilisationEffectEngine
 
 	EffectCatalogue catalogue;
 };
-} // namespace CivSimCore
+} // namespace ManifestCore

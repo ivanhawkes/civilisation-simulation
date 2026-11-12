@@ -6,7 +6,7 @@
 #include <vector>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 // Name pools for the generated solar systems, loaded from
 // data/universe/solar-system-names.yaml. Every top level key in that file is a pool
@@ -41,4 +41,4 @@ class UniverseNamePools
 // holds no pool, when a pool holds no name, or when a name is null.
 bool LoadUniverseNamePools(
     const std::string &FilePath, UniverseNamePools &Pools, std::string &ErrorMessage);
-} // namespace CivSimCore
+} // namespace ManifestCore

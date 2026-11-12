@@ -15,7 +15,7 @@
 
 namespace
 {
-using namespace CivSimCore;
+using namespace ManifestCore;
 
 // The 58 effects the shipped tree asks for: every non-null targetEffectID in
 // data/skill-tree, in the order the files list them. The tree names the effects, the

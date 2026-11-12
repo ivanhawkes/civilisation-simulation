@@ -6,7 +6,7 @@
 #include <utility>
 
 
-namespace CivSimCore
+namespace ManifestCore
 {
 namespace
 {
@@ -573,4 +573,4 @@ std::vector<EffectDefinition> EffectCatalogue::BodyEffects()
 {
 	return BodyEffectDefinitions();
 }
-} // namespace CivSimCore
+} // namespace ManifestCore
