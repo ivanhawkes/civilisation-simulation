@@ -1,7 +1,5 @@
-The purpose of this document is to state clearly the idea that will be further
-developed into a project. It captures the _why_ and _what_; implementation
-detail lives in the requirements, functional, test, and technical
-specifications.
+The purpose of this document is to state clearly the ideas that will be further
+developed into a project.
 
 ## Logline
 
@@ -19,7 +17,7 @@ The core of the game is the silk road trade and early shipping trade with China,
 
 - credits - equivalent to one USD
 - store all price information in credits
-- for smaller items sell them as a package of 100 or more
+- for smaller items sell them as a package of 100 or more so you don't have to deal with fractions of a credit
 
 ## Surveys
 
@@ -37,18 +35,17 @@ The core of the game is the silk road trade and early shipping trade with China,
 - think deep space nine / moonbase alpha / the expanse
 - trade hubs in orbit around planets
 - multiple per planet with their own markets and advantages / disadvantages
-- food courts
 - groceries, long haul supplies
-- bass pro shop for truckers equivalent
+- an equivalent to the bass pro shop for space truckers
 - refuel
 - dry dock
 - repairs
-- intel
+- purchase and sell intel
 
 ## Black Market
 
 - trade illegal items
-- only found on lawful space stations with few exceptions (largest trade hubs only)
+- only found on unlawful space stations with few exceptions (largest trade hubs only)
 - trades can count towards a fugitive status for you
 
 ## Grey Market
@@ -56,25 +53,32 @@ The core of the game is the silk road trade and early shipping trade with China,
 - trade items from white market to black market
 - can be found on some white lawful space stations and most unlawful space stations
 - allows you to trade black market goods without being 'tainted' by the transaction
+- takes a cut above what the black market would pay so you are always financially worse off buying and selling to a grey market
 
 ## Ships
 
 - repair state for important equipment
-- are we going to have manned flights?
+- view from the cockpit
+- player can have direct control over a single ship in their fleet at a time
+- they manage a fleet through a map and management interface
 
 ## Insurance
 
 - research the early Dutch corporation and insurance for long voyages
-- costly, but far worse if you get scuppered without any
+- costs money but far worse if you get scuppered without any
+- should be affordable
 
 ## Privateer
 
-- research / ideation
+- research how privateers would fit into this sort of game
 
 ## Star Gates / Moon Gates
 
 - extreme range FTL travel is via expensive Star Gate, a ring in close orbit around a sun for gathering extreme amounts of energy and giving them a gravitational boost on top.
 - moon gates - in orbit around planets for smaller interstellar trips
+- each outer solar system would typically have just one star gate that connects it to the graph of other solar systems
+- a mix of one or more for solar systems in between, but not as many as the key / core / rich solar systems
+- the centre of the galaxy would have rich solar systems with multiple gates
 
 ## Economy
 
@@ -97,7 +101,7 @@ The core of the game is the silk road trade and early shipping trade with China,
 ### Primary Stats
 
 - corruption index
-- GDP 
+- GDP
 - PPP
 - Natural Resources (renewable and finite) with production capacity and renewal rates
 - citizen satisfaction with life level
@@ -169,12 +173,12 @@ The core of the game is the silk road trade and early shipping trade with China,
 
 ## World Generation
 
-- divide the world up into a 12x6 grid i.e. segments, and then zones within those segments with z1 and z6
- being ice caps (perhaps) and hotter temps around z3 and z4
+- divide the world up into a grid e.g. similar to the segments of an orange with each segment being further sub-divided
+- decide on how many zones would be the right amount to give some complexity without becoming a micro-management issue
 - not every zone is important enough or viable for exploitation and habitation
 - assign climate
 - assign resources e.g. gold, coal, oil, copper
-- habitability
+- calculate habitability
 - now lay out economic blocks in the viable segments - note: uninhabitle might still be exploitable e.g.
   parts of the desert with oil reserves.
 - satellite in geo-synchronous orbit above each major block
@@ -183,14 +187,15 @@ The core of the game is the silk road trade and early shipping trade with China,
 
 ## Essential Skills
 
-- figure out what happens when world lack essential production like medicine, education, communication
+- figure out what happens when worlds lack essential production like medicine, education, communication
 
 ## Questions
 
-- who is performing tech upgrades on planets? Is it just an algorithm or can players play the game as a planet admin instead of a space trucker?
+- who is performing tech upgrades on planets? Is it just an algorithm or can players play the game as a planet admin instead of a space trucker? should it be both, so the player can if they like that part and can automate it if they don't?
 - possible ways to play the game
-  - turn based, or close to
+  - turn based, or close to it
   - idle game on mobile
+  - campaign style with a long sprawling journey from low tech tree civilisation to top tier space age worlds
   - small Wing Commander style random fights on long hauls
   - interstellar market maker
   - persistant network world that multiple friends can all join, hosted by one player, can be saved by any of them to resume later
@@ -226,6 +231,10 @@ The core of the game is the silk road trade and early shipping trade with China,
 - Wing Commander (1990) - space combat in small chunks with an over-arching story
 - World of Warcraft - incremental gains through tech trees, XP, skills, gearing, and knowledge of game mechanics - all with a wonderful community to play and chat with
 
-## Random Thoughts
+## Tools
 
-- should I try and resurrect 'Jettison' and use it for some testing purposes? That would be easier than UE 5.8 since i could easily build and run it locally on Linux and have very fast turn-around times e.g. tech trees might be quick and easy to display using IMGUI, and a basic star system is very easy to render
+Use ['Jettison'](https://github.com/ivanhawkes/jettison) for the development version of the game. That would be easier than UE 5.8 since i could easily build and run it locally on Linux and have very fast turn-around times. Jettison is another project I am currently writing that is a 3d game engine whose base is perfect for building this upon. It should be added to this project as a cmake FetchContent target.
+
+AGENTS: Before starting work on any changes to the existing base of this project, check out what is currently offered by Jettison and harmonise this project to Jettison. The SDKs used in this to those used by Jettison. The code MUST be refactored before any more work is performed on it. It must meet best practices for modern code and architecture.
+
+I want to give this project a much better code name than 'Civilisation Simulation'. Offer suggestions based on meta contextual references to history, myth, legend or good literature.
