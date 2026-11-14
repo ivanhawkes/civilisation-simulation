@@ -7,5 +7,6 @@
 - [Coding standards](coding-standards.md)
 - [Build and gates](build-and-gates.md)
 - [Roadmap](roadmap.md)
+- [Standalone mod implementation plan](standalone-mod-plan.md)
 - [Models and agent workflow](agent-workflow.md)
 - [Model reference](model.md)
