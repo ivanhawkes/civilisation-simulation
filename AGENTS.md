@@ -18,31 +18,27 @@ Manifest is a Jettison mod project. Read `docs/coding-standards.md`,
 
 ## Models and delegation
 
-The user requests delegation when it reduces expensive primary-agent work or avoids loading
-large investigations into the primary context. Follow `docs/agent-workflow.md` when choosing
-models and effort for roadmap tasks. Delegate only a bounded, independent task whose result
-can be checked cheaply; do small edits and short searches directly.
+**OpenAI models are for planning only. They must not implement project work.** This applies
+to the primary agent and all sub-agents, regardless of model, effort or role name, and
+supersedes earlier recommendations assigning implementation to OpenAI models.
 
-- Default roadmap implementation: `gpt-6.1-sol`, high effort. Routine follow-up: medium.
-  For host/script contracts, fixed-point design and difficult determinism/replay failures,
-  prefer `gpt-6-astra`, high; use extra high only for a demonstrated difficult problem.
-  Recommend a primary-model change when needed; do not claim to change the active model.
-- Use the project agent roles under `.codex/agents/`: `manifest_scout` and
-  `manifest_maintainer` (`gpt-6-luna`, medium), `manifest_small_fix`
-  (`gpt-6.1-terra`, medium), `manifest_worker` (`gpt-6.1-sol`, medium), and
-  `manifest_reviewer` (`gpt-6.1-sol`, high). If named roles are unavailable in the
-  current session, explicitly select the corresponding model/effort and pass its scope.
-- Start workers with fresh context where supported. Give the specific question, relevant
-  file paths, constraints, acceptance criteria and exclusive ownership of any files to edit.
-  Ask for concise findings or a patch summary, not raw logs or a repeat of the whole task.
-- Use at most two sub-agents concurrently. Workers must not delegate further unless the
-  primary explicitly assigns a further delegation. Reuse a worker for related follow-up.
-- Only the primary schedules builds and the final gate. The two-job compile limit applies
-  across the whole team; workers must not start builds or clang-tidy independently.
-- Keep architectural decisions and integration with the primary. Review delegated changes
-  and run the relevant checks before accepting them. Escalate an uncertain bounded task
-  once rather than repeatedly retrying a cheaper model. Do not promise lower total tokens:
-  sub-agents add context and coordination overhead.
+- Planning may include read-only repository investigation, architecture, task breakdowns,
+  acceptance criteria, validation plans and handoffs to an implementer.
+- Do not use OpenAI models to write or modify implementation code, tests, fixtures, assets,
+  build scripts or configuration, or to apply fixes, refactors or mechanical migrations.
+- Explicit requests to write planning or workflow documentation permit those documentation
+  edits only; they do not authorize implementation.
+- Do not assign implementation to the existing OpenAI-backed roles under `.codex/agents/`.
+  Their presence and configured defaults do not override this policy. Implementation belongs
+  to the user or a non-OpenAI implementer selected by the user; no replacement is assumed.
+- Follow `docs/agent-workflow.md`. Delegate only bounded, read-only planning investigations
+  when they reduce primary context or expensive-model work. Use fresh context where supported,
+  supply relevant paths and a specific question, and request concise findings with references.
+- Use at most two sub-agents concurrently. Sub-agents must not delegate further unless the
+  primary explicitly assigns further delegation. Do not promise lower total tokens.
+- OpenAI planning agents describe the required checks in the handoff; implementation and
+  build/gate execution belong to the implementer. The two-job local compile limit and the
+  restriction on local clang-tidy still apply to implementation work.
 
 ## Session context after roadmap tasks
 

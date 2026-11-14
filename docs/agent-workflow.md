@@ -1,63 +1,60 @@
 # Models and agent workflow
 
-These are project-specific starting choices, based on Manifest's roadmap and the
-[OpenAI model guidance](https://developers.openai.com/api/docs/guides/model-selection),
-checked on 2026-11-15. The primary agent recommends the model and effort at the start of a
-roadmap task. Selecting a different primary model is a client/session setting; an agent
-must not claim to have changed its own active model.
+## Planning-only policy
 
-## Roadmap tasks
+The user's policy, recorded on 2026-11-15, is: **OpenAI models are for planning only.
+They must not implement project work.** This applies to the primary agent and every
+sub-agent, regardless of model, effort or configured role. It supersedes the previous
+OpenAI implementation recommendations in this document and `AGENTS.md`.
 
-| Work | Lead model and effort | Suitable delegated work |
-| --- | --- | --- |
-| 1. Host boundary and script capabilities | GPT-6 Astra, high for contract design; GPT-6.1 Sol, high for agreed bindings | Inventory engine APIs, locate existing capability tests, document the agreed contract |
-| 2. Decimal market prices | GPT-6 Astra, high for precision, overflow and mixed-type rounding; GPT-6.1 Sol, high for implementation | Inventory price fields and authored precision; migrate a bounded module after its rules are fixed |
-| 3. VFS, layered definitions and schema migration | GPT-6.1 Sol, high; Astra, high if migration semantics remain ambiguous | Find host-path loaders, prepare fixtures, update docs and mechanical call sites |
-| 4. Fixed-step commands, saves, replay and hashing | GPT-6.1 Sol, high; Astra, high for ordering/state contracts or difficult replay divergence | Map state ownership and existing tests; implement isolated fixtures against the agreed format |
-| 5. Scripts, staging and an engine-hosted scenario | GPT-6.1 Sol, high; Astra, high for capability/ABI design | Packaging inventories, fixture data, scenario documentation and bounded staging changes |
+OpenAI models may inspect the repository and existing logs read-only to inform architecture,
+task breakdowns, acceptance criteria, validation plans and implementation handoffs. When
+explicitly requested, they may write or update planning and workflow documentation, including
+this policy. Such a documentation request does not authorize project implementation.
 
-Use medium effort for routine follow-up after the design is settled. Extra high is an
-escalation for unresolved arithmetic, contract or determinism problems, not the default for
-an entire milestone. Max and ultra are not routine project settings. These recommendations
-are engineering judgement, not a measured benchmark of Manifest on each model.
+OpenAI models must not write or modify implementation code, tests, fixtures, assets, build
+scripts or configuration. Fixes, refactors, mechanical migrations, implementation delegation,
+integration and build/gate execution belong to the implementer. A small or routine change is
+still implementation; lowering effort or choosing a cheaper OpenAI model does not permit it.
 
-## Worker roles
+Implementation is performed by the user or a non-OpenAI implementer selected by the user.
+This policy does not select a replacement provider, model or tool. An implementation request
+to an OpenAI planning agent produces a plan and handoff under this policy, not a patch.
 
-Project-scoped agent definitions live in `.codex/agents/`; `.codex/config.toml` caps concurrent
-sub-agents at two and defaults unspecified workers to Luna with medium effort.
+## Roadmap planning
 
-| Role | Model / effort | Scope |
-| --- | --- | --- |
-| `manifest_scout` | GPT-6 Luna / medium | Inspect code, engine APIs or existing logs; return file references and concise findings; no edits |
-| `manifest_maintainer` | GPT-6 Luna / medium | Bounded documentation, fixture and mechanical changes with explicit file ownership |
-| `manifest_small_fix` | GPT-6.1 Terra / medium | A small fix with a known reproduction and clear acceptance criteria, especially tooling/UI |
-| `manifest_worker` | GPT-6.1 Sol / medium | Implement one defined module or test boundary after its interfaces and invariants are agreed |
-| `manifest_reviewer` | GPT-6.1 Sol / high | Inspect a bounded diff for correctness and missing tests; no edits |
+| Work | Planning output |
+| --- | --- |
+| 1. Host boundary and script capabilities | State ownership, host/script contracts, capability limits and acceptance criteria |
+| 2. Decimal market prices | Precision, overflow and rounding rules, affected-field inventory and migration plan |
+| 3. VFS, layered definitions and schema migration | Loader inventory, layering and migration semantics, compatibility and validation plan |
+| 4. Fixed-step commands, saves, replay and hashing | Ordering and state contracts, save format decisions, replay and determinism checks |
+| 5. Scripts, staging and an engine-hosted scenario | Capability/ABI design, packaging requirements and scenario acceptance criteria |
 
-All workers inherit the parent's sandbox and approval controls. A role's instruction to avoid
-edits is a work constraint, not a separate enforced read-only sandbox. These roles do not
-enable Full access or change the existing command exceptions. Restart Codex to discover
-new custom agent files; the primary can select the same models explicitly in the current
-session.
+A handoff should name the agreed design, affected files or modules, constraints, acceptance
+criteria, required checks and unresolved questions. The implementer applies changes, reviews
+integration and runs the relevant checks and final gate. Local builds remain limited to two
+compile jobs; local clang-tidy remains opt-in as described in [build and gates](build-and-gates.md).
 
-## Delegation rule
+## Existing roles and delegation
 
-Delegate when a small brief and a concise result cost less primary context or expensive-model
-work than the investigation itself. Reading a long failure log or mapping a set of loaders
-can qualify; a single search or small edit usually does not. Prefer fresh worker context and
-avoid copying the conversation, repeating completed exploration, or asking multiple workers
-to do the same job. Use concurrent edits only with disjoint file ownership.
+The definitions under `.codex/agents/` and defaults in `.codex/config.toml` are existing
+OpenAI-backed configuration, not authorization to implement. Do not invoke
+`manifest_maintainer`, `manifest_small_fix` or `manifest_worker` for their implementation
+scopes. Read-only scout or review work is allowed only when it supports planning; it must
+not become delegated execution or patch production. The policy is an instruction, not an
+enforced filesystem sandbox.
 
-The primary owns design, scheduling, integration and validation. Workers do not start builds
-without an explicit allocation from the primary: at most two compile jobs may run across the
-whole team, and local clang-tidy stays disabled. Keep successful worker threads available for
-related follow-up rather than starting another context unnecessarily.
+Delegate only a bounded, independent, read-only planning investigation when a small brief
+and concise findings reduce primary context or expensive-model work. Mapping loaders or
+examining an existing failure log can qualify; a single search usually does not. Prefer fresh
+context, specify the question and relevant paths, and request concise findings with file
+references. Avoid duplicate investigations and reuse a worker for related follow-up.
 
-Delegation can reduce expensive primary-model usage and keep its context focused, but it
-often increases aggregate tokens. Model price, total tokens and elapsed time are different
-measures. Judge the policy by accepted changes, review/repair work and completed checks;
-raise the model or effort when a bounded worker cannot establish the required invariant.
-See the [official sub-agent guidance](https://learn.chatgpt.com/docs/agent-configuration/subagents).
+Use at most two sub-agents concurrently. They must not delegate further unless the primary
+explicitly assigns further delegation. The primary retains architectural decisions and
+prepares the handoff. Sub-agents add context and coordination overhead; do not promise lower
+aggregate tokens or guaranteed savings.
 
 ## Session context at task completion
 
