@@ -11,3 +11,10 @@ native ownership of those rules and capability-limited Wasm policy inputs. Decim
 are implemented. Content loaders, world adapters and the scripted scenario remain next; see
 [roadmap](roadmap.md). A second renderer, engine dependency stack or native shared-library mod
 loader does not belong in this repository.
+
+The approved future scope includes a CLI-launched dedicated network server for unattended
+hosting, with authoritative simulation state and a shared administration interface. Keep the
+TUI as a development harness for now; a separate TUI administration client is optional and
+will depend on operator needs. The server must operate without it. This remains planned work;
+see [architecture](architecture.md#dedicated-server-and-administration-planned) and
+[roadmap](roadmap.md#future-dedicated-server-and-administration).

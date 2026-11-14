@@ -28,3 +28,21 @@ and log capture; its command session is tested independently of terminal renderi
    an engine-hosted scenario loaded from both a directory and a pack before calling the mod playable.
 
 The existing model and content are recorded in [model reference](model.md).
+
+## Future dedicated server and administration
+
+**Approved direction:** provide a CLI-launched dedicated network server for deployment on a
+server platform. The server owns authoritative simulation state and networking, runs without
+a renderer or interactive terminal, and supports unattended operation, logs and clean shutdown.
+See the [planned architecture](architecture.md#dedicated-server-and-administration-planned).
+
+Keep the current TUI as a development harness while integrating Manifest with Jettison. Preserve
+its command workflows and tests as inputs to future administration tooling. A shared,
+authenticated administration interface should serve a scriptable CLI, an optional separate TUI
+client and potentially Jettison's graphical console. Mutations follow the fixed-step command
+path; clients must not maintain a competing authoritative simulation or own the server lifetime.
+
+When the administration interface is designed, assess whether actual operator needs justify
+adapting the existing FTXUI presentation. Preserve automated command coverage independently of
+the frontend build option. This decision does not schedule immediate TUI removal or expansion;
+protocols, hosting platform and deployment tooling remain to be selected.

@@ -70,3 +70,28 @@ decimal representation; quantities, population, effect stats and physics retain 
 and existing credit balances and fees remain integers. These are development APIs, not a Jettison
 script or save ABI. Engine API conversions, VFS-only content and capability-limited scripts
 remain integration work; see the roadmap.
+
+## Dedicated server and administration (planned)
+
+The approved direction is a dedicated network server, launched through a CLI and hosted on a
+server platform. It owns the authoritative simulation and networking and runs unattended under
+a service manager or container platform, without a renderer or interactive terminal. Startup
+uses configuration and command-line arguments; operation provides logs and clean shutdown.
+This is a future architecture, not an existing server implementation.
+
+An administration interface will expose authenticated commands and status to a scriptable CLI,
+an optional TUI, and potentially Jettison's graphical console. Administrative state changes
+must enter the simulation's controlled command path and take effect at the fixed-step boundary.
+Clients display server state and submit commands; they do not own a separate authoritative
+simulation. Connecting or closing an administration client must not control the server's lifetime.
+
+Keep the current TUI as a development harness during host integration. Its command workflows
+and tests are useful inputs to the administration interface, but `ManifestConsole` currently
+owns local development state and is not a remote administration client. Consider adapting the
+FTXUI presentation into a separate administration client when operator needs justify it.
+Preserve command coverage independently of terminal rendering and the FTXUI build option
+during that transition; today the console tests are still gated by `MANIFEST_BUILD_TUI`.
+
+Networking and administration protocols, the hosting platform and deployment tooling remain
+design decisions. The server must be usable without a TUI; keeping or removing the optional
+frontend will depend on operator needs rather than the presence of Jettison's graphical client.
