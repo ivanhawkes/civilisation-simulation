@@ -1,5 +1,10 @@
 # Roadmap
 
+The approved [next development stages](development-stages.md) give Claude the near-term
+execution order and exit criteria: public host bootstrap, validated scenario content,
+company ownership and commands, the local trading loop, then persistence and distribution.
+These stages refine the broader integration work below; none is marked implemented yet.
+
 ## SDK and build baseline
 
 Completed: consume a pinned `feature-base` Jettison SDK, share dependency targets and development

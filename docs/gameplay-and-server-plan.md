@@ -166,6 +166,10 @@ results. A content-mount test alone does not satisfy the scenario.
 
 ## Sequencing and deferred scope
 
+The approved [next development stages](development-stages.md) expand this sequence into
+five bounded deliveries with dependencies and exit criteria. Use that document to schedule
+implementation while retaining the ownership and persistence contracts defined here.
+
 | Milestone | Deliverable |
 | --- | --- |
 | Next | Public Jettison host integration and the local trading scenario. |

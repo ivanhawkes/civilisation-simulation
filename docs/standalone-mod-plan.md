@@ -245,7 +245,7 @@ uncommitted work, decisions, validation and the next concrete step.
 
 ## First task for Claude
 
-Recheck the baseline, then implement stage 1 and design the smallest public composition
-contract for stage 2 against the actual engine lifecycle. The first runtime deliverable
-is a Manifest-owned host loading its own pack through public Jettison APIs. Keep the
-full economy migration behind that proven seam.
+Follow the approved [next development stages](development-stages.md) for the near-term
+execution order. Its stage 1 combines this plan's CMake contract work and minimal public
+host composition. Recheck the baseline, then deliver a Manifest-owned host mounting its
+own pack through public Jettison APIs. Keep the full economy migration behind that proven seam.
