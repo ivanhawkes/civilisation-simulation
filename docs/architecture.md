@@ -39,9 +39,20 @@ progression, ships, civilisations and markets together, so it is
 `source/test/EffectsIntegrationTests.cpp`. `DataTests.cpp`, `ModTests.cpp` and `TestHelpers.h` also
 belong in `source/test/`. They do not publish game headers.
 
-`manifest_tui` is a development executable outside the simulation. It alone owns FTXUI, wall-clock
-refresh and session transcripts. Build-time paths locate its generated data independently of the
-working directory.
+`manifest_tui` is a development executable outside the simulation. Its `ManifestConsole` session
+registers the development commands with `Jettison::DevTools::Console`, the same backend used by
+Jettison's shell. The engine owns tokenisation (including quoted arguments), command dispatch,
+help, clear, vars, history, completion, log capture and the bounded 2000-entry scrollback. Manifest
+commands validate argument counts and numeric bounds; rejected commands become console errors.
+Configuration reloads replace the session together: a failure preserves the previous configuration
+and world, while a successful load resets the world and progression before the next generation.
+
+The `manifest_console` tooling library links `Jettison::Devtools`, reusing its Core, Reflect and
+ImGui dependencies. The console backend draws nothing; the terminal does not initialise ImGui,
+Vulkan or the engine application. `manifest_tui` alone owns FTXUI, wall-clock refresh and the
+command transcript. Its sidebar, history navigation and Tab completion read the engine's console
+rather than keeping a second command list or history. Build-time paths locate its generated data
+independently of the working directory. Console tests drive the session without a terminal.
 
 The mod package is content: `mod.yaml`, `manifest/core-config/` and `manifest/universe/`.
 `manifest_mod` stages it and `manifest_pack` uses `jettison_add_pack`. The mod test reads both

@@ -6,6 +6,8 @@ Completed: consume a pinned `feature-base` Jettison SDK, share dependency target
 environment, fix the migrated source layout, apply engine naming and warning conventions, use
 doctest, build Debug/Release/sanitised presets, and stage and pack the YAML content as a mod.
 The engine RNG and exact state hashes establish a replay check for the development simulation.
+The development TUI shares the engine shell's console backend for commands, history, completion
+and log capture; its command session is tested independently of terminal rendering.
 
 ## Gameplay integration
 

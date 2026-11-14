@@ -1,26 +1,25 @@
 #include "ManifestTui.h"
 
 #include <ftxui/component/component.hpp>
+#include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/dom/flexbox_config.hpp>
 
 #include <algorithm>
-#include <cctype>
-#include <sstream>
-#include <string>
+#include <chrono>
+#include <format>
+#include <string_view>
+#include <thread>
+#include <utility>
 #include <vector>
-
 
 namespace Manifest::Tui
 {
 using namespace ftxui;
-namespace sim = Manifest::Core;
-
+using Jettison::DevTools::ConsoleLine;
 
 namespace
 {
-// One log line at a time, split into whole code points so a wide terminal wraps the
-// text without splitting a UTF-8 sequence in half.
 Element WrapLogText(const std::string &value)
 {
 	Elements lines;
@@ -65,32 +64,12 @@ Element WrapLogText(const std::string &value)
 	return vbox(std::move(lines));
 }
 
-std::string Trim(const std::string &text)
+std::string LineText(const ConsoleLine &line)
 {
-	const auto begin = text.find_first_not_of(" \t");
-	if (begin == std::string::npos)
-	{
-		return {};
-	}
-
-	const auto end = text.find_last_not_of(" \t");
-
-	return text.substr(begin, end - begin + 1);
-}
-
-std::string PadRight(const std::string &text, std::size_t width)
-{
-	if (text.size() >= width)
-	{
-		return text;
-	}
-
-	return text + std::string(width - text.size(), ' ');
+	return line.category.empty() ? line.text : std::format("[{}] {}", line.category, line.text);
 }
 } // namespace
 
-
-// --- CATPPUCCIN MOCHA PALETTE DEFINITIONS ---
 namespace Mocha
 {
 const auto Mauve = color(Color::RGB(203, 166, 247));
@@ -108,542 +87,94 @@ const auto BaseBg = bgcolor(Color::RGB(30, 30, 46));
 } // namespace Mocha
 
 
-ManifestTui::ManifestTui() : m_logFile(OpenSessionLog())
+namespace
 {
-	m_commands = {
-	    "help",   "status", "version", "load",   "generate", "list",  "show",
-	    "prices", "plan",   "tick",    "skills", "upgrade",  "clear", "quit",
-	};
-
-	m_startTime = std::chrono::steady_clock::now();
+Decorator LineColour(const ConsoleLine &line)
+{
+	switch (line.kind)
+	{
+		case ConsoleLine::Kind::Input: return Mocha::Blue;
+		case ConsoleLine::Kind::Error: return Mocha::Red;
+		case ConsoleLine::Kind::Output: return Mocha::Text;
+		case ConsoleLine::Kind::Log: break;
+	}
+	switch (line.severity)
+	{
+		case Jettison::Core::Severity::Trace:
+		case Jettison::Core::Severity::Debug: return Mocha::Subtext0;
+		case Jettison::Core::Severity::Warning: return Mocha::Yellow;
+		case Jettison::Core::Severity::Error:
+		case Jettison::Core::Severity::Fatal: return Mocha::Red;
+		case Jettison::Core::Severity::Info: return Mocha::Text;
+	}
+	return Mocha::Text;
 }
+} // namespace
 
+ManifestTui::ManifestTui()
+    : m_session{MANIFEST_DATA_DIRECTORY, MANIFEST_UNIVERSE_FILE}, m_logFile{OpenSessionLog()}
+{
+}
 
 std::ofstream ManifestTui::OpenSessionLog()
 {
-	// Relative to the working tree, so tail -f build/tui-session.log follows a running
-	// session from another pane. A working tree without a build directory logs to the
-	// screen only.
-	std::ofstream file("build/tui-session.log", std::ios::app);
-
-	return file;
+	// Keep the transcript across clear and the shared console's bounded scrollback.
+	return std::ofstream{"build/tui-session.log", std::ios::app};
 }
-
 
 void ManifestTui::AppendSessionLog(const std::string &text)
 {
-	if (!m_logFile.is_open())
+	if (m_logFile.is_open())
 	{
-		return;
-	}
-
-	m_logFile << text << '\n';
-	m_logFile.flush();
-}
-
-
-ManifestTui::~ManifestTui()
-{
-	StopRefreshThread();
-}
-
-
-void ManifestTui::StopRefreshThread()
-{
-	m_runThread = false;
-
-	if (m_refreshThread.joinable())
-	{
-		m_refreshThread.join();
+		m_logFile << text << '\n';
+		m_logFile.flush();
 	}
 }
-
-
-unsigned ManifestTui::ParseCount(const std::string &text, unsigned fallback, unsigned maximum)
-{
-	if (text.empty())
-	{
-		return fallback;
-	}
-
-	try
-	{
-		const unsigned long long value = std::stoull(text);
-
-		if (value == 0)
-		{
-			return fallback;
-		}
-
-		return static_cast<unsigned>(std::min(value, static_cast<unsigned long long>(maximum)));
-	}
-	catch (const std::exception &)
-	{
-		return fallback;
-	}
-}
-
-
-bool ManifestTui::LoadConfiguration(const std::string &directory, std::string &errorMessage)
-{
-	if (!sim::LoadConfigAges(directory + "/ages.yaml", m_ages, errorMessage))
-	{
-		return false;
-	}
-
-	if (!sim::LoadConfigCategories(directory + "/categories.yaml", m_categories, errorMessage))
-	{
-		return false;
-	}
-
-	if (!sim::LoadConfigGameMode(directory + "/full.yaml", m_gameMode, errorMessage))
-	{
-		return false;
-	}
-
-	if (!sim::LoadUniverseNamePools(m_universeFile, m_names, errorMessage))
-	{
-		return false;
-	}
-
-	std::string progressionError;
-	if (!m_progression.Build(m_gameMode.skills, progressionError))
-	{
-		errorMessage = "the skill tree was rejected: " + progressionError;
-		return false;
-	}
-
-	m_progression.SetResources(20);
-	m_dataDirectory = directory;
-	m_configLoaded = true;
-
-	return true;
-}
-
-
-std::string ManifestTui::Evaluate(const std::string &line)
-{
-	const auto space = line.find_first_of(" \t");
-	const std::string command = Trim(space == std::string::npos ? line : line.substr(0, space));
-	const std::string argument =
-	    space == std::string::npos ? std::string() : Trim(line.substr(space + 1));
-
-	std::string result;
-
-	if (command == "quit" || command == "exit")
-	{
-		m_quitRequested = true;
-		result = "Exiting.";
-	}
-	else if (command == "help")
-	{
-		result = CommandHelp();
-	}
-	else if (command == "version")
-	{
-		result = CommandVersion();
-	}
-	else if (command == "status")
-	{
-		result = CommandStatus();
-	}
-	else if (command == "clear")
-	{
-		result.clear();
-	}
-	else if (command == "load")
-	{
-		result = CommandLoad(argument);
-	}
-	else if (command == "generate")
-	{
-		result = CommandGenerate(argument);
-	}
-	else if (command == "list")
-	{
-		result = CommandList();
-	}
-	else if (command == "show")
-	{
-		result = CommandShow(argument);
-	}
-	else if (command == "prices")
-	{
-		result = CommandPrices(argument);
-	}
-	else if (command == "plan")
-	{
-		result = CommandPlan(argument);
-	}
-	else if (command == "tick")
-	{
-		result = CommandTick(argument);
-	}
-	else if (command == "skills")
-	{
-		result = CommandSkills();
-	}
-	else if (command == "upgrade")
-	{
-		result = CommandUpgrade(argument);
-	}
-	else
-	{
-		m_promptMark = " \u2718 ";
-		return "Unknown command: '" + command + "'. Type help, or press [Tab] to complete.";
-	}
-
-	m_promptMark = command == "quit" || command == "exit" ? " \u2718 " : " \u2714 ";
-
-	return result;
-}
-
-
-std::string ManifestTui::CommandHelp()
-{
-	return "Commands:\n"
-	       "  help            this list\n"
-	       "  status          configuration, universe and skill tree state\n"
-	       "  version         front-end version\n"
-	       "  load [dir]      read ages, categories, full game mode and names (dir "
-	       "defaults to the generated build data directory)\n"
-	       "  generate [n] [seed]   generate n civilisations (default 8, seed 1)\n"
-	       "  list            every civilisation\n"
-	       "  show <Civ-01>   one civilisation in detail\n"
-	       "  prices [n]      the n most over priced goods (default 10)\n"
-	       "  plan [n]        the n best trade routes (default 10)\n"
-	       "  tick [n]        advance n ticks (default 1)\n"
-	       "  skills          the skill tree with tiers and costs\n"
-	       "  upgrade <id>    buy one tier of a skill\n"
-	       "  clear           clear the log\n"
-	       "  quit            leave (Ctrl-D works too)";
-}
-
-
-std::string ManifestTui::CommandVersion()
-{
-	std::ostringstream line;
-	line << "Manifest core development front-end, C++" << __cplusplus / 100;
-
-	return line.str();
-}
-
-
-std::string ManifestTui::CommandStatus()
-{
-	std::ostringstream status;
-	status << "data " << m_dataDirectory << (m_configLoaded ? " (loaded)" : " (not loaded)") << "\n"
-	       << "ages " << m_ages.size() << ", categories " << m_categories.size() << ", items "
-	       << m_gameMode.items.size() << ", skills " << m_gameMode.skills.size() << ", names "
-	       << m_names.NameCount() << " in " << m_names.PoolCount() << " pools\n"
-	       << (m_configLoaded ? m_simulation.StatusLine() : std::string("no universe: run generate"))
-	       << "\n"
-	       << "skill tree: " << m_progression.Summary();
-
-	return status.str();
-}
-
-
-std::string ManifestTui::CommandLoad(const std::string &directory)
-{
-	const std::string target = directory.empty() ? m_dataDirectory : directory;
-
-	std::string errorMessage;
-	if (!LoadConfiguration(target, errorMessage))
-	{
-		return "Load failed: " + errorMessage;
-	}
-
-	std::ostringstream result;
-	result << "Loaded " << target << ": ages " << m_ages.size() << ", categories "
-	       << m_categories.size() << ", items " << m_gameMode.items.size() << ", skills "
-	       << m_gameMode.skills.size() << ", names " << m_names.NameCount() << " in "
-	       << m_names.PoolCount() << " pools.";
-
-	return result.str();
-}
-
-
-std::string ManifestTui::CommandGenerate(const std::string &argument)
-{
-	if (!m_configLoaded)
-	{
-		return "Run load first: the configuration is not loaded.";
-	}
-
-	std::istringstream stream(argument);
-	std::string countText;
-	std::string seedText;
-	stream >> countText >> seedText;
-
-	sim::GenerateOptions options;
-	options.civilisationCount = ParseCount(countText, 8, 500);
-	options.seed = seedText.empty() ? 1u : ParseCount(seedText, 1, 4000000000u);
-
-	std::string errorMessage;
-	if (!m_simulation.Generate(m_ages, m_categories, m_gameMode.items, m_names, options, errorMessage))
-	{
-		return "Generation failed: " + errorMessage;
-	}
-
-	std::ostringstream result;
-	result << "Generated " << m_simulation.GetCivilisations().size() << " civilisations with seed "
-	       << options.seed << ", " << m_gameMode.items.size() << " goods.\n"
-	       << m_simulation.StatusLine();
-
-	return result.str();
-}
-
-
-std::string ManifestTui::CommandList()
-{
-	if (!m_simulation.IsGenerated())
-	{
-		return "No universe: run generate first.";
-	}
-
-	std::ostringstream list;
-	list << "id      name                      pool     age                   pop      "
-	        "goods treasury\n";
-	for (const auto &civ : m_simulation.GetCivilisations())
-	{
-		list << PadRight(civ.id, 8) << PadRight(civ.name, 24) << PadRight(civ.pool, 8)
-		     << PadRight(civ.ageId, 22) << "pop " << PadRight(sim::FormatNumber(civ.population), 7)
-		     << " goods " << PadRight(std::to_string(civ.production.size()), 4) << " treasury "
-		     << civ.treasury << "\n";
-	}
-
-	list << "population is in world units: demand and production are units of goods per day.\n";
-
-	return list.str();
-}
-
-
-std::string ManifestTui::CommandShow(const std::string &argument)
-{
-	if (argument.empty())
-	{
-		return "Usage: show <Civ-01>";
-	}
-
-	if (!m_simulation.IsGenerated())
-	{
-		return "No universe: run generate first.";
-	}
-
-	return m_simulation.DescribeCivilisation(argument);
-}
-
-
-std::string ManifestTui::CommandPrices(const std::string &argument)
-{
-	if (!m_simulation.IsGenerated())
-	{
-		return "No universe: run generate first.";
-	}
-
-	struct Priced
-	{
-		double ratio;
-		std::string itemId;
-		double basePrice;
-		double price;
-	};
-
-	std::vector<Priced> priced;
-	for (const auto &item : m_simulation.GetItems())
-	{
-		const double basePrice = sim::Simulation::BasePrice(item);
-		if (basePrice <= 0.0)
-		{
-			continue;
-		}
-
-		const double price = m_simulation.GetPrice(item.itemId);
-
-		priced.push_back({price / basePrice, item.itemId, basePrice, price});
-	}
-
-	std::sort(
-	    priced.begin(), priced.end(),
-	    [](const Priced &left, const Priced &right)
-	    {
-		    if (left.ratio != right.ratio)
-		    {
-			    return left.ratio > right.ratio;
-		    }
-
-		    return left.itemId < right.itemId;
-	    });
-
-	const std::size_t limit = ParseCount(argument, 10, static_cast<unsigned>(priced.size()));
-
-	std::ostringstream table;
-	table << "goods by market price over base price\n";
-	for (std::size_t index = 0; index < std::min(limit, priced.size()); ++index)
-	{
-		const Priced &entry = priced[index];
-		table << "  " << PadRight(entry.itemId, 26) << "base "
-		      << PadRight(sim::FormatNumber(entry.basePrice), 12) << "market "
-		      << PadRight(sim::FormatNumber(entry.price), 14) << "x" << sim::FormatNumber(entry.ratio)
-		      << "\n";
-	}
-
-	// The scarce half of the table alone reads as if everything were unobtainium: the
-	// cheap end is the other half of the market.
-	if (priced.size() > limit + 5)
-	{
-		table << "  ... and the cheapest in demand\n";
-		for (std::size_t index = priced.size() - 5; index < priced.size(); ++index)
-		{
-			const Priced &entry = priced[index];
-			table << "  " << PadRight(entry.itemId, 26) << "base "
-			      << PadRight(sim::FormatNumber(entry.basePrice), 12) << "market "
-			      << PadRight(sim::FormatNumber(entry.price), 14) << "x"
-			      << sim::FormatNumber(entry.ratio) << "\n";
-		}
-	}
-
-	return table.str();
-}
-
-
-std::string ManifestTui::CommandPlan(const std::string &argument)
-{
-	if (!m_simulation.IsGenerated())
-	{
-		return "No universe: run generate first.";
-	}
-
-	const std::size_t limit = ParseCount(argument, 10, 100);
-	const std::vector<sim::TradeRoute> routes = m_simulation.PlanTrade(static_cast<unsigned>(limit));
-
-	if (routes.empty())
-	{
-		return "No route pays its freight: every market is flat. Run tick to move goods.";
-	}
-
-	std::ostringstream plan;
-	plan << "best routes on tick " << m_simulation.GetTick() << "\n"
-	     << "  a merchant buys where the good is cheap and sells where it is scarce\n  "
-	     << PadRight("good", 24) << PadRight("seller", 9) << PadRight("buyer", 9) << PadRight("qty", 9)
-	     << PadRight("buy at", 12) << PadRight("sell at", 12) << PadRight("freight", 11) << "profit\n";
-	for (const auto &route : routes)
-	{
-		plan << "  " << PadRight(route.itemId, 24) << PadRight(route.sellerId, 9)
-		     << PadRight(route.buyerId, 9) << PadRight(sim::FormatNumber(route.quantity), 9)
-		     << PadRight(sim::FormatNumber(route.unitSellPrice), 12)
-		     << PadRight(sim::FormatNumber(route.unitBuyPrice), 12)
-		     << PadRight(sim::FormatNumber(route.freight), 11) << sim::FormatNumber(route.profit)
-		     << "\n";
-	}
-
-	return plan.str();
-}
-
-
-std::string ManifestTui::CommandTick(const std::string &argument)
-{
-	if (!m_simulation.IsGenerated())
-	{
-		return "No universe: run generate first.";
-	}
-
-	const unsigned ticks = ParseCount(argument, 1, 1000);
-
-	std::string errorMessage;
-	for (unsigned index = 0; index < ticks; ++index)
-	{
-		if (!m_simulation.AdvanceTick(errorMessage))
-		{
-			return "Tick failed: " + errorMessage;
-		}
-	}
-
-	std::ostringstream result;
-	result << "Advanced " << ticks << " tick" << (ticks == 1 ? "" : "s") << ".\n"
-	       << m_simulation.StatusLine();
-
-	return result.str();
-}
-
-
-std::string ManifestTui::CommandSkills()
-{
-	if (!m_configLoaded)
-	{
-		return "Run load first: the configuration is not loaded.";
-	}
-
-	std::ostringstream skills;
-	skills << m_progression.Summary() << "\n";
-	for (const auto &entry : m_progression.GetRegistry())
-	{
-		skills << "  " << m_progression.Describe(entry.first) << "\n";
-	}
-
-	return skills.str();
-}
-
-
-std::string ManifestTui::CommandUpgrade(const std::string &argument)
-{
-	if (argument.empty())
-	{
-		return "Usage: upgrade <skillId>";
-	}
-
-	std::string errorMessage;
-	if (!m_progression.TryUpgrade(argument, errorMessage))
-	{
-		return errorMessage;
-	}
-
-	return "Upgraded " + argument + " to tier " +
-	       std::to_string(m_progression.GetCurrentTier(argument)) + "/" +
-	       std::to_string(m_progression.GetMaxTiers(argument)) + ", " +
-	       std::to_string(m_progression.GetResources()) + " resources left.";
-}
-
 
 void ManifestTui::Run()
 {
 	ScreenInteractive screen = ScreenInteractive::Fullscreen();
-
+	auto &console = m_session.GetConsole();
+	const auto startTime = std::chrono::steady_clock::now();
 	std::string inputData;
-	std::vector<std::string> historyLog = {
-	    "Manifest development front-end.", "Type help, then load, then generate 8.",
-	    "Press [Tab] to complete, [Up/Down] for history, [PageUp/PageDown] to read the log."};
-
-	m_logFocusIndex = static_cast<int>(historyLog.size()) - 1;
-
-	for (const std::string &line : historyLog)
-	{
-		AppendSessionLog(line);
-	}
-
-	std::vector<std::string> commandHistory;
+	int inputCursorPosition = 0;
 	int historyIndex = -1;
+	int logFocusIndex = 0;
+	bool followOutput = true;
+	bool failed = false;
 
-	Component inputBox = Input(&inputData, "Type a command...");
-
-	auto appendLine = [&](const std::string &text)
+	auto print = [&](const std::string &text)
 	{
-		historyLog.push_back(text);
+		console.Print(text);
 		AppendSessionLog(text);
-
-		// Keep following the newest line: the frame follows the focused element.
-		m_logFocusIndex = static_cast<int>(historyLog.size()) - 1;
+	};
+	auto execute = [&](const std::string &command)
+	{
+		AppendSessionLog("> " + command);
+		console.Execute(command);
+		failed = false;
+		const auto lines = console.Lines();
+		// Locate this command's echo rather than counting lines: the console may
+		// have evicted older output, or clear may have removed the echo itself.
+		const auto echo = std::find_if(
+		    lines.rbegin(), lines.rend(),
+		    [](const ConsoleLine &line) { return line.kind == ConsoleLine::Kind::Input; });
+		for (auto line = echo == lines.rend() ? lines.begin() : echo.base(); line != lines.end();
+		     ++line)
+		{
+			AppendSessionLog(LineText(*line));
+			failed = failed || line->kind == ConsoleLine::Kind::Error;
+		}
 	};
 
-	// The generated data is what this front-end exists to exercise: load it on startup,
-	// so the first command can be generate, and report it when the data is missing.
-	std::string loadError;
-	if (!LoadConfiguration(m_dataDirectory, loadError))
-	{
-		appendLine(loadError);
-	}
+	print("Manifest development console. Type help for commands, then generate 8.");
+	print(
+	    "Tab: complete; Up/Down: history; PageUp/PageDown: scroll; End: follow output; Ctrl-D: quit.");
+	execute("load");
 
+	InputOption inputOptions = InputOption::Default();
+	inputOptions.cursor_position = &inputCursorPosition;
+	Component inputBox = Input(&inputData, "Type a command...", inputOptions);
 	auto inputHandler = CatchEvent(
 	    inputBox,
 	    [&](Event event)
@@ -653,114 +184,64 @@ void ManifestTui::Run()
 			    inputData = "quit";
 			    event = Event::Return;
 		    }
-
 		    if (event == Event::Tab)
 		    {
-			    if (!inputData.empty())
+			    const std::string completed = console.CompleteLine(inputData);
+			    if (completed != inputData)
 			    {
-				    const auto match = std::find_if(
-				        m_commands.begin(), m_commands.end(),
-				        [&](const std::string &command) { return command.rfind(inputData, 0) == 0; });
-
-				    if (match != m_commands.end())
-				    {
-					    inputData = *match;
-				    }
+				    inputData = completed;
+				    inputCursorPosition = static_cast<int>(inputData.size());
 			    }
-
-			    return true;
-		    }
-
-		    if (event == Event::PageUp)
-		    {
-			    m_logFocusIndex = std::max(0, m_logFocusIndex - 5);
-
-			    return true;
-		    }
-
-		    if (event == Event::PageDown)
-		    {
-			    m_logFocusIndex =
-			        std::min(static_cast<int>(historyLog.size()) - 1, m_logFocusIndex + 5);
-
-			    return true;
-		    }
-
-		    if (event == Event::End)
-		    {
-			    m_logFocusIndex = static_cast<int>(historyLog.size()) - 1;
-
-			    return true;
-		    }
-
-		    if (event == Event::ArrowUp)
-		    {
-			    if (!commandHistory.empty() &&
-			        historyIndex < static_cast<int>(commandHistory.size()) - 1)
+			    else if (const auto candidates = console.Complete(inputData); candidates.size() > 1)
 			    {
-				    ++historyIndex;
-				    inputData = commandHistory
-				        [commandHistory.size() - 1 - static_cast<std::size_t>(historyIndex)];
+				    std::string list;
+				    for (const std::string &candidate : candidates)
+					    list += (list.empty() ? "" : "  ") + candidate;
+				    print(list);
 			    }
-
 			    return true;
 		    }
-
-		    if (event == Event::ArrowDown)
+		    if (event == Event::PageUp || event == Event::PageDown || event == Event::End)
 		    {
-			    if (historyIndex > 0)
-			    {
-				    --historyIndex;
-				    inputData = commandHistory
-				        [commandHistory.size() - 1 - static_cast<std::size_t>(historyIndex)];
-			    }
-			    else if (historyIndex == 0)
-			    {
-				    historyIndex = -1;
-				    inputData.clear();
-			    }
-
+			    const int last = std::max(0, static_cast<int>(console.Lines().size()) - 1);
+			    if (event == Event::PageUp)
+				    logFocusIndex = std::max(0, logFocusIndex - 5);
+			    else if (event == Event::PageDown)
+				    logFocusIndex = std::min(last, logFocusIndex + 5);
+			    else
+				    logFocusIndex = last;
+			    followOutput = logFocusIndex == last;
 			    return true;
 		    }
-
+		    if (event == Event::ArrowUp || event == Event::ArrowDown)
+		    {
+			    const auto &history = console.History();
+			    const int count = static_cast<int>(history.size());
+			    const int nextHistoryIndex = event == Event::ArrowUp
+			                                     ? std::min(historyIndex + 1, count - 1)
+			                                     : std::max(historyIndex - 1, -1);
+			    if (nextHistoryIndex == historyIndex)
+				    return true;
+			    historyIndex = nextHistoryIndex;
+			    inputData = historyIndex < 0
+			                    ? std::string{}
+			                    : history[static_cast<std::size_t>(count - 1 - historyIndex)];
+			    inputCursorPosition = static_cast<int>(inputData.size());
+			    return true;
+		    }
 		    if (event == Event::Return)
 		    {
-			    if (inputData.empty())
-			    {
+			    if (inputData.find_first_not_of(" \t") == std::string::npos)
 				    return true;
-			    }
-
-			    const std::string command = inputData;
-			    commandHistory.push_back(command);
+			    const std::string command = std::exchange(inputData, {});
+			    inputCursorPosition = 0;
 			    historyIndex = -1;
-			    inputData.clear();
-
-			    historyLog.push_back("> " + command);
-			    AppendSessionLog("> " + command);
-			    m_logFocusIndex = static_cast<int>(historyLog.size()) - 1;
-
-			    const std::string output = Evaluate(command);
-			    if (output.empty() && command == "clear")
-			    {
-				    historyLog.clear();
-				    m_logFocusIndex = 0;
-
-				    return true;
-			    }
-
-			    if (!output.empty())
-			    {
-				    appendLine(output);
-			    }
-
-			    if (IsQuitRequested())
-			    {
+			    execute(command);
+			    followOutput = true;
+			    if (m_session.IsQuitRequested())
 				    screen.ExitLoopClosure()();
-			    }
-
 			    return true;
 		    }
-
 		    return false;
 	    });
 
@@ -768,96 +249,81 @@ void ManifestTui::Run()
 	    inputHandler,
 	    [&]
 	    {
+		    const auto lines = console.Lines();
+		    const int last = std::max(0, static_cast<int>(lines.size()) - 1);
+		    logFocusIndex = followOutput ? last : std::clamp(logFocusIndex, 0, last);
 		    Elements logElements;
-		    for (int index = 0; index < static_cast<int>(historyLog.size()); ++index)
+		    for (std::size_t index = 0; index < lines.size(); ++index)
 		    {
-			    if (index == m_logFocusIndex)
-			    {
-				    logElements.push_back(
-				        WrapLogText(historyLog[static_cast<std::size_t>(index)]) | focus);
-			    }
-			    else
-			    {
-				    logElements.push_back(WrapLogText(historyLog[static_cast<std::size_t>(index)]));
-			    }
+			    Element element = WrapLogText(LineText(lines[index])) | LineColour(lines[index]);
+			    if (static_cast<int>(index) == logFocusIndex)
+				    element = element | focus;
+			    logElements.push_back(std::move(element));
 		    }
-
-		    const bool failed = PromptMark() == " \u2718 ";
-
+		    const std::string promptMark = failed ? " \u2718 " : " \u2714 ";
 		    auto leftPane =
 		        vbox(
-		            {vbox(std::move(logElements)) | yframe | flex | border | Mocha::Text,
+		            {vbox(std::move(logElements)) | yframe | flex | border,
 		             hbox(
-		                 {text(PromptMark() + " manifest \u276f ") | bold |
+		                 {text(promptMark + " manifest \u276f ") | bold |
 		                      (failed ? Mocha::Red : (inputData.empty() ? Mocha::Mauve : Mocha::Green)),
 		                  inputBox->Render() | flex | Mocha::Text}) |
 		                 border | Mocha::Surface0}) |
 		        flex | Mocha::BaseBg;
 
 		    const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
-		                             std::chrono::steady_clock::now() - m_startTime)
+		                             std::chrono::steady_clock::now() - startTime)
 		                             .count();
-
+		    const auto commands = console.Complete("");
 		    Elements commandColumn;
-		    for (std::size_t index = 0; index < m_commands.size(); index += 2)
+		    for (std::size_t index = 0; index < commands.size(); index += 2)
 		    {
-			    std::string line = "   " + m_commands[index];
-			    if (index + 1 < m_commands.size())
-			    {
-				    line += "  " + m_commands[index + 1];
-			    }
-
+			    std::string line = "   " + commands[index];
+			    if (index + 1 < commands.size())
+				    line += "  " + commands[index + 1];
 			    commandColumn.push_back(text(line) | Mocha::Subtext0);
 		    }
-
+		    const auto &simulation = m_session.GetSimulation();
 		    auto rightPane =
 		        vbox(
 		            {text(" universe ") | bold | center | Mocha::Lavender,
 		             separatorDashed() | Mocha::Surface0,
 		             hbox({text("  session: "), text(std::to_string(elapsed) + "s") | Mocha::Yellow}),
-		             hbox(
-		                 {text("  log lines: "),
-		                  text(std::to_string(historyLog.size())) | Mocha::Text}),
+		             hbox({text("  log lines: "), text(std::to_string(lines.size())) | Mocha::Text}),
 		             hbox(
 		                 {text("  data: "),
-		                  text(m_configLoaded ? m_dataDirectory : "not loaded") | Mocha::Text}),
+		                  text(
+		                      m_session.IsConfigurationLoaded() ? m_session.DataDirectory()
+		                                                        : "not loaded") |
+		                      Mocha::Text}),
 		             separatorDashed() | Mocha::Surface0, text(" tick ") | bold | center | Mocha::Peach,
 		             hbox(
 		                 {text("  "),
 		                  text(
-		                      m_simulation.IsGenerated() ? std::to_string(m_simulation.GetTick())
-		                                                 : "no universe") |
+		                      simulation.IsGenerated() ? std::to_string(simulation.GetTick())
+		                                               : "no universe") |
 		                      Mocha::Text}),
 		             hbox(
 		                 {text("  worlds: "),
-		                  text(std::to_string(m_simulation.GetCivilisations().size())) | Mocha::Text}),
+		                  text(std::to_string(simulation.GetCivilisations().size())) | Mocha::Text}),
 		             separatorDashed() | Mocha::Surface0,
 		             text(" commands ") | bold | center | Mocha::Blue,
 		             vbox(std::move(commandColumn))}) |
 		        Mocha::BaseBg | border | Mocha::Surface0 | size(WIDTH, EQUAL, 34);
-
 		    return hbox({leftPane, rightPane});
 	    });
 
-	m_refreshThread = std::thread(
-	    [&]
+	// Local RAII joins before the screen is destroyed, including if Loop throws.
+	std::jthread refreshThread(
+	    [&screen](std::stop_token stop)
 	    {
-		    while (m_runThread)
+		    while (!stop.stop_requested())
 		    {
 			    std::this_thread::sleep_for(std::chrono::milliseconds(250));
-
-			    // A custom event asks the screen to re-render, so the elapsed time and
-			    // the simulation counters stay live.
-			    screen.PostEvent(Event::Custom);
+			    if (!stop.stop_requested())
+				    screen.PostEvent(Event::Custom);
 		    }
 	    });
-
 	screen.Loop(renderer);
-
-	// Any exit from the loop stops the refresh thread: letting it outlive the screen
-	// would post events into a dead screen and leave a joinable thread to terminate
-	// the process.
-	StopRefreshThread();
 }
-
 } // namespace Manifest::Tui

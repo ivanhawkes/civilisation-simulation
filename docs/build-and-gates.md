@@ -18,7 +18,8 @@ CI runs the full gate. `CMAKE_BUILD_PARALLEL_LEVEL`, `CTEST_PARALLEL_LEVEL` and
 `MANIFEST_TIDY_JOBS` control concurrency. Clang-format must be version 21.
 
 The CTest suites are `config`, `universe`, `progression`, `sim`, `ecs`, `market`,
-`effects`, `data` and `mod`. Module libraries publish their own header sets and dependencies;
+`effects`, `data` and `mod`, plus `console` when the TUI is enabled.
+Module libraries publish their own header sets and dependencies;
 integration tests link the aggregate `Manifest::Game`. Existing assertions run under the engine's
 doctest version. The simulation suite pins generated and replayed state hashes. The mod suite
 mounts the staged directory and generated pack through the engine VFS. The default test build
@@ -30,7 +31,12 @@ library can build, but packaging still requires yq. Generated YAML lives in the 
 Running `bash data/build.sh` manually retains the source-tree `data/core-config` default;
 `bash data/build.sh /absolute/output/path` selects an explicit output directory.
 
-`MANIFEST_BUILD_TUI=OFF` omits FTXUI. `BUILD_TESTING=OFF` or `MANIFEST_BUILD_TESTS=OFF`
+The console suite checks command registration, quoted paths and names, completion and history,
+typed errors, numeric bounds, configuration reloads and the load/generate/tick/trade-planning
+workflow. Run it without a terminal using `ctest --preset clang-debug -R '^console$'`.
+
+`MANIFEST_BUILD_TUI=OFF` omits the terminal, console tooling and FTXUI.
+`BUILD_TESTING=OFF` or `MANIFEST_BUILD_TESTS=OFF`
 omits the suites. Manifest tests and the TUI default to off when a host consumes the project.
 `MANIFEST_WERROR=ON` makes project warnings fatal. `MANIFEST_CCACHE=OFF` and
 `JETTISON_CCACHE=OFF` disable compiler caches. C++ module scanning is disabled because this

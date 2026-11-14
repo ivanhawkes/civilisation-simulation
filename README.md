@@ -43,6 +43,16 @@ The complete gate is:
 It checks formatting and builds and tests Debug, Release, and a build with AddressSanitizer
 and UndefinedBehaviorSanitizer. CI uses the same locked Nix environment. See [build and gates](docs/build-and-gates.md).
 
+## Development console
+
+The development TUI uses Jettison's shell console backend. It loads the generated configuration
+on startup; try `generate 8`, `list`, `tick`, `prices` and `plan`. `help` lists the commands and
+`help generate` describes one. Quote paths or civilisation names containing spaces, for example
+`show "Abigail Prime"`. Tab completes command names, Up/Down recalls history, PageUp/PageDown
+scrolls and End follows new output. `clear` clears the view; the command transcript remains in
+`build/tui-session.log` when launched from a working tree with a `build/` directory. `quit`,
+`exit` or Ctrl-D ends the session.
+
 ## Mod output
 
 ```bash
@@ -63,7 +73,7 @@ WebAssembly scripts using Jettison's script API. See the [roadmap](docs/roadmap.
 ## Structure
 
 - `source/game/<module>/`: game modules, each with `CMakeLists.txt`, `include/manifest/<module>/`, `src/`, and unit `tests/` where applicable.
-- `source/tools/tui/`: the development terminal tool, its private header and entry point.
+- `source/tools/tui/`: the development console session, FTXUI frontend and console tests.
 - `source/test/`: cross-module effects, data and mod-pack suites, plus shared test helpers.
 - `source/external/`: the pinned engine SDK and optional development-only dependencies.
 - `cmake/ManifestModule.cmake`: module target, header, dependency and test rules matching Jettison's module helper.
