@@ -11,6 +11,11 @@ and log capture; its command session is tested independently of terminal renderi
 
 ## Gameplay integration
 
+The [gameplay and persistent server plan](gameplay-and-server-plan.md) fixes the initial
+product scope and acceptance scenario: company-owned trading, venue-local inventory,
+physical delivery, persistent worlds and server-authoritative commands. Apply these
+decisions to the adapters and save schemas below; they remain planned, not implemented.
+
 1. **Defined:** the [host/script boundary](host-script-boundary.md) keeps authoritative economy,
    progression, effects and settlement in linked native game modules. Capability-limited Wasm
    supplies bounded policy inputs, starting with trade preference, and optional event observers.
@@ -46,3 +51,10 @@ When the administration interface is designed, assess whether actual operator ne
 adapting the existing FTXUI presentation. Preserve automated command coverage independently of
 the frontend build option. This decision does not schedule immediate TUI removal or expansion;
 protocols, hosting platform and deployment tooling remain to be selected.
+
+Follow the [future work sequence](gameplay-and-server-plan.md#sequencing-and-deferred-scope):
+first prove the local trading loop, then complete recovery and remote command semantics.
+Develop content validation and frontend-independent command coverage alongside integration.
+Before public hosting, demonstrate measured capacity, relocation and backup restoration.
+The initial target is four connected players; the larger workload is a provisional benchmark,
+not a supported-capacity claim.

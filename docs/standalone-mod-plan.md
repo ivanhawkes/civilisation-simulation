@@ -3,6 +3,12 @@
 Approved direction: 2026-11-15. Implementation is assigned to Claude by the user.
 This document records the plan; it does not claim that the integration exists.
 
+The subsequent [gameplay and persistent server plan](gameplay-and-server-plan.md) resolves
+the product questions and extends this handoff with company ownership, venue-local inventory,
+the first trading scenario, command identity/retry semantics and persistence/recovery rules.
+Apply it before implementing host adapters, command payloads or save schemas. Its initial
+scope and acceptance scenario govern the gameplay delivered through the stages below.
+
 ## Outcome and scope
 
 Manifest remains a separate repository that consumes Jettison through CMake. It builds

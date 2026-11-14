@@ -8,5 +8,6 @@
 - [Build and gates](build-and-gates.md)
 - [Roadmap](roadmap.md)
 - [Standalone mod implementation plan](standalone-mod-plan.md)
+- [Gameplay and persistent server plan](gameplay-and-server-plan.md)
 - [Models and agent workflow](agent-workflow.md)
 - [Model reference](model.md)

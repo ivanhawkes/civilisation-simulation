@@ -18,3 +18,11 @@ TUI as a development harness for now; a separate TUI administration client is op
 will depend on operator needs. The server must operate without it. This remains planned work;
 see [architecture](architecture.md#dedicated-server-and-administration-planned) and
 [roadmap](roadmap.md#future-dedicated-server-and-administration).
+
+The initial playable scope is defined in the
+[gameplay and persistent server plan](gameplay-and-server-plan.md): one system, two
+civilisations, two venues, eight goods and up to four connected players, each controlling
+a trading company initially owning one ship. The loop is buy, transport, sell and upgrade.
+World persistence, venue-local inventory and company ownership are planned requirements,
+not current capabilities. Interstellar travel, player-controlled civilisations, combat,
+piracy, insurance claims and offline catch-up are deferred from this initial scope.

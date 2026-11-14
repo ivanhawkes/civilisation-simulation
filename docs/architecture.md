@@ -73,6 +73,18 @@ remain integration work; see the roadmap.
 
 ## Dedicated server and administration (planned)
 
+The [gameplay and persistent server plan](gameplay-and-server-plan.md) defines the planned
+ownership and recovery contracts. Players control companies distinct from server-controlled
+civilisations. Goods reside at venues or aboard ships, with native loading, unloading and
+reservation checks. Worlds advance while the server runs and resume without downtime
+catch-up. These contracts must guide host integration; the existing development classes
+do not yet implement them.
+
+The planned host persists accepted command ordering before acknowledging durable success,
+recovers through atomic snapshots and journal replay, and pins world content compatibility.
+Clients receive filtered snapshots and use retry-safe commands. See that plan for acceptance
+criteria, content validation, operational requirements and deferred scope.
+
 The approved direction is a dedicated network server, launched through a CLI and hosted on a
 server platform. It owns the authoritative simulation and networking and runs unattended under
 a service manager or container platform, without a renderer or interactive terminal. Startup
