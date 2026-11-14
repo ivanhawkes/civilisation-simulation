@@ -17,7 +17,7 @@ CTest, and optionally ASan/UBSan build and CTest. `--skip-release` supports a sh
 CI runs the full gate. `CMAKE_BUILD_PARALLEL_LEVEL`, `CTEST_PARALLEL_LEVEL` and
 `MANIFEST_TIDY_JOBS` control concurrency. Clang-format must be version 21.
 
-The CTest suites are `config`, `universe`, `progression`, `sim`, `ecs`, `market`,
+The CTest suites are `types`, `config`, `universe`, `progression`, `sim`, `ecs`, `market`,
 `effects`, `data` and `mod`, plus `console` when the TUI is enabled.
 Module libraries publish their own header sets and dependencies;
 integration tests link the aggregate `Manifest::Game`. Existing assertions run under the engine's

@@ -16,8 +16,10 @@ and log capture; its command session is tested independently of terminal renderi
    supplies bounded policy inputs, starting with trade preference, and optional event observers.
    Reuse Jettison's world, decisions, reflection and script host; there is no native C++ mod ABI.
    Runtime adapters and an engine-hosted scenario remain in items 2–5 below.
-2. Convert economic quantities and prices to specified integer minor units, with overflow,
-   rounding and reservation tests. Preserve authored game balance explicitly through conversion.
+2. **Completed:** [decimal market prices](market-prices.md), with explicit conversion, overflow, rounding
+   and reservation tests. Preserve authored IDs, units and prices. Quantities, physics, effect
+   stats and other continuous values retain floats/doubles; existing credit ledgers remain
+   integers. This supersedes the earlier proposal to convert every economic value to fixed point.
 3. Load configuration from Jettison's VFS and definition registry, including layered patches,
    schema versions and migration. Current path-based loaders remain development APIs.
 4. Bind progression, economic state and commands to the engine's fixed simulation step, replay,

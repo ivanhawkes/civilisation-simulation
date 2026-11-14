@@ -142,6 +142,12 @@ int FindCivilisationIndex(const std::vector<Civilisation> &civilisations, const 
 } // namespace
 
 
+std::string FormatNumber(Decimal value)
+{
+	return FormatNumber(value.ToDouble());
+}
+
+
 std::string FormatNumber(double value)
 {
 	char buffer[32];
@@ -230,6 +236,19 @@ bool Simulation::Generate(
 		    "the universe name pools hold {} names: not enough for {} civilisations.",
 		    std::to_string(deck.size()), std::to_string(options.civilisationCount));
 		return false;
+	}
+
+	// Reserve room for the maximum market/local multiplier (5 * 1.9). Validate
+	// before replacing the current world, so bad authored prices preserve the run.
+	for (const auto &item : items)
+	{
+		const auto price = Decimal::TryParse(item.basePrice);
+		if (!price || *price < 0 || *price > Decimal::Max() / 10)
+		{
+			errorMessage = std::format(
+			    "item '{}' has invalid or oversized basePrice '{}'.", item.itemId, item.basePrice);
+			return false;
+		}
 	}
 
 	m_ages = ages;
@@ -396,16 +415,10 @@ const Civilisation *Simulation::FindCivilisation(const std::string &idOrName) co
 }
 
 
-double Simulation::BasePrice(const ItemNode &item)
+Decimal Simulation::BasePrice(const ItemNode &item)
 {
-	try
-	{
-		return std::stod(item.basePrice);
-	}
-	catch (const std::exception &)
-	{
-		return 0.0;
-	}
+	const auto price = Decimal::TryParse(item.basePrice);
+	return price && *price >= 0 ? *price : Decimal{0};
 }
 
 
@@ -449,18 +462,18 @@ double Simulation::GetDemand(const std::string &itemId) const
 }
 
 
-double Simulation::GetPrice(const std::string &itemId) const
+Decimal Simulation::GetPrice(const std::string &itemId) const
 {
 	const ItemNode *item = FindItem(itemId);
 	if (item == nullptr)
 	{
-		return 0.0;
+		return Decimal{0};
 	}
 
-	const double basePrice = BasePrice(*item);
-	if (basePrice <= 0.0)
+	const Decimal basePrice = BasePrice(*item);
+	if (basePrice <= 0)
 	{
-		return 0.0;
+		return Decimal{0};
 	}
 
 	const double supply = GetSupply(itemId);
@@ -469,18 +482,22 @@ double Simulation::GetPrice(const std::string &itemId) const
 	const double factor = Clamp(
 	    std::pow(demand / std::max(supply, 0.001), kPriceElasticity), kMinPriceFactor, kMaxPriceFactor);
 
-	return basePrice * factor;
+	// Quantity ratios retain the harness's double model. Only the resulting price
+	// is quantized to microcredits, nearest with halfway values away from zero.
+	const auto price = Decimal::TryFromDouble(basePrice.ToDouble() * factor);
+	JETTISON_VERIFY(price.has_value());
+	return *price;
 }
 
 
-double Simulation::GetLocalPrice(const std::string &civilisationId, const std::string &itemId) const
+Decimal Simulation::GetLocalPrice(const std::string &civilisationId, const std::string &itemId) const
 {
 	const Civilisation *civ = FindCivilisation(civilisationId);
-	const double marketPrice = GetPrice(itemId);
+	const Decimal marketPrice = GetPrice(itemId);
 
-	if (civ == nullptr || marketPrice <= 0.0)
+	if (civ == nullptr || marketPrice <= 0)
 	{
-		return 0.0;
+		return Decimal{0};
 	}
 
 	const double made = LookUp(civ->production, itemId);
@@ -497,7 +514,9 @@ double Simulation::GetLocalPrice(const std::string &civilisationId, const std::s
 
 	const double bias = Clamp(kLocalPriceBias * (need - made) / average, -0.9, 0.9);
 
-	return marketPrice * (1.0 + bias);
+	const auto price = Decimal::TryFromDouble(marketPrice.ToDouble() * (1.0 + bias));
+	JETTISON_VERIFY(price.has_value());
+	return *price;
 }
 
 
@@ -548,10 +567,10 @@ std::vector<TradeRoute> Simulation::PlanTrade(unsigned limit) const
 			continue;
 		}
 
-		const double unitSellPrice = GetLocalPrice(seller->id, itemId);
-		const double unitBuyPrice = GetLocalPrice(buyer->id, itemId);
-		const double freight = GetPrice(itemId) * kFreightRate * quantity;
-		const double profit = quantity * (unitBuyPrice - unitSellPrice) - freight;
+		const Decimal unitSellPrice = GetLocalPrice(seller->id, itemId);
+		const Decimal unitBuyPrice = GetLocalPrice(buyer->id, itemId);
+		const double freight = GetPrice(itemId).ToDouble() * kFreightRate * quantity;
+		const double profit = quantity * (unitBuyPrice.ToDouble() - unitSellPrice.ToDouble()) - freight;
 
 		if (profit <= 0.0)
 		{
@@ -644,9 +663,24 @@ bool Simulation::AdvanceTick(std::string &errorMessage)
 		Civilisation &seller = m_civilisations[static_cast<std::size_t>(sellerIndex)];
 		Civilisation &buyer = m_civilisations[static_cast<std::size_t>(buyerIndex)];
 
-		const double cost = route.quantity * route.unitBuyPrice;
+		const double cost = route.quantity * route.unitBuyPrice.ToDouble();
 		if (LookUp(seller.stockpile, route.itemId) < route.quantity ||
 		    static_cast<double>(buyer.treasury) < cost)
+		{
+			continue;
+		}
+
+		const double revenue = route.quantity * route.unitSellPrice.ToDouble();
+		// 2^63 rounds to double but LLONG_MAX does not. Check the exclusive bound
+		// before casting, then check the integer addition before moving goods.
+		if (!std::isfinite(cost) || !std::isfinite(revenue) || cost < 0.0 || revenue < 0.0 ||
+		    cost >= 0x1p63 || revenue >= 0x1p63)
+		{
+			continue;
+		}
+		const auto paid = static_cast<long long>(cost);
+		const auto received = static_cast<long long>(revenue);
+		if (buyer.treasury < paid || seller.treasury > std::numeric_limits<long long>::max() - received)
 		{
 			continue;
 		}
@@ -654,8 +688,8 @@ bool Simulation::AdvanceTick(std::string &errorMessage)
 		seller.stockpile[route.itemId] -= route.quantity;
 		buyer.stockpile[route.itemId] += route.quantity;
 
-		seller.treasury += static_cast<long long>(route.quantity * route.unitSellPrice);
-		buyer.treasury -= static_cast<long long>(cost);
+		seller.treasury += received;
+		buyer.treasury -= paid;
 	}
 
 	++m_tick;
@@ -671,13 +705,13 @@ double Simulation::GetPriceIndex() const
 
 	for (const auto &item : m_items)
 	{
-		const double basePrice = BasePrice(item);
-		if (basePrice <= 0.0)
+		const Decimal basePrice = BasePrice(item);
+		if (basePrice <= 0)
 		{
 			continue;
 		}
 
-		ratioTotal += GetPrice(item.itemId) / basePrice;
+		ratioTotal += GetPrice(item.itemId).ToDouble() / basePrice.ToDouble();
 		++counted;
 	}
 

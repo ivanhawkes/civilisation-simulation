@@ -10,4 +10,6 @@ manifest_add_module(market
 		src/Marketplace.cpp
 	TESTS
 		tests/MarketplaceTests.cpp
+	PRIVATE_LIBRARIES
+		Jettison::Core
 )

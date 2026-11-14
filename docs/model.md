@@ -83,7 +83,7 @@ order.civilisationId = "Civ-01";
 order.itemId = "ItemCopper";
 order.side = Manifest::Core::OrderSide::Sell;
 order.quantity = 40.0;
-order.limitPrice = 12.0;
+order.limitPrice = Manifest::Core::Decimal{12};
 
 std::string orderId;
 if (!market.PostOrder(world, order, orderId, error))
@@ -522,7 +522,10 @@ number and a fraction of value: `Simulation::PlanTrade` charges `kFreightRate`, 
 the base price of a good for every unit the route moves, so the cost of a haul is a share
 of what the good is worth, never a mass, a volume, a distance or a cube. The loader reads
 the four fields as optional strings and keeps the text verbatim; `Simulation::BasePrice`
-parses the fifth, and answers 0.0 for a price that is not a number. The storage cube is the
+parses the fifth as an exact decimal price, and answers zero for invalid text. Generation
+rejects invalid, negative or oversized prices before replacing the world. Only prices use the
+[decimal representation](market-prices.md); quantities, physical metadata and effect stats
+retain their existing types. The storage cube is the
 IBC cube, the one cubic metre intermediate bulk container, and the fields are defined
 against it:
 

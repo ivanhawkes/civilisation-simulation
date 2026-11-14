@@ -69,8 +69,9 @@ sample game does not consume Manifest's configuration schema or execute this rep
 economy. The C++ implementation builds as static host-side modules aggregated by `Manifest::Game`
 (with `Manifest::Core` as a compatibility alias); the TUI exercises them during development.
 The [host/script boundary](docs/host-script-boundary.md) assigns authoritative rules to linked
-native game code and bounded policy decisions to Wasm. Shipping gameplay still needs the
-integer economy, VFS loaders, world adapters and scripted scenario in the
+native game code and bounded policy decisions to Wasm. Market prices now use an exact decimal
+representation; other continuous values retain floats/doubles. Shipping gameplay still needs
+the VFS loaders, world adapters and scripted scenario in the
 [roadmap](docs/roadmap.md).
 
 ## Structure

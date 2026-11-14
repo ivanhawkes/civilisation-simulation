@@ -156,7 +156,10 @@ TEST_CASE("every_item_in_the_full_game_mode_has_a_price")
 		// the field has to be a number: it does not have to be positive.
 		static const std::regex numberPattern(R"( *[0-9]+(\.[0-9]+)? *)");
 		CHECK(std::regex_match(item.basePrice, numberPattern));
-		CHECK(Manifest::Core::Simulation::BasePrice(item) >= 0.0);
+		const auto price = Manifest::Core::Decimal::TryParse(item.basePrice);
+		REQUIRE(price.has_value());
+		CHECK(Manifest::Core::Simulation::BasePrice(item) == *price);
+		CHECK(*price >= 0);
 	}
 }
 

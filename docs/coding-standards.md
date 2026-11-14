@@ -163,10 +163,12 @@ The TUI is development tooling, not simulation code; its session transcript is U
 Keep the same `devenv.nix`, Nix inputs and lock as the selected engine revision. Update the SDK
 commit and these files together. Do not add a second version of an engine dependency.
 
-The pre-existing fractional economy model remains a development harness. Its conversion to the
-engine's integer quantity and currency contract is tracked in the roadmap; do not expose its
-floating-point values as a new save or script ABI. New simulation integration follows the engine
-rules above. Preserve authored IDs and YAML keys when renaming C++ identifiers.
+Manifest's numeric policy is [decimal market prices](market-prices.md): only per-unit prices
+use a decimal type. Quantities, population, effect stats, physics and other continuous values
+retain floats/doubles; existing whole-credit ledgers remain integers. This project-specific
+choice supersedes the inherited integer-quantity rule above for Manifest's model. The host
+adapter must make any conversion required by an engine API explicit; do not expose the current
+development classes wholesale as a save or script ABI. Preserve authored IDs and YAML keys.
 
 Run clang-tidy in CI by default. Avoid local tidy passes on the development laptop;
 use the optional `--tidy` gate flag only when needed.

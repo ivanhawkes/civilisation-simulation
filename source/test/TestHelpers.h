@@ -10,6 +10,18 @@
 
 namespace Manifest::Test
 {
+template <typename T> double Number(const T &value)
+{
+	if constexpr (requires { value.ToDouble(); })
+	{
+		return value.ToDouble();
+	}
+	else
+	{
+		return static_cast<double>(value);
+	}
+}
+
 class TempFile
 {
   public:
@@ -47,6 +59,8 @@ class TempFile
 
 // Keep the existing suites' absolute tolerances and substring diagnostics.
 #define MANIFEST_CHECK_NEAR(actual, expected, tolerance)                                               \
-	CHECK(std::abs((actual) - (expected)) <= (tolerance))
+	CHECK(                                                                                             \
+	    std::abs(Manifest::Test::Number(actual) - Manifest::Test::Number(expected)) <=                 \
+	    Manifest::Test::Number(tolerance))
 #define MANIFEST_CHECK_CONTAINS(haystack, needle)                                                      \
 	CHECK(std::string(haystack).find(needle) != std::string::npos)

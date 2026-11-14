@@ -3,6 +3,7 @@
 - [Scope](scope.md)
 - [Architecture](architecture.md)
 - [Host and script boundary](host-script-boundary.md)
+- [Decimal market prices](market-prices.md)
 - [Coding standards](coding-standards.md)
 - [Build and gates](build-and-gates.md)
 - [Roadmap](roadmap.md)

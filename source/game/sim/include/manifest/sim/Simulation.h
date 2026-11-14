@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <manifest/config/SimulationConfig.h>
+#include <manifest/types/Decimal.h>
 #include <manifest/universe/Universe.h>
 
 
@@ -71,8 +72,8 @@ struct TradeRoute
 	std::string buyerId;
 
 	double quantity{0.0};
-	double unitSellPrice{0.0}; // paid to the seller
-	double unitBuyPrice{0.0};  // charged to the buyer
+	Decimal unitSellPrice{0}; // paid to the seller
+	Decimal unitBuyPrice{0};  // charged to the buyer
 	double freight{0.0};
 	double profit{0.0};
 };
@@ -102,7 +103,8 @@ class Simulation
 	//
 	// Fails when any input is empty, when the civilisation count is 0, when the pools
 	// cannot supply enough distinct names, or when the specialty bounds do not fit the
-	// loaded categories.
+	// loaded categories. Authored base prices must be exact nonnegative microcredits
+	// with room for the maximum market/local multiplier; rejection preserves the run.
 	bool Generate(
 	    const Ages &ages, const Categories &categories, const Items &items,
 	    const UniverseNamePools &names, const GenerateOptions &options, std::string &errorMessage);
@@ -116,8 +118,8 @@ class Simulation
 	// Looks a world up by id ("Civ-03") or by name, case insensitive.
 	const Civilisation *FindCivilisation(const std::string &idOrName) const;
 
-	// basePrice parsed as a number; 0.0 when the field is not a number.
-	static double BasePrice(const ItemNode &item);
+	// Exact microcredit price; zero when the field is invalid or negative.
+	static Decimal BasePrice(const ItemNode &item);
 
 	const ItemNode *FindItem(const std::string &itemId) const;
 
@@ -126,11 +128,11 @@ class Simulation
 	double GetDemand(const std::string &itemId) const;
 
 	// Market price: the base price scaled by how scarce the good is.
-	double GetPrice(const std::string &itemId) const;
+	Decimal GetPrice(const std::string &itemId) const;
 
 	// Price at one world: the market price moved by that economy's own surplus or
 	// deficit. The gap between two worlds is what makes a trade pay.
-	double GetLocalPrice(const std::string &civilisationId, const std::string &itemId) const;
+	Decimal GetLocalPrice(const std::string &civilisationId, const std::string &itemId) const;
 
 	// The best routes by profit, best first, at most Limit. Routes that cannot pay their
 	// freight are not returned.
@@ -165,4 +167,5 @@ class Simulation
 // Number formatting for the UI: two decimals, thousands separators are left to the
 // front-end.
 std::string FormatNumber(double value);
+std::string FormatNumber(Decimal value);
 } // namespace Manifest::Core

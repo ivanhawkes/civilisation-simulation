@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <bit>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <utility>
 #include <vector>
@@ -265,11 +266,11 @@ TEST_CASE("scarce_goods_cost_more")
 	std::size_t checked = 0;
 	for (const auto &item : simulation.GetItems())
 	{
-		const double basePrice = Manifest::Core::Simulation::BasePrice(item);
-		CHECK(basePrice > 0.0);
+		const auto basePrice = Manifest::Core::Simulation::BasePrice(item);
+		CHECK(basePrice > 0);
 
-		const double price = simulation.GetPrice(item.itemId);
-		const double ratio = price / basePrice;
+		const auto price = simulation.GetPrice(item.itemId);
+		const double ratio = price.ToDouble() / basePrice.ToDouble();
 
 		if (civ.production.find(item.itemId) == civ.production.end())
 		{
@@ -676,8 +677,126 @@ TEST_CASE("the engine RNG produces the same generation and hundred-tick replay i
 		}
 		return hash;
 	};
+	// Prices have their own integer hash: quantization must agree across builds
+	// even when the unchanged floating quantity state still matches its old hash.
+	const auto priceHash = [&]()
+	{
+		using Jettison::Core::HashCombine;
+		std::uint64_t hash = 0;
+		for (const auto &item : simulation.GetItems())
+		{
+			hash = HashCombine(
+			    hash, static_cast<std::uint64_t>(Manifest::Core::Simulation::BasePrice(item).Raw()));
+			hash =
+			    HashCombine(hash, static_cast<std::uint64_t>(simulation.GetPrice(item.itemId).Raw()));
+		}
+		for (const auto &civ : simulation.GetCivilisations())
+		{
+			for (const auto &item : simulation.GetItems())
+			{
+				hash = HashCombine(
+				    hash,
+				    static_cast<std::uint64_t>(simulation.GetLocalPrice(civ.id, item.itemId).Raw()));
+			}
+		}
+		return hash;
+	};
 	CHECK(stateHash() == 10355632731109243635ULL);
+	CHECK(priceHash() == 15444164946577136117ULL);
 	for (int tick = 0; tick < 100; ++tick)
 		REQUIRE(simulation.AdvanceTick(error));
 	CHECK(stateHash() == 12410383246888723003ULL);
+	CHECK(priceHash() == 15444164946577136117ULL);
+}
+
+TEST_CASE("invalid authored prices preserve an existing universe")
+{
+	Scenario scenario;
+	Manifest::Core::Simulation simulation;
+	std::string error;
+	REQUIRE(simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(8, 42), error));
+	REQUIRE(simulation.AdvanceTick(error));
+	const auto before = Dump(simulation.GetCivilisations().front());
+	const auto stocks = simulation.GetCivilisations().front().stockpile;
+	const auto originalPrice = simulation.GetItems().front().basePrice;
+	for (const char *invalid :
+	     {"", "12credits", "-1", "nan", "inf", "1e2", " 12", "0.0000001", "9223372036854.775808",
+	      "9223372036854"})
+	{
+		scenario.items.front().basePrice = invalid;
+		CHECK_FALSE(simulation.Generate(
+		    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(8, 9),
+		    error));
+		MANIFEST_CHECK_CONTAINS(error, "Good0");
+		CHECK(simulation.IsGenerated());
+		CHECK_EQ(simulation.GetTick(), 1);
+		CHECK_EQ(Dump(simulation.GetCivilisations().front()), before);
+		CHECK(simulation.GetCivilisations().front().stockpile == stocks);
+		CHECK_EQ(simulation.GetItems().front().basePrice, originalPrice);
+	}
+}
+
+TEST_CASE("authored prices retain exact millionths and harmless trailing zeros")
+{
+	Scenario scenario;
+	Manifest::Core::Simulation simulation;
+	std::string error;
+	scenario.items[0].basePrice = "0.000001";
+	scenario.items[1].basePrice = "5.6312000";
+	REQUIRE(simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(8, 42), error));
+	CHECK_EQ(Manifest::Core::Simulation::BasePrice(simulation.GetItems()[0]).Raw(), 1);
+	CHECK_EQ(Manifest::Core::Simulation::BasePrice(simulation.GetItems()[1]).Raw(), 5'631'200);
+}
+
+TEST_CASE("double scarcity and local ratios quantize only their resulting prices")
+{
+	Scenario scenario;
+	Manifest::Core::Simulation simulation;
+	std::string error;
+	scenario.items[0].basePrice = "1.234567";
+	REQUIRE(simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(1, 42), error));
+	auto &civ = const_cast<Manifest::Core::Civilisation &>(simulation.GetCivilisations().front());
+	civ.production["Good0"] = 1.0;
+	civ.demand["Good0"] = 4.0;
+	CHECK_EQ(simulation.GetPrice("Good0").Raw(), 2'469'134);
+	CHECK_EQ(simulation.GetLocalPrice(civ.id, "Good0").Raw(), 3'802'466);
+	CHECK_EQ(civ.production["Good0"], 1.0);
+	CHECK_EQ(civ.demand["Good0"], 4.0);
+}
+
+TEST_CASE("whole-credit settlement skips routes that would overflow the seller treasury")
+{
+	Scenario scenario;
+	Manifest::Core::Simulation simulation;
+	std::string error;
+	REQUIRE(simulation.Generate(
+	    scenario.ages, scenario.categories, scenario.items, scenario.pools, MakeOptions(8, 2), error));
+	// Isolate one sale: the overflowing seller cannot also spend as a buyer.
+	for (const auto &civ : simulation.GetCivilisations())
+	{
+		auto &mutableCiv = const_cast<Manifest::Core::Civilisation &>(civ);
+		mutableCiv.production.clear();
+		mutableCiv.demand.clear();
+	}
+	auto &seller = const_cast<Manifest::Core::Civilisation &>(simulation.GetCivilisations()[0]);
+	auto &buyer = const_cast<Manifest::Core::Civilisation &>(simulation.GetCivilisations()[1]);
+	seller.production["Good0"] = 2.0;
+	seller.stockpile["Good0"] = 10.0;
+	seller.treasury = std::numeric_limits<long long>::max();
+	buyer.demand["Good0"] = 2.0;
+	buyer.stockpile["Good0"] = 0.0;
+	buyer.treasury = 1000;
+	const auto routes = simulation.PlanTrade(25);
+	REQUIRE_EQ(routes.size(), 1);
+	REQUIRE_EQ(routes.front().sellerId, seller.id);
+	REQUIRE_EQ(routes.front().buyerId, buyer.id);
+	REQUIRE(routes.front().quantity * routes.front().unitSellPrice.ToDouble() >= 1.0);
+	REQUIRE(simulation.AdvanceTick(error));
+	CHECK_EQ(seller.treasury, std::numeric_limits<long long>::max());
+	CHECK_EQ(buyer.treasury, 1000);
+	CHECK_EQ(seller.stockpile["Good0"], 12.0);
+	CHECK_EQ(buyer.stockpile["Good0"], 0.0);
 }

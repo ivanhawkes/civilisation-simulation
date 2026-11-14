@@ -11,7 +11,7 @@ must not claim to have changed its own active model.
 | Work | Lead model and effort | Suitable delegated work |
 | --- | --- | --- |
 | 1. Host boundary and script capabilities | GPT-6 Astra, high for contract design; GPT-6.1 Sol, high for agreed bindings | Inventory engine APIs, locate existing capability tests, document the agreed contract |
-| 2. Integer quantities and fixed-point currency | GPT-6 Astra, high for units, overflow and rounding rules; GPT-6.1 Sol, high for implementation | Inventory fractional fields and authored values; migrate a bounded module after its rules are fixed |
+| 2. Decimal market prices | GPT-6 Astra, high for precision, overflow and mixed-type rounding; GPT-6.1 Sol, high for implementation | Inventory price fields and authored precision; migrate a bounded module after its rules are fixed |
 | 3. VFS, layered definitions and schema migration | GPT-6.1 Sol, high; Astra, high if migration semantics remain ambiguous | Find host-path loaders, prepare fixtures, update docs and mechanical call sites |
 | 4. Fixed-step commands, saves, replay and hashing | GPT-6.1 Sol, high; Astra, high for ordering/state contracts or difficult replay divergence | Map state ownership and existing tests; implement isolated fixtures against the agreed format |
 | 5. Scripts, staging and an engine-hosted scenario | GPT-6.1 Sol, high; Astra, high for capability/ABI design | Packaging inventories, fixture data, scenario documentation and bounded staging changes |

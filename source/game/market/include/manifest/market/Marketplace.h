@@ -52,7 +52,7 @@ struct MarketplaceOptions
 	// The floor the venue refuses dust under: a berth taken by one unit of water is a
 	// berth a grain barge cannot use.
 	double minQuantity{0.0};
-	double minPrice{0.0};
+	Decimal minPrice{};
 
 	// The units one side of one venue's book may hold at a time, before the market
 	// effects of the civilisation raise it. 0 is no cap.
@@ -73,7 +73,7 @@ struct OrderRequest
 	// The worst price the trader will accept: a buy order pays at or under it, a sell
 	// order takes at or above it. A resting order has to state one; the order that
 	// walks the book does not, and takes the best the book offers.
-	double limitPrice{0.0};
+	Decimal limitPrice{};
 
 	long long tick{0};
 };
@@ -205,16 +205,16 @@ class MarketplaceService
 
 	bool BestAsk(
 	    const EcsWorld &world, const std::string &marketId, const std::string &itemId,
-	    double &price) const;
+	    Decimal &price) const;
 	bool BestBid(
 	    const EcsWorld &world, const std::string &marketId, const std::string &itemId,
-	    double &price) const;
+	    Decimal &price) const;
 
 	// The middle of the book, for a good with both sides: false when the book has one
 	// side or none.
 	bool MidPrice(
 	    const EcsWorld &world, const std::string &marketId, const std::string &itemId,
-	    double &price) const;
+	    Decimal &price) const;
 
 	// The gap a round trip costs, in basis points of the mid: 0.0 when the book has
 	// one side.
@@ -225,7 +225,7 @@ class MarketplaceService
 	// side it has when it has one, the last trade when it has no orders left, 0.0 when
 	// the venue has never seen the good. The reading of a price by a ship, a UI and a
 	// test, which do not care which of the four it came from.
-	double ReferencePrice(
+	Decimal ReferencePrice(
 	    const EcsWorld &world, const std::string &marketId, const std::string &itemId) const;
 
 	// ─── What the effects of the tree move ───
@@ -308,12 +308,13 @@ class MarketplaceService
 
 	// ─── Helpers, public because a caller that posts an order needs the same numbers ───
 	// The fee on a gross, at a basis point rate, rounded up: the venue never pays a
-	// fraction of a credit out of its own pocket.
+	// fraction of a credit out of its own pocket. An unrepresentable fee is an invariant
+	// failure here; posting and settlement reject it through their checked path.
 	static long long FeeFor(long long gross, int feeBps);
 
 	// The largest quantity a budget buys at a price and a fee: the whole gross the
 	// budget pays, and the units that whole buys.
-	static double AffordableQuantity(double price, int feeBps, long long budget);
+	static double AffordableQuantity(Decimal price, int feeBps, long long budget);
 
   private:
 	// Posts an order and reserves against it, and crosses nothing: the crossing is the

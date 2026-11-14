@@ -1,6 +1,12 @@
 manifest_add_module(types
 	HEADERS
+		include/manifest/types/Decimal.h
 		include/manifest/types/EffectTypes.h
 	SOURCES
+		src/Decimal.cpp
 		src/EffectTypes.cpp
+	TESTS
+		tests/DecimalTests.cpp
+	PRIVATE_LIBRARIES
+		Jettison::Core
 )

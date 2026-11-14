@@ -52,7 +52,8 @@ The engine's
 `docs/sample-game.md` explain the intended composition.
 
 The sample's `Jettison::App` trading model is game code, not a general engine economy service.
-Its integer credits and crates do not specify Manifest's minor units. Reuse its integration
+Its integer credits and crates do not specify Manifest's price precision or quantity types.
+Reuse its integration
 pattern, flight/docking infrastructure and suitable trader tasks. Manifest's order book replaces
 the sample market maker for Manifest venues; both must not settle the same goods. Sample fields
 and commands must be adapted to the chosen Manifest units before those consumers share state.
@@ -100,8 +101,8 @@ in the host/data so a game without the optional script has a defined native poli
    `manifest.trade.score` may request only that option's named facts through `jettison.input`.
    The native callback accepts an explicit list of fact names and rejects any other name;
    it does not route arbitrary requests into the world or back into scripts.
-   Final fact names and normalisation formulas land with their integer model and tests; do not
-   publish today's fractional money or quantity fields as those facts.
+   Final fact names and normalisation formulas land with their model and tests; do not
+   publish raw money or quantity fields as those facts.
 3. `Ai::Choose` selects among those options using the definition's consideration ranges/curves.
    Equal scores choose the earliest option; all zero scores mean no action. Use a linear [0, 1]
    consideration for this score so a script failure's zero cannot become a positive preference
@@ -113,10 +114,12 @@ in the host/data so a game without the optional script has a defined native poli
    new external command. AI selection does not bypass affordability or reservation checks.
 
 The engine's scalar input ABI is `double`. Keep it for dimensionless decision values; it is not
-a currency/quantity ABI. Raw balances, order amounts, prices, effects affecting those values and
-rounding stay in native integer/fixed-point calculations specified by roadmap item 2. Positions
-may remain doubles under the engine simulation rules. Do not freeze economic wire layouts,
-scales or conversions in this task.
+a currency/quantity ABI. Raw balances, order amounts, prices, effects and rounding stay in native
+code. The [price policy](market-prices.md) specifies decimal per-unit prices only; quantities,
+physics, population, effect stats and other continuous values retain floats/doubles, while
+existing credit balances and fees remain integers. Engine API conversions must be explicit.
+This supersedes the original all-integer economy proposal. Concrete game wire layouts remain
+part of the later binding work.
 
 For later upgrade preferences, native code first checks the prerequisite graph, exclusivity,
 tier limits and resources, then offers eligible options. Scripts may rank them; the native
@@ -143,7 +146,7 @@ the current `manifest/core-config/` documents are not engine script definitions.
 - Future event-driven player actions may use only specific `send:<Command>` grants for commands
   registered on the attached world and marked `Reflect::Attribute::Script`. Logical candidates
   are post order, cancel own order and request upgrade, each validated atomically by native
-  code. Their concrete reflected types, units, reasons and controller binding await items 2/4.
+  code. Their concrete reflected types, reasons and controller binding await item 4.
   Do not grant setters for balances, stock, tiers or effects. Capability declarations are not
   player authentication; the current host does not inject a controller/sender identity.
 - `WithScripts` prefers a script answer over a game input of the same name. Duplicate script
@@ -178,14 +181,14 @@ for every individual command.
 
 Item 1 is complete as a boundary definition: native ownership, the first script decision,
 capabilities, lifecycle, failure behaviour and SDK reuse are specified. No runtime bindings or
-gameplay claims follow from completing it. The current loaders still take host paths, economic
-values still include doubles, and the staged package remains configuration content only.
+gameplay claims follow from completing it. The current loaders still take host paths, quantities
+deliberately retain doubles, and the staged package remains configuration content only.
 
 Implementation acceptance is assigned to the remaining roadmap items:
 
 | Item | Required evidence before claiming integration |
 | --- | --- |
-| 2: units | Specified scales, checked arithmetic, rounding, reservations and explicit preservation of authored balance; no fractional economic ABI |
+| 2: prices | Exact decimal market prices, explicit rounding/overflow at floating-quantity and integer-ledger boundaries, reservation tests and preservation of authored balance |
 | 3: content | Typed VFS/registry loads, layered patches and migrations, stable authored IDs, contextual errors and directory/pack equivalence |
 | 4: world | One saved/hashed world; fixed-step ordering and cadence; native command ownership, rejection and atomicity; save continuation and equal replay hashes across Debug/Release/sanitised builds |
 | 5: policies and scenario | Generated-binding fixtures; optional-provider fallback and required-provider rejection; valid/forbidden imports, input purity and zero-on-trap; deterministic score/tie behaviour; event-command replay without duplicate handlers; directory and pack run the same engine-hosted scenario |

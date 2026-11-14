@@ -240,22 +240,22 @@ std::string ManifestConsole::CommandPrices(Arguments arguments)
 	{
 		double ratio;
 		std::string itemId;
-		double basePrice;
-		double price;
+		sim::Decimal basePrice;
+		sim::Decimal price;
 	};
 
 	std::vector<Priced> priced;
 	for (const auto &item : m_simulation.GetItems())
 	{
-		const double basePrice = sim::Simulation::BasePrice(item);
-		if (basePrice <= 0.0)
+		const sim::Decimal basePrice = sim::Simulation::BasePrice(item);
+		if (basePrice <= 0)
 		{
 			continue;
 		}
 
-		const double price = m_simulation.GetPrice(item.itemId);
+		const sim::Decimal price = m_simulation.GetPrice(item.itemId);
 
-		priced.push_back({price / basePrice, item.itemId, basePrice, price});
+		priced.push_back({price.ToDouble() / basePrice.ToDouble(), item.itemId, basePrice, price});
 	}
 
 	std::sort(

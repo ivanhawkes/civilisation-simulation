@@ -3,9 +3,14 @@
 #include <algorithm>
 #include <cmath>
 #include <format>
+#include <limits>
+#include <map>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <utility>
+
+#include <jettison/core/Assert.h>
 
 
 namespace Manifest::Core
@@ -15,6 +20,64 @@ namespace
 // A quantity at or under this is nothing: the book counts in whole units of a good,
 // and the arithmetic of doubles leaves a residue under the dust of a fill.
 constexpr double quantityEpsilon = 1e-9;
+
+std::optional<long long> CheckedFeeFor(long long gross, int feeBps)
+{
+	if (gross <= 0 || feeBps <= 0)
+	{
+		return 0;
+	}
+	const __int128 fee = (static_cast<__int128>(gross) * feeBps + 9999) / 10000;
+	if (fee > std::numeric_limits<long long>::max())
+	{
+		return std::nullopt;
+	}
+	return static_cast<long long>(fee);
+}
+
+std::optional<long long> WholeCost(Decimal price, double quantity, bool roundUp)
+{
+	if (price < 0 || !std::isfinite(quantity) || quantity < 0.0)
+	{
+		return std::nullopt;
+	}
+	// Quantities retain the development model's double arithmetic at this boundary.
+	const double value = price.ToDouble() * quantity;
+	const double whole = roundUp ? std::ceil(value) : std::round(value);
+	// 2^63 is exactly representable; LLONG_MAX rounds up when converted to double.
+	if (!std::isfinite(whole) || whole < 0 || whole >= std::ldexp(1.0, 63))
+	{
+		return std::nullopt;
+	}
+	return static_cast<long long>(whole);
+}
+
+bool CanRefundOrders(const EcsWorld &world, const std::vector<std::string> &orders, std::string &error)
+{
+	std::map<std::string, __int128> creditRefunds;
+	for (const auto &orderId : orders)
+	{
+		const auto *info = world.Get<MarketOrderInfo>(orderId);
+		const auto *owner = world.Get<OrderOwner>(orderId);
+		if (info != nullptr && owner != nullptr)
+		{
+			creditRefunds[owner->civilisationId] += info->reservedCredits;
+		}
+	}
+	for (const auto &[ownerId, refund] : creditRefunds)
+	{
+		if (const auto *treasury = world.Get<Treasury>(ownerId))
+		{
+			if (static_cast<__int128>(treasury->credits) + refund >
+			    std::numeric_limits<long long>::max())
+			{
+				error = "Marketplace: reservation refunds exceed the credit range";
+				return false;
+			}
+		}
+	}
+	return true;
+}
 
 double OpenQuantity(const MarketOrderInfo &request)
 {
@@ -45,7 +108,7 @@ bool RestsFirst(const MarketOrderInfo &left, const MarketOrderInfo &right)
 // the orders in the whole book are the pile below the best price, which is a number a
 // screen has no use for.
 unsigned CountAtLevel(
-    const EcsWorld &ecsWorld, const std::vector<EcsWorld::Entity> &orders, double price)
+    const EcsWorld &ecsWorld, const std::vector<EcsWorld::Entity> &orders, Decimal price)
 {
 	unsigned count = 0;
 
@@ -53,7 +116,7 @@ unsigned CountAtLevel(
 	{
 		const auto *info = ecsWorld.Get<MarketOrderInfo>(entity);
 
-		if (info != nullptr && std::abs(info->limitPrice - price) <= quantityEpsilon)
+		if (info != nullptr && info->limitPrice == price)
 		{
 			++count;
 		}
@@ -62,7 +125,8 @@ unsigned CountAtLevel(
 	return count;
 }
 
-double DepthAtLevel(const EcsWorld &ecsWorld, const std::vector<EcsWorld::Entity> &orders, double price)
+double DepthAtLevel(
+    const EcsWorld &ecsWorld, const std::vector<EcsWorld::Entity> &orders, Decimal price)
 {
 	double depth = 0.0;
 
@@ -70,7 +134,7 @@ double DepthAtLevel(const EcsWorld &ecsWorld, const std::vector<EcsWorld::Entity
 	{
 		const auto *info = ecsWorld.Get<MarketOrderInfo>(entity);
 
-		if (info != nullptr && std::abs(info->limitPrice - price) <= quantityEpsilon)
+		if (info != nullptr && info->limitPrice == price)
 		{
 			depth += OpenQuantity(*info);
 		}
@@ -244,6 +308,12 @@ bool MarketplaceService::Close(EcsWorld &ecsWorld, const std::string &bodyId, st
 		}
 	}
 
+	std::sort(orders.begin(), orders.end());
+	if (!CanRefundOrders(ecsWorld, orders, errorMessage))
+	{
+		return false;
+	}
+
 	for (const auto &orderId : orders)
 	{
 		if (!RetireOrder(ecsWorld, orderId, errorMessage))
@@ -323,7 +393,7 @@ bool MarketplaceService::PostOrder(
 		return false;
 	}
 
-	if (request.limitPrice < 0.0)
+	if (request.limitPrice < 0)
 	{
 		errorMessage = std::format(
 		    "Marketplace '{}': a limit price is never negative: a trader that would pay negative for a "
@@ -333,7 +403,7 @@ bool MarketplaceService::PostOrder(
 		return false;
 	}
 
-	if (request.limitPrice == 0.0)
+	if (request.limitPrice == 0)
 	{
 		errorMessage = std::format(
 		    "Marketplace '{}': a resting order has to state a limit price; the order that walks the "
@@ -383,11 +453,17 @@ std::vector<TradeFill> MarketplaceService::ExecuteOrder(
 		return fills;
 	}
 
-	if (request.quantity <= quantityEpsilon)
+	if (!std::isfinite(request.quantity) || request.quantity <= quantityEpsilon)
 	{
 		errorMessage =
 		    std::format("Marketplace '{}': the quantity has to be above nothing", request.marketId);
 
+		return fills;
+	}
+
+	if (request.limitPrice < 0)
+	{
+		errorMessage = "Marketplace: a limit price cannot be negative";
 		return fills;
 	}
 
@@ -401,13 +477,13 @@ std::vector<TradeFill> MarketplaceService::ExecuteOrder(
 	// behind goes back at the end.
 	OrderRequest resting = request;
 
-	if (resting.limitPrice <= 0.0)
+	if (resting.limitPrice <= 0)
 	{
 		// A marketable order names no price, and a resting order has to. The book's
 		// worst quote on its own side is the limit: a buy that walks the asks cannot
 		// pay more than the dearest ask, and the asks that are worse than the limit it
 		// does name are the asks the limit is there to refuse.
-		double worst = 0.0;
+		Decimal worst;
 
 		if (request.side == OrderSide::Buy)
 		{
@@ -417,7 +493,7 @@ std::vector<TradeFill> MarketplaceService::ExecuteOrder(
 			if (!asks.empty())
 			{
 				const MarketOrderInfo *ask = ecsWorld.Get<MarketOrderInfo>(asks.back());
-				worst = ask != nullptr ? ask->limitPrice : 0.0;
+				worst = ask != nullptr ? ask->limitPrice : Decimal{};
 			}
 		}
 		else
@@ -428,15 +504,16 @@ std::vector<TradeFill> MarketplaceService::ExecuteOrder(
 			if (!bids.empty())
 			{
 				const MarketOrderInfo *bid = ecsWorld.Get<MarketOrderInfo>(bids.back());
-				worst = bid != nullptr ? bid->limitPrice : 0.0;
+				worst = bid != nullptr ? bid->limitPrice : Decimal{};
 			}
 		}
 
 		// A book with nothing on the other side has nothing to trade, and the limit of
 		// a walk against an empty book is a price no fill can miss.
-		resting.limitPrice = worst > 0.0 ? worst : (request.side == OrderSide::Buy ? 1e18 : 0.0);
+		resting.limitPrice =
+		    worst > 0 ? worst : (request.side == OrderSide::Buy ? Decimal::Max() : Decimal{});
 
-		if (resting.limitPrice <= 0.0)
+		if (resting.limitPrice <= 0)
 		{
 			errorMessage = std::format(
 			    "Marketplace '{}': the book of '{}' has no bids for a sell order to walk, and a "
@@ -492,14 +569,12 @@ std::vector<TradeFill> MarketplaceService::ExecuteOrder(
 		// The walk's own limit: the asks above a buy limit, and the bids below a sell
 		// limit, are refused, and the book is sorted best first, so the first refusal
 		// is the end of the walk.
-		if (request.side == OrderSide::Buy &&
-		    makerInfo->limitPrice > walking->limitPrice + quantityEpsilon)
+		if (request.side == OrderSide::Buy && makerInfo->limitPrice > walking->limitPrice)
 		{
 			break;
 		}
 
-		if (request.side == OrderSide::Sell &&
-		    makerInfo->limitPrice < walking->limitPrice - quantityEpsilon)
+		if (request.side == OrderSide::Sell && makerInfo->limitPrice < walking->limitPrice)
 		{
 			break;
 		}
@@ -638,14 +713,14 @@ bool MarketplaceService::CreateOrder(
 		return false;
 	}
 
-	if (request.quantity <= quantityEpsilon)
+	if (!std::isfinite(request.quantity) || request.quantity <= quantityEpsilon)
 	{
 		errorMessage = std::format("Marketplace '{}': the quantity has to be above nothing", marketId);
 
 		return false;
 	}
 
-	if (request.limitPrice < 0.0)
+	if (request.limitPrice < 0)
 	{
 		errorMessage = std::format(
 		    "Marketplace '{}': a limit price is never negative; a trader that would pay negative for a "
@@ -664,12 +739,11 @@ bool MarketplaceService::CreateOrder(
 		return false;
 	}
 
-	if (m_options.minPrice > 0.0 && request.limitPrice > 0.0 &&
-	    request.limitPrice + quantityEpsilon < m_options.minPrice)
+	if (m_options.minPrice > 0 && request.limitPrice > 0 && request.limitPrice < m_options.minPrice)
 	{
 		errorMessage = std::format(
 		    "Marketplace '{}': the venue takes no order under a price of {}", marketId,
-		    FormatNumber(m_options.minPrice));
+		    m_options.minPrice.ToString());
 
 		return false;
 	}
@@ -736,6 +810,12 @@ bool MarketplaceService::CreateOrder(
 	// order is read against the tick it was posted at and not against nothing.
 	info.expiresTick = request.tick + m_options.orderLifeTicks;
 
+	if (!WholeCost(request.limitPrice, request.quantity, true))
+	{
+		errorMessage = "Marketplace: order notional exceeds the credit range";
+		return false;
+	}
+
 	// The reservation, the reason a fill never fails for want of the thing the fill
 	// trades: the goods leave the seller's stockpile when the order posts and sit in the
 	// order until it fills, leaves the book, or expires, and the credits leave the
@@ -774,8 +854,15 @@ bool MarketplaceService::CreateOrder(
 	}
 	else if (m_options.requireFunds)
 	{
-		const long long cost = std::llround(std::ceil(request.quantity * request.limitPrice));
-		const long long need = cost + FeeFor(cost, feeBps);
+		const auto cost = WholeCost(request.limitPrice, request.quantity, true);
+		const auto fee = cost ? CheckedFeeFor(*cost, feeBps) : std::nullopt;
+		if (!cost || !fee ||
+		    static_cast<__int128>(*cost) + *fee > std::numeric_limits<long long>::max())
+		{
+			errorMessage = "Marketplace: buy reservation exceeds the credit range";
+			return false;
+		}
+		const long long need = *cost + *fee;
 
 		if (treasury->credits < need)
 		{
@@ -879,7 +966,7 @@ bool MarketplaceService::MatchInto(
 				break;
 			}
 
-			if (bid->limitPrice + quantityEpsilon < ask->limitPrice)
+			if (bid->limitPrice < ask->limitPrice)
 			{
 				break;
 			}
@@ -1071,7 +1158,7 @@ bool MarketplaceService::RefreshQuotes(
 		{
 			const MarketOrderInfo *best = ecsWorld.Get<MarketOrderInfo>(asks.front());
 
-			quote.bestAsk = best != nullptr ? best->limitPrice : 0.0;
+			quote.bestAsk = best != nullptr ? best->limitPrice : Decimal{};
 			quote.askOrders = CountAtLevel(ecsWorld, asks, quote.bestAsk);
 			quote.askDepth = DepthAtLevel(ecsWorld, asks, quote.bestAsk);
 		}
@@ -1080,18 +1167,20 @@ bool MarketplaceService::RefreshQuotes(
 		{
 			const MarketOrderInfo *best = ecsWorld.Get<MarketOrderInfo>(bids.front());
 
-			quote.bestBid = best != nullptr ? best->limitPrice : 0.0;
+			quote.bestBid = best != nullptr ? best->limitPrice : Decimal{};
 			quote.bidOrders = CountAtLevel(ecsWorld, bids, quote.bestBid);
 			quote.bidDepth = DepthAtLevel(ecsWorld, bids, quote.bestBid);
 		}
 
-		if (quote.bestAsk > 0.0 && quote.bestBid > 0.0 && quote.bestBid <= quote.bestAsk)
+		if (quote.bestAsk > 0 && quote.bestBid > 0 && quote.bestBid <= quote.bestAsk)
 		{
-			quote.mid = (quote.bestAsk + quote.bestBid) / 2.0;
+			quote.mid =
+			    Decimal::FromRaw(quote.bestBid.Raw() + (quote.bestAsk.Raw() - quote.bestBid.Raw()) / 2);
 
-			if (quote.mid > 0.0)
+			if (quote.mid > 0)
 			{
-				quote.spreadBps = (quote.bestAsk - quote.bestBid) / quote.mid * 10000.0;
+				quote.spreadBps =
+				    (quote.bestAsk - quote.bestBid).ToDouble() / quote.mid.ToDouble() * 10000.0;
 			}
 		}
 
@@ -1160,11 +1249,11 @@ const MarketQuote *MarketplaceService::QuoteFor(
 
 bool MarketplaceService::BestAsk(
     const EcsWorld &ecsWorld, const std::string &marketId, const std::string &itemId,
-    double &price) const
+    Decimal &price) const
 {
 	const MarketQuote *quote = QuoteFor(ecsWorld, marketId, itemId);
 
-	if (quote == nullptr || quote->bestAsk <= 0.0)
+	if (quote == nullptr || quote->bestAsk <= 0)
 	{
 		return false;
 	}
@@ -1177,11 +1266,11 @@ bool MarketplaceService::BestAsk(
 
 bool MarketplaceService::BestBid(
     const EcsWorld &ecsWorld, const std::string &marketId, const std::string &itemId,
-    double &price) const
+    Decimal &price) const
 {
 	const MarketQuote *quote = QuoteFor(ecsWorld, marketId, itemId);
 
-	if (quote == nullptr || quote->bestBid <= 0.0)
+	if (quote == nullptr || quote->bestBid <= 0)
 	{
 		return false;
 	}
@@ -1194,11 +1283,11 @@ bool MarketplaceService::BestBid(
 
 bool MarketplaceService::MidPrice(
     const EcsWorld &ecsWorld, const std::string &marketId, const std::string &itemId,
-    double &price) const
+    Decimal &price) const
 {
 	const MarketQuote *quote = QuoteFor(ecsWorld, marketId, itemId);
 
-	if (quote == nullptr || quote->mid <= 0.0)
+	if (quote == nullptr || quote->mid <= 0)
 	{
 		return false;
 	}
@@ -1218,27 +1307,27 @@ double MarketplaceService::SpreadBps(
 }
 
 
-double MarketplaceService::ReferencePrice(
+Decimal MarketplaceService::ReferencePrice(
     const EcsWorld &ecsWorld, const std::string &marketId, const std::string &itemId) const
 {
 	const MarketQuote *quote = QuoteFor(ecsWorld, marketId, itemId);
 
 	if (quote == nullptr)
 	{
-		return 0.0;
+		return {};
 	}
 
-	if (quote->mid > 0.0)
+	if (quote->mid > 0)
 	{
 		return quote->mid;
 	}
 
-	if (quote->bestAsk > 0.0)
+	if (quote->bestAsk > 0)
 	{
 		return quote->bestAsk;
 	}
 
-	if (quote->bestBid > 0.0)
+	if (quote->bestBid > 0)
 	{
 		return quote->bestBid;
 	}
@@ -1369,6 +1458,29 @@ unsigned MarketplaceService::AdvanceTick(EcsWorld &ecsWorld, long long tick, std
 {
 	unsigned venues = 0;
 
+	// Validate the complete expiry batch, including refunds shared across venues.
+	std::vector<std::string> allExpired;
+	for (const auto entity : ecsWorld.View<MarketOrderInfo, OrderAt>())
+	{
+		const auto *info = ecsWorld.Get<MarketOrderInfo>(entity);
+		const auto *at = ecsWorld.Get<OrderAt>(entity);
+		if (info != nullptr && at != nullptr && HasMarket(ecsWorld, at->marketId) &&
+		    info->status == OrderStatus::Active && info->expiresTick > info->placedTick &&
+		    info->expiresTick <= tick)
+		{
+			const auto name = ecsWorld.NameOf(entity);
+			if (!name.empty())
+			{
+				allExpired.push_back(name);
+			}
+		}
+	}
+	std::sort(allExpired.begin(), allExpired.end());
+	if (!CanRefundOrders(ecsWorld, allExpired, errorMessage))
+	{
+		return 0;
+	}
+
 	for (const auto &marketId : MarketIds(ecsWorld, {}))
 	{
 		std::vector<std::string> expired;
@@ -1405,6 +1517,7 @@ unsigned MarketplaceService::AdvanceTick(EcsWorld &ecsWorld, long long tick, std
 		// The orders that have outlived their order life leave, and their goods and
 		// their credits go back: the berths they held are the berths this tick's
 		// quoters need.
+		std::sort(expired.begin(), expired.end());
 		for (const auto &orderId : expired)
 		{
 			if (!RetireOrder(ecsWorld, orderId, errorMessage))
@@ -1503,10 +1616,10 @@ std::string MarketplaceService::DescribeMarket(
 	{
 		const MarketQuote &quote = ranked[index];
 
-		out << "\n  " << quote.itemId << ": ask " << FormatNumber(quote.bestAsk) << " bid "
-		    << FormatNumber(quote.bestBid) << ", mid " << FormatNumber(quote.mid) << ", spread "
+		out << "\n  " << quote.itemId << ": ask " << quote.bestAsk.ToString() << " bid "
+		    << quote.bestBid.ToString() << ", mid " << quote.mid.ToString() << ", spread "
 		    << FormatNumber(quote.spreadBps) << " bps, depth " << FormatNumber(quote.askDepth) << "/"
-		    << FormatNumber(quote.bidDepth) << ", last " << FormatNumber(quote.lastPrice) << " at tick "
+		    << FormatNumber(quote.bidDepth) << ", last " << quote.lastPrice.ToString() << " at tick "
 		    << quote.lastTick << ", volume " << FormatNumber(quote.volume);
 	}
 
@@ -1532,9 +1645,8 @@ std::string MarketplaceService::DescribeOrder(
 	std::ostringstream out;
 
 	out << "Order " << info->orderId << " " << DescribeOrderSide(info->side) << " "
-	    << FormatNumber(info->quantity) << " " << info->itemId << " @ "
-	    << FormatNumber(info->limitPrice) << " at "
-	    << (at != nullptr ? at->marketId : std::string("<no venue>")) << " for "
+	    << FormatNumber(info->quantity) << " " << info->itemId << " @ " << info->limitPrice.ToString()
+	    << " at " << (at != nullptr ? at->marketId : std::string("<no venue>")) << " for "
 	    << (owner != nullptr ? owner->civilisationId : std::string("<no trader>")) << ", "
 	    << DescribeOrderStatus(info->status) << ", " << FormatNumber(info->filled)
 	    << " filled, posted at tick " << info->placedTick << ", leaves at tick " << info->expiresTick;
@@ -1714,29 +1826,22 @@ bool MarketplaceService::AddSatellite(
 
 long long MarketplaceService::FeeFor(long long gross, int feeBps)
 {
-	if (gross <= 0 || feeBps <= 0)
-	{
-		return 0;
-	}
-
-	// Rounded up: a venue that takes 40 bps of a 100 credit trade takes 1 credit, not
-	// 0.4 of one, and the fraction it was owed is not paid out of its own pocket.
-	const __int128 paid = static_cast<__int128>(gross) * feeBps + 9999;
-
-	return static_cast<long long>(paid / 10000);
+	const auto fee = CheckedFeeFor(gross, feeBps);
+	JETTISON_VERIFY(fee.has_value());
+	return *fee;
 }
 
 
-double MarketplaceService::AffordableQuantity(double price, int feeBps, long long budget)
+double MarketplaceService::AffordableQuantity(Decimal price, int feeBps, long long budget)
 {
-	if (price <= 0.0 || budget <= 0)
+	if (price <= 0 || budget <= 0)
 	{
 		return 0.0;
 	}
 
 	// The whole the budget pays: the goods and the fee on them, at the fee rate, in
 	// integer arithmetic, and the units that whole buys.
-	const __int128 rate = 10000 + (feeBps > 0 ? feeBps : 0);
+	const __int128 rate = static_cast<__int128>(10000) + std::max(feeBps, 0);
 	const __int128 whole = static_cast<__int128>(budget) * 10000 / rate;
 
 	if (whole <= 0)
@@ -1744,7 +1849,7 @@ double MarketplaceService::AffordableQuantity(double price, int feeBps, long lon
 		return 0.0;
 	}
 
-	return static_cast<double>(whole) / price;
+	return static_cast<double>(whole) / price.ToDouble();
 }
 
 
@@ -1890,8 +1995,8 @@ std::vector<EcsWorld::Entity> MarketplaceService::ActiveOrders(
 
 		    // A sell book runs cheapest first and a buy book richest first, which is one
 		    // ascending sort with the buy side's price turned over.
-		    const double keyA = side == OrderSide::Sell ? a->limitPrice : -a->limitPrice;
-		    const double keyB = side == OrderSide::Sell ? b->limitPrice : -b->limitPrice;
+		    const Decimal keyA = side == OrderSide::Sell ? a->limitPrice : -a->limitPrice;
+		    const Decimal keyB = side == OrderSide::Sell ? b->limitPrice : -b->limitPrice;
 
 		    if (keyA != keyB)
 		    {
@@ -1932,6 +2037,14 @@ bool MarketplaceService::RetireOrder(
 
 		if (ecsWorld.IsValid(trader))
 		{
+			const auto *refundTreasury = ecsWorld.Get<Treasury>(trader);
+			if (refundTreasury != nullptr &&
+			    static_cast<__int128>(refundTreasury->credits) + info->reservedCredits >
+			        std::numeric_limits<long long>::max())
+			{
+				errorMessage = "Marketplace: reservation refund exceeds the credit range";
+				return false;
+			}
 			if (info->reservedCredits > 0)
 			{
 				if (auto *treasury = ecsWorld.Get<Treasury>(trader))
@@ -2018,9 +2131,9 @@ bool MarketplaceService::FillPair(
 
 	// The maker's limit price is the price: the resting trader set it, and the trader
 	// that came looking took the book as it found it.
-	const double price = maker->limitPrice;
+	const Decimal price = maker->limitPrice;
 
-	if (price <= 0.0)
+	if (price <= 0)
 	{
 		errorMessage =
 		    std::format("Marketplace '{}': the maker '{}' names no price", marketId, maker->orderId);
@@ -2088,9 +2201,54 @@ bool MarketplaceService::FillPair(
 		return false;
 	}
 
-	const long long gross = std::llround(price * quantity);
-	const long long makerFee = FeeFor(gross, feeBps);
-	const long long takerFee = FeeFor(gross, feeBps);
+	const auto cost = WholeCost(price, quantity, false);
+	if (!cost)
+	{
+		errorMessage = "Marketplace: fill gross exceeds the credit range";
+		return false;
+	}
+	const long long gross = *cost;
+	const auto fee = CheckedFeeFor(gross, feeBps);
+	if (!fee)
+	{
+		errorMessage = "Marketplace: fill fee exceeds the credit range";
+		return false;
+	}
+	const long long makerFee = *fee;
+	const long long takerFee = *fee;
+
+	// Validate both parties, the venue and the eventual refund before settlement writes.
+	auto *buyerTreasury = ecsWorld.Get<Treasury>(buyerTrader);
+	auto *sellerTreasury = ecsWorld.Get<Treasury>(sellerTrader);
+	auto *buyerStock = ecsWorld.Get<Stockpile>(buyerTrader);
+	auto *sellerStock = ecsWorld.Get<Stockpile>(sellerTrader);
+	const __int128 bill = static_cast<__int128>(gross) + takerFee;
+	const __int128 take = static_cast<__int128>(venue->venueTake) + makerFee + takerFee;
+	const auto fits = [](__int128 value)
+	{ return value >= 0 && value <= std::numeric_limits<long long>::max(); };
+	if (buyerTreasury == nullptr || sellerTreasury == nullptr || buyerStock == nullptr ||
+	    sellerStock == nullptr || !fits(bill) || !fits(take))
+	{
+		errorMessage = "Marketplace: settlement exceeds the credit range or lacks a ledger";
+		return false;
+	}
+	const auto billCredits = static_cast<long long>(bill);
+	const long long fromOrder = std::min(billCredits, buyOrder->reservedCredits);
+	const long long fromTreasury = billCredits - fromOrder;
+	const bool selfTrade = buyerTrader == sellerTrader;
+	const __int128 nextBuyer = static_cast<__int128>(buyerTreasury->credits) - fromTreasury;
+	const __int128 proceeds = static_cast<__int128>(gross) - makerFee;
+	const bool completesBuy = OpenQuantity(*buyOrder) - quantity <= quantityEpsilon;
+	const long long refund = completesBuy ? buyOrder->reservedCredits - fromOrder : 0;
+	const __int128 finalBuyer = nextBuyer + refund + (selfTrade ? proceeds : 0);
+	const __int128 finalSeller = static_cast<__int128>(sellerTreasury->credits) + proceeds;
+	const double holding = buyerStock->units.contains(itemId) ? buyerStock->units.at(itemId) : 0.0;
+	if (!fits(nextBuyer) || !fits(finalBuyer) || (!selfTrade && !fits(finalSeller)) ||
+	    !std::isfinite(holding + quantity))
+	{
+		errorMessage = "Marketplace: settlement or refund exceeds the available ledger range";
+		return false;
+	}
 
 	// Each side pays the fee of its own side of the trade: the resting trader pays the
 	// maker's, the trader that came looking pays the taker's, and the venue is paid by

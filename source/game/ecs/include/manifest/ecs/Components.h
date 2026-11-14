@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include <manifest/types/Decimal.h>
 #include <manifest/types/EffectTypes.h>
 
 
@@ -277,7 +278,7 @@ struct MarketOrderInfo
 
 	double quantity{0.0}; // the units the trader asked for
 	double filled{0.0};   // the units that have traded
-	double limitPrice{0.0};
+	Decimal limitPrice{0};
 
 	// What the venue holds against the order while it rests: goods for a sell order,
 	// credits for a buy order, so a trader cannot spend twice what it has and a fill
@@ -308,9 +309,9 @@ struct MarketQuote
 {
 	std::string itemId;
 
-	double bestAsk{0.0};
-	double bestBid{0.0};
-	double mid{0.0};
+	Decimal bestAsk{0};
+	Decimal bestBid{0};
+	Decimal mid{0};
 	double spreadBps{0.0}; // the gap the venue charges a round trip, in basis points
 
 	double askDepth{0.0}; // units at the best price on each side
@@ -318,7 +319,7 @@ struct MarketQuote
 	unsigned askOrders{0};
 	unsigned bidOrders{0};
 
-	double lastPrice{0.0};
+	Decimal lastPrice{0};
 	long long lastTick{0};
 	double volume{0.0}; // units traded at this venue, ever
 };
@@ -334,7 +335,7 @@ struct TradeFill
 	std::string buyerId;
 
 	double quantity{0.0};
-	double unitPrice{0.0}; // the maker's limit price: the resting trader sets the price
+	Decimal unitPrice{0}; // the maker's limit price: the resting trader sets the price
 
 	long long gross{0};
 	long long makerFee{0};
@@ -350,7 +351,7 @@ struct MarketRecord
 	std::map<std::string, MarketQuote> quotes;
 
 	std::map<std::string, double> volume;
-	std::map<std::string, double> lastPrice;
+	std::map<std::string, Decimal> lastPrice;
 	std::map<std::string, long long> lastTick;
 
 	std::vector<TradeFill> fills;

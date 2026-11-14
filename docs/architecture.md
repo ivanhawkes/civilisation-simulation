@@ -14,7 +14,7 @@ The modules, in dependency order:
 
 | Module | Owns | Depends on |
 | --- | --- | --- |
-| `types` | Effect domains, stats, modifiers and operators | Standard library |
+| `types` | Decimal prices; effect domains, stats, modifiers and operators | Standard library, Jettison Core invariant reporting |
 | `config` | Configuration schema, YAML loaders and field readers | Engine yaml-cpp |
 | `universe` | Ordered universe name pools | Config loader helpers |
 | `progression` | Prerequisites, tiers, costs and exclusive branches | Config |
@@ -65,7 +65,8 @@ Wasm scripts supply bounded policy inputs through the engine's utility decisions
 The first planned policy scores feasible trades. Event handlers initially observe outcomes only.
 This contract does not add runtime bindings or a game executable.
 
-The current C++ loaders still accept host file paths and the economy still models fractional
-quantities and prices with doubles. They are development APIs, not a Jettison script or save ABI.
-The engine's integer quantity, fixed-point currency, VFS-only content and script capability rules
-apply when that integration is implemented; see the roadmap for the remaining work.
+The current C++ loaders still accept host file paths. [Market prices](market-prices.md) use a
+decimal representation; quantities, population, effect stats and physics retain floats/doubles,
+and existing credit balances and fees remain integers. These are development APIs, not a Jettison
+script or save ABI. Engine API conversions, VFS-only content and capability-limited scripts
+remain integration work; see the roadmap.

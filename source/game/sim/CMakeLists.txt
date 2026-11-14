@@ -1,5 +1,6 @@
 manifest_add_module(sim
 	DEPENDS
+		types
 		config
 		universe
 	HEADERS
