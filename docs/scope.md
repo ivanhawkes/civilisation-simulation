@@ -6,6 +6,8 @@ content packaging. Jettison owns rendering, input, audio, physics, engine schedu
 serialisation and the sandboxed script runtime.
 
 The configuration package mounts as a Jettison mod. It does not yet make the sample game execute
-Manifest's economic rules. Host bindings and WebAssembly gameplay integration are the next scope;
-see [roadmap](roadmap.md). A second renderer, engine dependency stack or native shared-library mod
+Manifest's economic rules. The [host/script boundary](host-script-boundary.md) defines linked
+native ownership of those rules and capability-limited Wasm policy inputs. Implementing the
+integer economy, content loaders, world adapters and scripted scenario remains next; see
+[roadmap](roadmap.md). A second renderer, engine dependency stack or native shared-library mod
 loader does not belong in this repository.

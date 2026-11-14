@@ -67,8 +67,11 @@ integration test mounts both through Jettison's VFS and compares every file.
 The package currently contains Manifest's configuration data. Jettison can mount it, but its
 sample game does not consume Manifest's configuration schema or execute this repository's C++
 economy. The C++ implementation builds as static host-side modules aggregated by `Manifest::Game`
-(with `Manifest::Core` as a compatibility alias); the TUI exercises them during development. Shipping gameplay as a mod still needs host bindings and/or
-WebAssembly scripts using Jettison's script API. See the [roadmap](docs/roadmap.md).
+(with `Manifest::Core` as a compatibility alias); the TUI exercises them during development.
+The [host/script boundary](docs/host-script-boundary.md) assigns authoritative rules to linked
+native game code and bounded policy decisions to Wasm. Shipping gameplay still needs the
+integer economy, VFS loaders, world adapters and scripted scenario in the
+[roadmap](docs/roadmap.md).
 
 ## Structure
 

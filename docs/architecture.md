@@ -59,6 +59,12 @@ The mod package is content: `mod.yaml`, `manifest/core-config/` and `manifest/un
 forms with `Jettison::Vfs::FileSystem` and compares their contents. These paths are namespaced so
 mounting Manifest does not replace the engine sample's definitions accidentally.
 
+The [host/script boundary](host-script-boundary.md) defines the gameplay integration: native
+Manifest modules register authoritative state and systems in one Jettison simulation world;
+Wasm scripts supply bounded policy inputs through the engine's utility decisions and script host.
+The first planned policy scores feasible trades. Event handlers initially observe outcomes only.
+This contract does not add runtime bindings or a game executable.
+
 The current C++ loaders still accept host file paths and the economy still models fractional
 quantities and prices with doubles. They are development APIs, not a Jettison script or save ABI.
 The engine's integer quantity, fixed-point currency, VFS-only content and script capability rules
