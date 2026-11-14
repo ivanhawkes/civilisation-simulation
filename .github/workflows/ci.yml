@@ -1,116 +1,40 @@
-name: CI
-
+name: ci
 on:
   push:
   pull_request:
-
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  core:
-    name: build, test, format
+  gates:
     runs-on: ubuntu-24.04
-
+    timeout-minutes: 60
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 2
+      CTEST_PARALLEL_LEVEL: 2
+      MANIFEST_TIDY_JOBS: 2
     steps:
       - uses: actions/checkout@v7
-
-      # The local shell pins LLVM 21 through devenv. The runner uses its own clang:
-      # the core is plain C++20 with no compiler-specific code, and clang-format in
-      # this job is the same binary family that formats, so the check is consistent.
-      - name: Install the toolchain
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends -y clang cmake ninja-build
-
-      # The data merge is mikefarah/yq v4 syntax and is tested against the version the
-      # development shell pins, v4.54.1. The source files refer to each other by id -
-      # itemId, skillId, categoryId, ageId - so no anchor has to survive the trip from
-      # one file to the next and any v4 builds the data; v4.54.1 is the version known
-      # to do the job. apt has no yq at all, so the release binary is pinned by version:
-      # floating on 'latest' would break the build on an upstream patch, which is
-      # exactly what happened on the first CI run.
-      - name: Install mikefarah/yq v4.54.1
-        run: |
-          set -euo pipefail
-          yq_version=v4.54.1
-          sudo curl -fsSL -o /usr/local/bin/yq \
-            "https://github.com/mikefarah/yq/releases/download/${yq_version}/yq_linux_amd64"
-          sudo chmod +x /usr/local/bin/yq
-          yq --version
-          yq --version | grep -q "${yq_version}"
-
-      - name: Configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug
-
-      - name: Build
-        run: cmake --build build
-
-      - name: Test
-        run: ctest --test-dir build --output-on-failure
-
-      # The .clang-format uses LLVM 20+ spellings - BinPackParameters: BinPack is a
-      # string, not a boolean - so a formatter older than 20 cannot read it at all and
-      # reports "invalid boolean" for every file. Pin the formatter to LLVM 21.1.8, the
-      # version the development shell's clang-tools provides, so the gate checks the
-      # same rules the developer formats with. The PyPI wheel carries the binary, so
-      # this costs a download of a couple of megabytes.
-      - name: Install clang-format 21.1.8
-        run: |
-          set -euo pipefail
-          python3 -m pip install --user clang-format==21.1.8
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          clang-format --version
-          clang-format --version | grep -q '21.1.8'
-
-      # Formatting is a build step, not a review preference: every commit has to pass
-      # it, so review diffs stay about behaviour. The parentheses matter: find's -print
-      # binds to the last -name, so 'find ... -name h -o -name cpp -print' lists the .cpp
-      # files only, headers drift through the gate unnoticed, and the next commit that
-      # touches a header pays for the whole tree. -print0 and xargs -0 keep the pipeline
-      # safe for any path.
-      - name: Format check
-        run: |
-          set -euo pipefail
-          export PATH="$HOME/.local/bin:$PATH"
-          find Source Tests \( -name '*.h' -o -name '*.hpp' -o -name '*.cpp' \) -print0 \
-            | xargs -0 -r clang-format --dry-run -Werror
-
-  # The test suite reads YAML with yq at build time. Before this was checked, a machine
-  # without yq configured fine, built fine and ran no tests at all.
-  missing-yq-fails-loudly:
-    name: a missing yq fails the test build
-    runs-on: ubuntu-24.04
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Install the toolchain
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends -y clang cmake ninja-build
-
-      - name: Configure without yq on PATH
-        run: |
-          set -euo pipefail
-          if command -v yq >/dev/null; then
-            sudo rm -f "$(command -v yq)"
-          fi
-          if cmake -S . -B build-no-yq -G Ninja -DCMAKE_CXX_COMPILER=clang++ \
-               -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON; then
-            echo "configure succeeded, so a machine without yq still loses the test suite"
-            exit 1
-          fi
-
-      - name: The failure names yq and the remedy
-        run: |
-          set -euo pipefail
-          # The configure must fail. Under `set -e` a plain failing command in a step
-          # ends the step, so the failure has to be asserted inside an `if`, and the
-          # log captured for the greps that follow.
-          if cmake -S . -B build-no-yq -G Ninja -DCMAKE_CXX_COMPILER=clang++ \
-               -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON 2>&1 | tee configure.log; then
-            echo "configure succeeded, so a machine without yq still loses the test suite"
-            exit 1
-          fi
-          grep -qi 'yq' configure.log
-          grep -qi 'test' configure.log
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            max-jobs = 2
+      - uses: cachix/cachix-action@v17
+        with:
+          name: devenv
+          skipPush: true
+      - name: Install devenv
+        run: nix profile add github:cachix/devenv/v2.4.0
+      - name: Gate
+        shell: bash -euo pipefail {0}
+        run: devenv shell -- ./scripts/ci.sh --werror --asan --tidy --log build/ci.log
+      - name: Upload gate log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ci-log
+          path: build/ci.log
+          if-no-files-found: ignore

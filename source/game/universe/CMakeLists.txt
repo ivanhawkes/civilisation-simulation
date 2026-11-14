@@ -1,0 +1,11 @@
+manifest_add_module(universe
+	HEADERS
+		include/manifest/universe/Universe.h
+	SOURCES
+		src/Universe.cpp
+	TESTS
+		tests/UniverseTests.cpp
+	PRIVATE_LIBRARIES
+		Manifest::Config
+		yaml-cpp::yaml-cpp
+)

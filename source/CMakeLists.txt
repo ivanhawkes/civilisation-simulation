@@ -1,0 +1,13 @@
+if(MANIFEST_BUILD_TESTS AND BUILD_TESTING)
+    add_library(manifest_test_helpers INTERFACE)
+    target_include_directories(manifest_test_helpers INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/test")
+    target_link_libraries(manifest_test_helpers INTERFACE doctest::doctest Jettison::Core)
+endif()
+
+add_subdirectory(game)
+if(MANIFEST_BUILD_TUI)
+    add_subdirectory(tools/tui)
+endif()
+if(MANIFEST_BUILD_TESTS AND BUILD_TESTING)
+    add_subdirectory(test)
+endif()

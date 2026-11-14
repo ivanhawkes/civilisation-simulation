@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Resolve the output before changing directory; CMake passes an absolute build path.
+output_dir="${1:-$(dirname "$0")/core-config}"
+mkdir -p "$output_dir"
+output_dir="$(cd "$output_dir" && pwd)"
 cd "$(dirname "$0")"
 
 # The files that define the game: the ages, the categories, every item and every
@@ -139,6 +143,6 @@ yq -n 'load("base/ages.yaml")' > "$tmp_dir/ages.yaml"
 yq -n 'load("trade-items/categories.yaml")' > "$tmp_dir/categories.yaml"
 
 # The directory is generated and not committed, so a clean clone has none.
-mkdir -p core-config
+mkdir -p "$output_dir"
 
-mv "$tmp_dir/full.yaml" "$tmp_dir/simple.yaml" "$tmp_dir/ages.yaml" "$tmp_dir/categories.yaml" core-config/
+mv "$tmp_dir/full.yaml" "$tmp_dir/simple.yaml" "$tmp_dir/ages.yaml" "$tmp_dir/categories.yaml" "$output_dir/"

@@ -1,0 +1,14 @@
+manifest_add_module(ecs
+	DEPENDS
+		types
+	HEADERS
+		include/manifest/ecs/Components.h
+		include/manifest/ecs/EcsWorld.h
+	SOURCES
+		src/Components.cpp
+		src/EcsWorld.cpp
+	TESTS
+		tests/EcsTests.cpp
+	PUBLIC_LIBRARIES
+		EnTT::EnTT
+)

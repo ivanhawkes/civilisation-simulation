@@ -1,68 +1,52 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.28)
 
-project(ManifestLibrary
-    VERSION 0.0.1
-    DESCRIPTION "Civilisation trade simulation"
-    LANGUAGES CXX
-)
-
-include(FetchContent)
-include(CTest)
+project(Manifest VERSION 0.0.1 DESCRIPTION "Civilisation trade simulation for Jettison" LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Help Intellisense by exporting compile commands
+# No C++ modules are used; keep compile commands directly usable by clang-tidy.
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-FetchContent_Declare(
-    yaml-cpp
-    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-    GIT_TAG yaml-cpp-0.9.0
-    GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(yaml-cpp)
+# As in Jettison, a host consuming the library does not inherit its test build.
+option(MANIFEST_BUILD_TESTS "Build Manifest's test suites" ${PROJECT_IS_TOP_LEVEL})
+if(MANIFEST_BUILD_TESTS)
+    include(CTest)
+endif()
+include(FetchContent)
+option(MANIFEST_BUILD_TUI "Build the development terminal interface" ${PROJECT_IS_TOP_LEVEL})
+option(MANIFEST_WERROR "Treat project warnings as errors" OFF)
+option(MANIFEST_CCACHE "Compile through ccache when available" ON)
+if(MANIFEST_CCACHE AND NOT CMAKE_CXX_COMPILER_LAUNCHER)
+    find_program(MANIFEST_CCACHE_PROGRAM ccache)
+    if(MANIFEST_CCACHE_PROGRAM)
+        set(CMAKE_C_COMPILER_LAUNCHER "${MANIFEST_CCACHE_PROGRAM}")
+        set(CMAKE_CXX_COMPILER_LAUNCHER "${MANIFEST_CCACHE_PROGRAM}")
+    endif()
+endif()
 
-FetchContent_Declare(
-  ftxui
-  GIT_REPOSITORY https://github.com/ArthurSonzogni/FTXUI.git
-  GIT_TAG v7.0.3
-)
-FetchContent_MakeAvailable(ftxui)
+add_subdirectory(source/external)
 
-# EnTT: the entity component system the ship, body and marketplace stores are built on.
-# Version 4.0.0, the current release: EnTT v4 needs a C++20 compiler, which this project
-# already asks for, and it is header only - the EnTT::EnTT target carries the include
-# path and cxx_std_20 - and every option of its own build (tests, testbed, benchmarks,
-# docs, install) is OFF by default, so the fetch costs no compile time at all and the
-# project's BUILD_TESTING pulls none of EnTT's googletest tree into the build.
-#
-# EnTT's CMakeLists opens with cmake_minimum_required(VERSION 3.28), so the fetch needs
-# CMake 3.28 at configure time even though this project configures on 3.24: the CI runner
-# ships 3.28 and the development shell ships 4.x. The fetch is of a tagged release, and
-# GIT_SHALLOW keeps it at one commit - 8 MB of headers.
-FetchContent_Declare(
-    entt
-    GIT_REPOSITORY https://github.com/skypjack/entt.git
-    GIT_TAG v4.0.0
-    GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(entt)
-
-set(CIVSIM_CORE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Source/ManifestCore")
+# The engine owns the SDK versions and ABI settings. Link its warnings privately, so
+# consumers inherit the API and dependencies, without inheriting our build policy.
+add_library(manifest_warnings INTERFACE)
+target_link_libraries(manifest_warnings INTERFACE jettison_warnings)
+if(MANIFEST_WERROR)
+    target_compile_options(manifest_warnings INTERFACE -Werror)
+endif()
 
 # ─── Generated Game Data ───
 # The YAML is edited as separate files under data/ and merged into the monolithic
 # documents in data/core-config by data/build.sh, which needs yq (mikefarah v4).
-set(CIVSIM_DATA_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data")
-set(CIVSIM_DATA_OUTPUT_DIR "${CIVSIM_DATA_SOURCE_DIR}/core-config")
+set(MANIFEST_DATA_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/data")
+set(MANIFEST_DATA_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/data/core-config")
 
-set(CIVSIM_DATA_OUTPUTS
-    "${CIVSIM_DATA_OUTPUT_DIR}/full.yaml"
-    "${CIVSIM_DATA_OUTPUT_DIR}/simple.yaml"
-    "${CIVSIM_DATA_OUTPUT_DIR}/ages.yaml"
-    "${CIVSIM_DATA_OUTPUT_DIR}/categories.yaml"
+set(MANIFEST_DATA_OUTPUTS
+    "${MANIFEST_DATA_OUTPUT_DIR}/full.yaml"
+    "${MANIFEST_DATA_OUTPUT_DIR}/simple.yaml"
+    "${MANIFEST_DATA_OUTPUT_DIR}/ages.yaml"
+    "${MANIFEST_DATA_OUTPUT_DIR}/categories.yaml"
 )
 
 find_program(YQ_EXECUTABLE NAMES yq)
@@ -72,7 +56,7 @@ if(YQ_EXECUTABLE AND NOT BASH_PROGRAM)
     message(FATAL_ERROR "data/build.sh needs bash, and bash was not found.")
 endif()
 
-if(NOT YQ_EXECUTABLE AND BUILD_TESTING)
+if(NOT YQ_EXECUTABLE AND MANIFEST_BUILD_TESTS AND BUILD_TESTING)
     # A missing yq takes the generated documents and the data test suite with it.
     # Refuse the configure rather than configure a test suite that runs nothing.
     message(FATAL_ERROR
@@ -100,10 +84,10 @@ if(YQ_EXECUTABLE)
     # to survive the trip from one file to the next: any yq v4 builds the data. The
     # development shell pins v4.54.1, and that is the version this merge is tested with,
     # which is what the warning is about.
-    set(CIVSIM_YQ_TESTED_VERSION "4.54.1")
-    if(NOT YQ_VERSION_STRING MATCHES "${CIVSIM_YQ_TESTED_VERSION}")
+    set(MANIFEST_YQ_TESTED_VERSION "4.54.1")
+    if(NOT YQ_VERSION_STRING MATCHES "${MANIFEST_YQ_TESTED_VERSION}")
         message(WARNING
-            "The data merge is tested with mikefarah/yq v${CIVSIM_YQ_TESTED_VERSION}, the "
+            "The data merge is tested with mikefarah/yq v${MANIFEST_YQ_TESTED_VERSION}, the "
             "version the development shell pins; found '${YQ_VERSION_STRING}'. The merge is "
             "plain v4 syntax and the source files link by id, so a v4 of any version "
             "should build it. Use the devenv shell for the tested version, or configure "
@@ -111,123 +95,50 @@ if(YQ_EXECUTABLE)
     endif()
 
     # Only the source YAML, never the generated documents in data/core-config.
-    file(GLOB_RECURSE CIVSIM_DATA_INPUTS CONFIGURE_DEPENDS
-        "${CIVSIM_DATA_SOURCE_DIR}/*.yaml"
-        "${CIVSIM_DATA_SOURCE_DIR}/*.yml"
+    file(GLOB_RECURSE MANIFEST_DATA_INPUTS CONFIGURE_DEPENDS
+        "${MANIFEST_DATA_SOURCE_DIR}/*.yaml"
+        "${MANIFEST_DATA_SOURCE_DIR}/*.yml"
     )
-    list(FILTER CIVSIM_DATA_INPUTS EXCLUDE REGEX "/core-config/")
+    list(FILTER MANIFEST_DATA_INPUTS EXCLUDE REGEX "/core-config/")
 
     add_custom_command(
-        OUTPUT ${CIVSIM_DATA_OUTPUTS}
-        COMMAND "${BASH_PROGRAM}" "${CIVSIM_DATA_SOURCE_DIR}/build.sh"
-        DEPENDS "${CIVSIM_DATA_SOURCE_DIR}/build.sh" ${CIVSIM_DATA_INPUTS}
-        WORKING_DIRECTORY "${CIVSIM_DATA_SOURCE_DIR}"
+        OUTPUT ${MANIFEST_DATA_OUTPUTS}
+        COMMAND "${BASH_PROGRAM}" "${MANIFEST_DATA_SOURCE_DIR}/build.sh" "${MANIFEST_DATA_OUTPUT_DIR}"
+        DEPENDS "${MANIFEST_DATA_SOURCE_DIR}/build.sh" ${MANIFEST_DATA_INPUTS}
+        WORKING_DIRECTORY "${MANIFEST_DATA_SOURCE_DIR}"
         COMMENT "Merging the source YAML into data/core-config"
         VERBATIM
     )
 
-    add_custom_target(ManifestData DEPENDS ${CIVSIM_DATA_OUTPUTS})
+    add_custom_target(manifest_data DEPENDS ${MANIFEST_DATA_OUTPUTS})
 endif()
 
-# ─── Macro for Shared Compiler Configuration ───
-macro(apply_project_compiler_flags TARGET_NAME)
-    target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
-    if(MSVC)
-        target_compile_options(${TARGET_NAME} PRIVATE /W4 /permissive-)
-    else()
-        # Explicitly forces full warning sets AND keeps debug symbols tracking active
-        target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra -Wpedantic -g)
-    endif()
-endmacro()
 
-# ─── Core Library Definition ───
-add_library(ManifestCore STATIC
-    "${CIVSIM_CORE_DIR}/src/Core/SimulationConfig.cpp"
-    "${CIVSIM_CORE_DIR}/src/Core/Universe.cpp"
-    "${CIVSIM_CORE_DIR}/src/Core/ProgressionManager.cpp"
-    "${CIVSIM_CORE_DIR}/src/Core/Simulation.cpp"
-    "${CIVSIM_CORE_DIR}/src/Ecs/EcsWorld.cpp"
-    "${CIVSIM_CORE_DIR}/src/Ecs/Components.cpp"
-    "${CIVSIM_CORE_DIR}/src/Effects/EffectTypes.cpp"
-    "${CIVSIM_CORE_DIR}/src/Effects/EffectCatalogue.cpp"
-    "${CIVSIM_CORE_DIR}/src/Effects/ShipEffectEngine.cpp"
-    "${CIVSIM_CORE_DIR}/src/Effects/CivilisationEffects.cpp"
-    "${CIVSIM_CORE_DIR}/src/Market/Marketplace.cpp"
-)
+include(cmake/ManifestModule.cmake)
+set(MANIFEST_MOD_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/mods/manifest")
+add_subdirectory(source)
 
-target_include_directories(ManifestCore
-    PUBLIC
-        "${CIVSIM_CORE_DIR}/include"
-)
-
-target_link_libraries(ManifestCore
-    PUBLIC
-        # The ECS headers are in the public headers of the store, the effects and the
-        # marketplaces: EcsWorld.h holds an entt::registry by value, so a target that
-        # includes the core includes EnTT and has to be told where it is.
-        EnTT::EnTT
-    PRIVATE
-        yaml-cpp::yaml-cpp
-)
-
-# Apply configuration to the static library target
-apply_project_compiler_flags(ManifestCore)
-
-# ─── TUI Executable Definition ───
-add_executable(ManifestCoreTui
-    "${CIVSIM_CORE_DIR}/src/Tui/ManifestTui.cpp"
-    "${CIVSIM_CORE_DIR}/include/Tui/ManifestTui.h"
-)
-
-target_link_libraries(ManifestCoreTui 
-    PRIVATE ManifestCore ftxui::screen ftxui::component ftxui::dom)
-
-apply_project_compiler_flags(ManifestCoreTui)
-
-# ─── Test Suite Generation ───
-# The unit suites feed the loaders temporary documents they write themselves, so they
-# need no data step. The data suite reads the generated documents and depends on the
-# ManifestData target.
-if(BUILD_TESTING)
-    # Each suite is its own executable, with its own ctest entry.
-    function(civsim_add_test SUITE_NAME)
-        cmake_parse_arguments(PARSE_ARGV 1 TEST "" "" "SOURCES;ARGS")
-
-        add_executable(${SUITE_NAME} ${TEST_SOURCES})
-
-        target_link_libraries(${SUITE_NAME} PRIVATE ManifestCore)
-
-        # Apply configuration to the test binary executable target so GDB can parse its breakpoints!
-        apply_project_compiler_flags(${SUITE_NAME})
-
-        target_include_directories(${SUITE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/Tests")
-
-        add_test(NAME ${SUITE_NAME} COMMAND ${SUITE_NAME} ${TEST_ARGS})
-        set_tests_properties(${SUITE_NAME} PROPERTIES
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        )
-    endfunction()
-
-    civsim_add_test(ConfigTests SOURCES Tests/ConfigTests.cpp)
-    civsim_add_test(UniverseTests SOURCES Tests/UniverseTests.cpp)
-    civsim_add_test(ProgressionTests SOURCES Tests/ProgressionTests.cpp)
-    civsim_add_test(SimulationTests SOURCES Tests/SimulationTests.cpp)
-    civsim_add_test(EcsTests SOURCES Tests/EcsTests.cpp)
-    civsim_add_test(EffectTests SOURCES Tests/EffectTests.cpp)
-    civsim_add_test(MarketplaceTests SOURCES Tests/MarketplaceTests.cpp)
-
-    if(TARGET ManifestData)
-        # The data suite reads the generated documents, the way the game loads them.
-        civsim_add_test(DataTests
-            SOURCES Tests/DataTests.cpp
-            ARGS
-                "${CIVSIM_DATA_OUTPUT_DIR}/ages.yaml"
-                "${CIVSIM_DATA_OUTPUT_DIR}/categories.yaml"
-                "${CIVSIM_DATA_OUTPUT_DIR}/full.yaml"
-                "${CIVSIM_DATA_OUTPUT_DIR}/simple.yaml"
-                "${CIVSIM_DATA_SOURCE_DIR}/universe/solar-system-names.yaml"
-        )
-
-        add_dependencies(DataTests ManifestData)
-    endif()
+# A mod is content, not a native shared library. Keep its virtual paths stable in
+# both directory and pack form; the C++ systems remain a host-side library for now.
+add_custom_target(manifest_mod
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${MANIFEST_MOD_DIRECTORY}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${MANIFEST_MOD_DIRECTORY}/manifest"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/mods/manifest/mod.yaml" "${MANIFEST_MOD_DIRECTORY}/mod.yaml"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${MANIFEST_DATA_OUTPUT_DIR}" "${MANIFEST_MOD_DIRECTORY}/manifest/core-config"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${MANIFEST_DATA_SOURCE_DIR}/universe" "${MANIFEST_MOD_DIRECTORY}/manifest/universe"
+    VERBATIM)
+if(TARGET manifest_data)
+    add_dependencies(manifest_mod manifest_data)
+else()
+    # Packaging without yq must fail, rather than ship a directory missing its game data.
+    add_custom_command(TARGET manifest_mod PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "manifest_mod requires mikefarah/yq v4"
+        COMMAND ${CMAKE_COMMAND} -E false)
 endif()
+jettison_add_pack(manifest_pack
+    SOURCE "${MANIFEST_MOD_DIRECTORY}"
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/manifest.pack"
+    DEPENDS manifest_mod)

@@ -1,20 +1,7 @@
-# Worktrunk project configuration.
-# Hooks, aliases and defaults for this repository. Docs: https://worktrunk.dev/hook/
+# The same preset and gate workflow as the engine, without its renderer tests.
+post-start = "cmake --preset clang-debug && cmake --build --preset clang-debug"
+pre-commit = "./scripts/format-check.sh"
+pre-merge = "./scripts/ci.sh --werror --asan"
 
-# Build the standalone core in every new worktree. The configure step is repeated
-# on purpose: devenv's enterShell runs `wt step copy-ignored`, which can copy a
-# build directory from another worktree, and a copied CMakeCache.txt holds the
-# absolute paths of the worktree it came from.
-post-start = "cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug && cmake --build build"
-
-# Only merge on a clean build, a passing test suite and clean formatting. The
-# formatting gate is here because a formatter that runs only by habit drifts, and the
-# drift lands in review as noise on top of the change. The parentheses around the -o
-# terms are load bearing: find's -print binds to the last -name, so without them the
-# gate sees the .cpp files and lets header drift through.
-pre-merge = "cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug && cmake --build build && ctest --test-dir build --output-on-failure && find Source Tests \\( -name '*.h' -o -name '*.hpp' -o -name '*.cpp' \\) -print0 | xargs -0 -r clang-format --dry-run -Werror"
-
-# Never copy these into a new worktree: they are machine-local, large, and the
-# copied CMakeCache.txt points at the absolute paths of the source worktree.
 [step.copy-ignored]
-exclude = ["build/", ".devenv/", ".cache/"]
+exclude = ["build/", ".devenv/", ".cache/", "CMakeUserPresets.json"]

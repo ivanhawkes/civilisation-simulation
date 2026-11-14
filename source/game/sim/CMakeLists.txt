@@ -1,0 +1,13 @@
+manifest_add_module(sim
+	DEPENDS
+		config
+		universe
+	HEADERS
+		include/manifest/sim/Simulation.h
+	SOURCES
+		src/Simulation.cpp
+	TESTS
+		tests/SimulationTests.cpp
+	PRIVATE_LIBRARIES
+		Jettison::Math
+)

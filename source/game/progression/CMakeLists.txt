@@ -1,0 +1,10 @@
+manifest_add_module(progression
+	DEPENDS
+		config
+	HEADERS
+		include/manifest/progression/ProgressionManager.h
+	SOURCES
+		src/ProgressionManager.cpp
+	TESTS
+		tests/ProgressionTests.cpp
+)

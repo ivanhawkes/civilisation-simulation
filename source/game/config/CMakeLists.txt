@@ -1,0 +1,11 @@
+manifest_add_module(config
+	HEADERS
+		include/manifest/config/SimulationConfig.h
+		include/manifest/config/YamlFieldReaders.h
+	SOURCES
+		src/SimulationConfig.cpp
+	TESTS
+		tests/ConfigTests.cpp
+	PUBLIC_LIBRARIES
+		yaml-cpp::yaml-cpp
+)

@@ -1,0 +1,41 @@
+# Mirror JettisonModule.cmake: one static library and public header set per game
+# module, with dependencies listed lowest tier first and an optional doctest suite.
+function(manifest_add_module name)
+    cmake_parse_arguments(PARSE_ARGV 1 arg "" "NAMESPACE"
+        "HEADERS;SOURCES;TESTS;DEPENDS;PUBLIC_LIBRARIES;PRIVATE_LIBRARIES")
+    if(arg_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "manifest_add_module(${name}): unknown arguments: ${arg_UNPARSED_ARGUMENTS}")
+    endif()
+    if(NOT arg_NAMESPACE)
+        string(SUBSTRING "${name}" 0 1 first)
+        string(SUBSTRING "${name}" 1 -1 rest)
+        string(TOUPPER "${first}" first)
+        set(arg_NAMESPACE "${first}${rest}")
+    endif()
+    set(target "manifest_${name}")
+    add_library(${target} STATIC)
+    add_library(Manifest::${arg_NAMESPACE} ALIAS ${target})
+    set_target_properties(${target} PROPERTIES FOLDER "Game")
+    target_sources(${target}
+        PUBLIC FILE_SET HEADERS BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/include" FILES ${arg_HEADERS}
+        PRIVATE ${arg_SOURCES})
+    target_include_directories(${target} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+    set(dependencies)
+    foreach(dependency IN LISTS arg_DEPENDS)
+        if(NOT TARGET manifest_${dependency})
+            message(FATAL_ERROR "manifest_add_module(${name}): dependency '${dependency}' has not been added; modules must be ordered lowest tier first")
+        endif()
+        list(APPEND dependencies manifest_${dependency})
+    endforeach()
+    target_link_libraries(${target}
+        PUBLIC ${dependencies} ${arg_PUBLIC_LIBRARIES}
+        PRIVATE ${arg_PRIVATE_LIBRARIES} manifest_warnings)
+    target_compile_options(${target} PRIVATE -ffp-contract=off)
+    if(MANIFEST_BUILD_TESTS AND BUILD_TESTING AND arg_TESTS)
+        add_executable(${target}_tests ${arg_TESTS})
+        target_link_libraries(${target}_tests PRIVATE ${target} manifest_test_helpers doctest::doctest_with_main manifest_warnings)
+        target_compile_options(${target}_tests PRIVATE -ffp-contract=off)
+        set_target_properties(${target}_tests PROPERTIES FOLDER "Test")
+        add_test(NAME ${name} COMMAND ${target}_tests)
+    endif()
+endfunction()

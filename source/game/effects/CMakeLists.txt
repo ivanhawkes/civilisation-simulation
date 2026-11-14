@@ -1,0 +1,15 @@
+manifest_add_module(effects
+	DEPENDS
+		types
+		config
+		progression
+		ecs
+	HEADERS
+		include/manifest/effects/CivilisationEffects.h
+		include/manifest/effects/EffectCatalogue.h
+		include/manifest/effects/ShipEffectEngine.h
+	SOURCES
+		src/CivilisationEffects.cpp
+		src/EffectCatalogue.cpp
+		src/ShipEffectEngine.cpp
+)
